@@ -2,6 +2,8 @@
 
 A **client-side portal of recreated classic computer games**, built on a small pluggable game engine. Ships with **JezzBall**, **Minesweeper** and **Snake**; adding a new game is one file plus one line in a registry. No backend — it builds to static files and plays fully offline.
 
+**▶ Play it: <https://bamr87.github.io/rewind-arcade/>**
+
 Built with **React + TypeScript + Vite**. Rendering is plain HTML5 canvas; sound is synthesized with the Web Audio API (no asset files).
 
 ## Quick start
