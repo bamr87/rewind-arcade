@@ -56,4 +56,5 @@ out of `tone()`/`arp()`. `ensure()` is called on first input to satisfy autoplay
 
 - `legacy/jezzball-standalone.html` is the preserved original single-file version. It is
   not built or imported; don't try to keep it in sync with `src/`.
-- `dist/` is checked in but gitignored — it is a build output, not a source of truth.
+- `dist/` and `tsconfig.tsbuildinfo` are gitignored build outputs; a stale `dist/` may
+  sit in the working tree from an earlier build.
