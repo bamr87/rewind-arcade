@@ -175,6 +175,11 @@ export interface GameManifest {
   icon: string;
   description: string;
   howTo: { icon: string; text: string }[];
+  /**
+   * CSS cursor for the canvas. Games that paint their own pointer (JezzBall's
+   * build guide) set 'none'; everything else wants a real, visible pointer.
+   */
+  cursor?: string;
   config: ConfigField[];
   create(context: GameContext): GameInstance;
 }

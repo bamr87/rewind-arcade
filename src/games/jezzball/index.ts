@@ -16,6 +16,8 @@ export const jezzballManifest: GameManifest = {
     { icon: '⚠️', text: 'A ball hitting a growing wall shatters it and costs a life.' },
     { icon: '🏁', text: 'Seal off the target % of the arena to clear the level.' },
   ],
+  // JezzBall paints its own crosshair and chevrons in drawGuide().
+  cursor: 'none',
   config: [
     { key: 'cols', label: 'Arena width', type: 'range', min: 24, max: 56, step: 1, default: 40, unit: ' cols', restart: true, help: 'Number of columns in the play field.' },
     { key: 'rows', label: 'Arena height', type: 'range', min: 16, max: 32, step: 1, default: 25, unit: ' rows', restart: true, help: 'Number of rows in the play field.' },

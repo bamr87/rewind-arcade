@@ -75,7 +75,7 @@ export function GamePage({ manifest }: Props) {
       />
 
       <div className="stage">
-        <canvas ref={engine.canvasRef} className="game-canvas" />
+        <canvas ref={engine.canvasRef} className="game-canvas" style={{ cursor: manifest.cursor ?? 'default' }} />
         {pauseOverlay && <Overlay model={pauseOverlay} onAction={handleOverlayAction} />}
         {!pauseOverlay && engine.overlay && (
           <Overlay model={engine.overlay} onAction={handleOverlayAction} />
