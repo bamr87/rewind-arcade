@@ -1,5 +1,6 @@
 import type { GameManifest } from '../engine/types';
 import { jezzballManifest } from './jezzball';
+import { minesweeperManifest } from './minesweeper';
 import { snakeManifest } from './snake';
 
 /**
@@ -8,7 +9,7 @@ import { snakeManifest } from './snake';
  * else — the arcade card, routing, HUD, config panel, high-score tracking —
  * is derived from the manifest automatically.
  */
-export const GAMES: GameManifest[] = [jezzballManifest, snakeManifest];
+export const GAMES: GameManifest[] = [jezzballManifest, minesweeperManifest, snakeManifest];
 
 export function getGame(id: string | undefined): GameManifest | undefined {
   return GAMES.find((g) => g.id === id);

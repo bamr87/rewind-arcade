@@ -17,7 +17,7 @@ Verifying gameplay changes means running the app. Append `?debug=1` to the URL t
 
 ## Architecture
 
-Rewind Arcade is a static, backend-free React + TypeScript + Vite site: a pluggable retro-game engine hosting JezzBall and Snake. `vite.config.ts` sets `base: './'` so `dist/` runs from any static host or a bare file path; routing is therefore hash-based (`src/engine/router.ts`, `#/` and `#/play/<id>`) with no server rewrites.
+Rewind Arcade is a static, backend-free React + TypeScript + Vite site: a pluggable retro-game engine hosting JezzBall, Minesweeper and Snake. `vite.config.ts` sets `base: './'` so `dist/` runs from any static host or a bare file path; routing is therefore hash-based (`src/engine/router.ts`, `#/` and `#/play/<id>`) with no server rewrites.
 
 ### The engine/game seam
 
@@ -29,7 +29,7 @@ The central design constraint: **`src/engine/` and `src/ui/` know nothing about 
 - The instance's only channel back to the host is the `GameContext`: a 2D canvas
 context, the resolved config, the audio bus, `setHud`, `setOverlay`, `submitScore`, `getBest`.
 
-Everything user-visible is *derived* from the manifest: the arcade card (`src/ui/Arcade.tsx`), routing (`src/App.tsx`), the HUD (`src/ui/Hud.tsx`, driven by the `HudModel` a game pushes via `setHud`), all menu/win/lose/pause panels (`src/ui/Overlay.tsx`, from the declarative `OverlayModel`), and the settings drawer (`src/ui/ConfigPanel.tsx`, generated from the `ConfigField[]` schema). Adding a game is one directory plus one entry in `GAMES` in `src/games/registry.ts` — no other file changes. Snake exists mainly to keep this seam honest: it shares zero code with JezzBall (tick-based grid vs. continuous physics) yet reuses the entire shell.
+Everything user-visible is *derived* from the manifest: the arcade card (`src/ui/Arcade.tsx`), routing (`src/App.tsx`), the HUD (`src/ui/Hud.tsx`, driven by the `HudModel` a game pushes via `setHud`), all menu/win/lose/pause panels (`src/ui/Overlay.tsx`, from the declarative `OverlayModel`), and the settings drawer (`src/ui/ConfigPanel.tsx`, generated from the `ConfigField[]` schema). Adding a game is one directory plus one entry in `GAMES` in `src/games/registry.ts` — no other file changes. Snake and Minesweeper exist mainly to keep this seam honest: they share zero code with JezzBall or each other (tick-based grid, turn-based deduction, continuous physics) yet reuse the entire shell.
 
 ### `useGameEngine` owns the lifecycle
 

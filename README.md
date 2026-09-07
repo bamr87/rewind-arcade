@@ -1,6 +1,6 @@
 # 🕹️ Rewind Arcade
 
-A **client-side portal of recreated classic computer games**, built on a small pluggable game engine. Ships with **JezzBall** and **Snake**; adding a new game is one file plus one line in a registry. No backend — it builds to static files and plays fully offline.
+A **client-side portal of recreated classic computer games**, built on a small pluggable game engine. Ships with **JezzBall**, **Minesweeper** and **Snake**; adding a new game is one file plus one line in a registry. No backend — it builds to static files and plays fully offline.
 
 Built with **React + TypeScript + Vite**. Rendering is plain HTML5 canvas; sound is synthesized with the Web Audio API (no asset files).
 
@@ -29,8 +29,9 @@ src/
     util.ts               #   small canvas/color/number helpers
   games/
     registry.ts           # the catalog — the ONE place a game is registered
-    jezzball/             #   JezzBall (game logic + manifest/config schema)
-    snake/                #   Snake     (game logic + manifest/config schema)
+    jezzball/             #   JezzBall    (game logic + manifest/config schema)
+    minesweeper/          #   Minesweeper (game logic + manifest/config schema)
+    snake/                #   Snake       (game logic + manifest/config schema)
   ui/
     Arcade.tsx            # home grid, generated from the registry
     GamePage.tsx          # mounts a game: HUD + overlays + settings
@@ -51,7 +52,7 @@ its own `design` resolution and implements `update(dt)` / `render()` plus whatev
    `src/games/<your-game>/index.ts`.
 3. Add the manifest to the `GAMES` array in `src/games/registry.ts`.
 
-That's it. The arcade card, routing, HUD, the settings drawer, high-score tracking and pause are all derived from the manifest automatically — no other file needs to change. Snake exists mainly to prove this seam: it shares zero code with JezzBall yet reuses the entire shell.
+That's it. The arcade card, routing, HUD, the settings drawer, high-score tracking and pause are all derived from the manifest automatically — no other file needs to change. Snake and Minesweeper exist mainly to prove this seam: they share zero code with JezzBall — or with each other — yet reuse the entire shell. Minesweeper is turn-based rather than animated, which shows the loop is happy to drive a game where nothing moves on its own.
 
 ### The config schema
 
@@ -61,6 +62,9 @@ Each field a game declares becomes a control in the settings drawer (`⚙`) and 
 
 ### JezzBall (1992)
 Grow walls to partition the arena and seal off empty space while balls ricochet. A ball touching a wall **mid-build** shatters it and costs a life. Seal the target % to clear the level; each level adds a ball. Click to build, right-click / scroll / **V** to rotate the wall.
+
+### Minesweeper (1990)
+Uncover squares and read the numbers — each one counts the mines in the eight squares around it. Click to dig, right-click / scroll / **F** to flag, and click a fully flagged number to clear its neighbours in one move. The first click is always safe. Field size and mine density are configurable.
 
 ### Snake (1976)
 Steer a snake with the arrow keys / **WASD** (or swipe on touch), eat apples to grow longer and faster, and avoid the walls and your own tail. Optional wrap-around mode in settings.
