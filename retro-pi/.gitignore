@@ -1,0 +1,33 @@
+# ---- Content you own: never commit game data ----
+roms/**
+!roms/.gitkeep
+!roms/README.md
+bios/**
+!bios/.gitkeep
+!bios/README.md
+saves/**
+!saves/.gitkeep
+screenshots/**
+!screenshots/.gitkeep
+themes/**
+!themes/.gitkeep
+downloads/
+media/
+
+# ---- Generated / local state ----
+.retropi/
+build/
+dist/
+*.log
+config/local.yaml
+config/*.local.yaml
+.env
+
+# ---- OS / editor cruft ----
+.DS_Store
+._*
+Thumbs.db
+*.swp
+.idea/
+.vscode/*
+!.vscode/extensions.json

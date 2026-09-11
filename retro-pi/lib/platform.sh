@@ -1,0 +1,203 @@
+#!/usr/bin/env bash
+# lib/platform.sh - detect the host and expose one vocabulary for both targets.
+#
+# Everything above this layer talks in terms of RETROPI_OS / pkg_install /
+# core_dir; nothing else in the tree is allowed to branch on `uname`.
+
+# --- detection ----------------------------------------------------------------
+
+detect_platform() {
+  RETROPI_ARCH="$(uname -m)"
+  case "$(uname -s)" in
+    Darwin) RETROPI_OS="macos" ;;
+    Linux)  RETROPI_OS="linux" ;;
+    *)      RETROPI_OS="unknown" ;;
+  esac
+
+  # Raspberry Pi identifies itself in the device tree; fall back to cpuinfo.
+  RETROPI_IS_PI=0
+  RETROPI_PI_MODEL=""
+  if [[ -r /proc/device-tree/model ]]; then
+    RETROPI_PI_MODEL="$(tr -d '\0' < /proc/device-tree/model 2>/dev/null || true)"
+  elif [[ -r /proc/cpuinfo ]]; then
+    RETROPI_PI_MODEL="$(awk -F': ' '/^Model/{print $2; exit}' /proc/cpuinfo 2>/dev/null || true)"
+  fi
+  [[ "$RETROPI_PI_MODEL" == *"Raspberry Pi"* ]] && RETROPI_IS_PI=1
+
+  # Distro id, for apt-vs-other messaging.
+  RETROPI_DISTRO=""
+  if [[ -r /etc/os-release ]]; then
+    # shellcheck disable=SC1091
+    RETROPI_DISTRO="$(. /etc/os-release && printf '%s' "${ID:-}")"
+  fi
+
+  # Package manager.
+  if have brew;   then RETROPI_PKG="brew"
+  elif have apt-get; then RETROPI_PKG="apt"
+  elif have dnf;  then RETROPI_PKG="dnf"
+  elif have pacman; then RETROPI_PKG="pacman"
+  else RETROPI_PKG="none"; fi
+
+  export RETROPI_OS RETROPI_ARCH RETROPI_IS_PI RETROPI_PI_MODEL RETROPI_DISTRO RETROPI_PKG
+}
+
+platform_label() {
+  local label="$RETROPI_OS/$RETROPI_ARCH"
+  [[ "$RETROPI_IS_PI" == "1" ]] && label="$label (${RETROPI_PI_MODEL:-Raspberry Pi})"
+  printf '%s' "$label"
+}
+
+# platform_tags - tags a manifest can filter emulators on (macos, linux, pi, arm64).
+platform_tags() {
+  local tags="$RETROPI_OS $RETROPI_ARCH"
+  [[ "$RETROPI_IS_PI" == "1" ]] && tags="$tags pi"
+  printf '%s' "$tags"
+}
+
+# --- package manager abstraction ---------------------------------------------
+
+# pkg_install <pkg...> - install OS packages using whatever manager exists.
+pkg_install() {
+  [[ $# -gt 0 ]] || return 0
+  case "$RETROPI_PKG" in
+    brew)   run brew install "$@" ;;
+    apt)    run sudo apt-get install -y --no-install-recommends "$@" ;;
+    dnf)    run sudo dnf install -y "$@" ;;
+    pacman) run sudo pacman -S --needed --noconfirm "$@" ;;
+    *)      die "no supported package manager found; install manually: $*" ;;
+  esac
+}
+
+# pkg_install_cask <cask...> - macOS GUI apps; a no-op elsewhere.
+pkg_install_cask() {
+  [[ $# -gt 0 ]] || return 0
+  [[ "$RETROPI_OS" == "macos" ]] || { debug "skipping casks on $RETROPI_OS: $*"; return 0; }
+  run brew install --cask "$@"
+}
+
+pkg_refresh() {
+  case "$RETROPI_PKG" in
+    brew) run brew update ;;
+    apt)  run sudo apt-get update ;;
+    *)    : ;;
+  esac
+}
+
+# pkg_installed <pkg> - true when the package is already present.
+pkg_installed() {
+  case "$RETROPI_PKG" in
+    brew) brew list --versions "$1" >/dev/null 2>&1 || brew list --cask --versions "$1" >/dev/null 2>&1 ;;
+    apt)  dpkg -s "$1" >/dev/null 2>&1 ;;
+    dnf)  rpm -q "$1" >/dev/null 2>&1 ;;
+    pacman) pacman -Qi "$1" >/dev/null 2>&1 ;;
+    *) return 1 ;;
+  esac
+}
+
+# --- RetroArch layout ---------------------------------------------------------
+# RetroArch stores cores and config in different places per platform. These are
+# the only functions that know that.
+
+retroarch_config_dir() {
+  if [[ -n "${RETROPI_RETROARCH_CONFIG:-}" ]]; then
+    printf '%s' "$RETROPI_RETROARCH_CONFIG"; return
+  fi
+  case "$RETROPI_OS" in
+    macos) printf '%s' "$HOME/Library/Application Support/RetroArch" ;;
+    *)     printf '%s' "${XDG_CONFIG_HOME:-$HOME/.config}/retroarch" ;;
+  esac
+}
+
+core_dir() {
+  if [[ -n "${RETROPI_CORE_DIR:-}" ]]; then printf '%s' "$RETROPI_CORE_DIR"; return; fi
+  case "$RETROPI_OS" in
+    macos) printf '%s' "$HOME/Library/Application Support/RetroArch/cores" ;;
+    *)
+      # RetroPie ships cores here; plain Debian uses the user config dir.
+      if [[ -d /opt/retropie/libretrocores ]]; then
+        printf '%s' "/opt/retropie/libretrocores"
+      elif [[ -d /usr/lib/libretro ]]; then
+        printf '%s' "/usr/lib/libretro"
+      else
+        printf '%s' "${XDG_CONFIG_HOME:-$HOME/.config}/retroarch/cores"
+      fi
+      ;;
+  esac
+}
+
+core_ext() {
+  [[ "$RETROPI_OS" == "macos" ]] && printf 'dylib' || printf 'so'
+}
+
+# core_path <core_name> - absolute path to a core binary (may not exist yet).
+core_path() {
+  printf '%s/%s.%s' "$(core_dir)" "$1" "$(core_ext)"
+}
+
+# core_installed <core_name>
+core_installed() { [[ -f "$(core_path "$1")" ]]; }
+
+# retroarch_bin - the launcher command ES will invoke.
+retroarch_bin() {
+  if [[ -n "${RETROPI_RETROARCH_BIN:-}" ]]; then printf '%s' "$RETROPI_RETROARCH_BIN"; return; fi
+  if have retroarch; then command -v retroarch; return; fi
+  if [[ "$RETROPI_OS" == "macos" && -x "/Applications/RetroArch.app/Contents/MacOS/RetroArch" ]]; then
+    printf '%s' "/Applications/RetroArch.app/Contents/MacOS/RetroArch"; return
+  fi
+  if [[ -x /opt/retropie/emulators/retroarch/bin/retroarch ]]; then
+    printf '%s' "/opt/retropie/emulators/retroarch/bin/retroarch"; return
+  fi
+  printf 'retroarch'
+}
+
+# --- libretro buildbot --------------------------------------------------------
+# Maps the host to the buildbot path that serves matching core binaries.
+
+buildbot_base() { printf '%s' "${RETROPI_BUILDBOT:-https://buildbot.libretro.com/nightly}"; }
+
+buildbot_path() {
+  # These strings are the buildbot's actual directory names, verified against
+  # the live index. Note 64-bit ARM is "aarch64" there, NOT "arm64" - that is
+  # the Raspberry Pi 4/5 path and getting it wrong 404s every core download.
+  case "$RETROPI_OS:$RETROPI_ARCH" in
+    macos:arm64)               printf 'apple/osx/arm64' ;;
+    macos:x86_64)              printf 'apple/osx/x86_64' ;;
+    linux:aarch64|linux:arm64) printf 'linux/aarch64' ;;
+    linux:armv7l)              printf 'linux/armv7-neon-hf' ;;
+    linux:armv6l)              printf 'linux/armhf' ;;
+    linux:x86_64)              printf 'linux/x86_64' ;;
+    linux:i686|linux:i386)     printf 'linux/x86' ;;
+    *) return 1 ;;
+  esac
+}
+
+# core_download_url <core_name> - zipped core matching this host.
+core_download_url() {
+  local path
+  path="$(buildbot_path)" || return 1
+  printf '%s/%s/latest/%s.%s.zip' "$(buildbot_base)" "$path" "$1" "$(core_ext)"
+}
+
+# --- frontend discovery -------------------------------------------------------
+
+# es_config_dir - where the frontend reads es_systems.xml from.
+es_config_dir() {
+  if [[ -n "${RETROPI_ES_CONFIG:-}" ]]; then printf '%s' "$RETROPI_ES_CONFIG"; return; fi
+  case "$RETROPI_OS" in
+    macos) printf '%s' "$HOME/.emulationstation/custom_systems" ;;
+    *)
+      if [[ -d /opt/retropie/configs/all/emulationstation ]]; then
+        printf '%s' "/opt/retropie/configs/all/emulationstation"
+      else
+        printf '%s' "$HOME/.emulationstation/custom_systems"
+      fi
+      ;;
+  esac
+}
+
+es_installed() {
+  have emulationstation && return 0
+  [[ "$RETROPI_OS" == "macos" && -d "/Applications/ES-DE.app" ]] && return 0
+  [[ -x /opt/retropie/supplementary/emulationstation/emulationstation ]] && return 0
+  return 1
+}

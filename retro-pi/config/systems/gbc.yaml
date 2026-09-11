@@ -1,0 +1,29 @@
+# Nintendo Game Boy Color - retro-pi system manifest
+# Regenerate frontend entries after editing:  ./bin/retropi build
+id: gbc
+name: "Nintendo Game Boy Color"
+short_name: "GBC"
+manufacturer: "Nintendo"
+year: 1998
+aliases: []
+
+frontend:
+  platform: gbc   # scraper/theme id understood by ES-DE and RetroPie
+  theme: gbc
+
+# File types the frontend will show for this system.
+extensions: [".gbc", ".gb", ".zip", ".7z"]
+
+emulators:
+  default: gambatte
+  list:
+    - id: gambatte
+      type: libretro
+      core: gambatte_libretro
+      display: "Gambatte"
+    - id: sameboy
+      type: libretro
+      core: sameboy_libretro
+      display: "SameBoy"
+
+bios: []

@@ -1,0 +1,29 @@
+# Sega Master System - retro-pi system manifest
+# Regenerate frontend entries after editing:  ./bin/retropi build
+id: mastersystem
+name: "Sega Master System"
+short_name: "SMS"
+manufacturer: "Sega"
+year: 1985
+aliases: [sms]
+
+frontend:
+  platform: mastersystem   # scraper/theme id understood by ES-DE and RetroPie
+  theme: mastersystem
+
+# File types the frontend will show for this system.
+extensions: [".sms", ".bin", ".zip", ".7z"]
+
+emulators:
+  default: genesis-plus-gx
+  list:
+    - id: genesis-plus-gx
+      type: libretro
+      core: genesis_plus_gx_libretro
+      display: "Genesis Plus GX"
+    - id: smsplus
+      type: libretro
+      core: smsplus_libretro
+      display: "SMS Plus GX"
+
+bios: []

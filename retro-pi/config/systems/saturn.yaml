@@ -1,0 +1,44 @@
+# Sega Saturn - retro-pi system manifest
+# Regenerate frontend entries after editing:  ./bin/retropi build
+id: saturn
+name: "Sega Saturn"
+short_name: "Saturn"
+manufacturer: "Sega"
+year: 1994
+aliases: []
+
+frontend:
+  platform: saturn   # scraper/theme id understood by ES-DE and RetroPie
+  theme: saturn
+
+# File types the frontend will show for this system.
+extensions: [".cue", ".chd", ".iso", ".ccd", ".mds"]
+
+emulators:
+  default: yabasanshiro
+  list:
+    - id: yabasanshiro
+      type: libretro
+      core: yabasanshiro_libretro
+      display: "YabaSanshiro"
+    - id: beetle-saturn
+      type: libretro
+      core: mednafen_saturn_libretro
+      display: "Beetle Saturn (accuracy)"
+      platforms: [macos]
+
+# Checked by `retropi doctor --bios`. retro-pi never downloads BIOS files;
+# you must supply them from hardware you own.
+bios:
+  - file: "sega_101.bin"
+    md5: 85ec9ca47d8f6807718151cbcca8b964
+    required: false
+    note: "JP BIOS"
+  - file: "mpr-17933.bin"
+    md5: 3240872c70984b6cbfda1586cab68dbe
+    required: true
+    note: "US/EU BIOS"
+
+notes: >-
+  Saturn is heavy. Beetle Saturn needs a fast desktop CPU; YabaSanshiro is
+  the Pi option.

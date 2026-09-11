@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+# CLI contract: help, unknown commands, exit codes, global flags.
+
+setup_sandbox() { RP="$REPO_ROOT/bin/retropi"; }
+teardown_sandbox() { :; }
+
+test_version_flag_prints_version() {
+  assert_contains "$("$RP" --version)" "retropi"
+}
+
+test_help_lists_core_commands() {
+  local out
+  out="$("$RP" --help 2>&1)"
+  assert_contains "$out" "doctor"
+  assert_contains "$out" "install"
+  assert_contains "$out" "build"
+  assert_contains "$out" "roms"
+  assert_contains "$out" "sync"
+}
+
+test_unknown_command_fails_with_message() {
+  local out
+  out="$("$RP" definitely-not-a-command 2>&1)" && return 1
+  assert_contains "$out" "unknown command"
+}
+
+test_no_arguments_shows_usage_and_fails() {
+  assert_fails "$RP"
+}
+
+test_every_command_has_help() {
+  local c out
+  for c in doctor install build config systems roms bios cores sync package extend clean; do
+    out="$("$RP" "$c" --help 2>&1)" || true
+    assert_contains "$out" "retropi $c" "no help text for '$c'" || return 1
+  done
+}
+
+test_subcommand_help_does_not_require_config() {
+  assert_ok "$RP" config --help
+  assert_ok "$RP" systems --help
+}
+
+test_systems_list_shows_enabled_systems() {
+  local out
+  out="$("$RP" systems list 2>&1)"
+  assert_contains "$out" "nes"
+  assert_contains "$out" "Nintendo Entertainment System"
+}
+
+test_systems_show_reports_detail() {
+  local out
+  out="$("$RP" systems show psx 2>&1)"
+  assert_contains "$out" "Sony PlayStation"
+  assert_contains "$out" "swanstation_libretro"
+  assert_contains "$out" "scph5501.bin"
+}
+
+test_systems_show_accepts_aliases() {
+  local out
+  out="$("$RP" systems show genesis 2>&1)"
+  assert_contains "$out" "Mega Drive"
+}
+
+test_unknown_system_is_rejected() {
+  assert_fails "$RP" systems show not_a_console
+}
+
+test_config_get_reads_defaults() {
+  assert_eq "retroarch" "$("$RP" config get emulation.backend 2>/dev/null)"
+}
+
+test_dry_run_is_accepted_globally() {
+  assert_ok "$RP" --dry-run clean
+}
