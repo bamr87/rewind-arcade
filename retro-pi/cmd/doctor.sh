@@ -16,19 +16,11 @@ _check_tool() {
     _pass "$tool"
   elif [[ "$hard" == "hard" ]]; then
     _fail "$tool missing - $why"
-    _hint "  install $tool: $(_install_hint "$tool")"
+    _hint "  install $tool: $(pkg_install_hint "$tool")"
   else
     _warn "$tool missing - $why"
-    _hint "  optional: $(_install_hint "$tool")"
+    _hint "  optional: $(pkg_install_hint "$tool")"
   fi
-}
-
-_install_hint() {
-  case "$RETROPI_PKG" in
-    brew) printf 'brew install %s' "$1" ;;
-    apt)  printf 'sudo apt-get install -y %s' "$1" ;;
-    *)    printf 'install %s with your package manager' "$1" ;;
-  esac
 }
 
 cmd_doctor() {
@@ -124,18 +116,20 @@ __H__
     _fail "RetroArch not found"
     _hint "  install the emulator stack: ./bin/retropi install"
   fi
-  local cdir count
-  cdir="$(core_dir)"
-  if [[ -d "$cdir" ]]; then
-    count="$(find "$cdir" -name "*.$(core_ext)" 2>/dev/null | wc -l | tr -d ' ')"
-    if [[ "$count" -gt 0 ]]; then
-      _pass "libretro cores installed: $count (in $cdir)"
-    else
-      _warn "core directory exists but is empty: $cdir"
-      _hint "  install cores for your enabled systems: ./bin/retropi cores install"
-    fi
+  # Cores can live in retro-pi's own directory and, on Linux, in directories
+  # apt or RetroPie own (Debian: /usr/lib/<multiarch>/libretro). Count them all.
+  local cdir count=0 n where="" core_files=""
+  while IFS= read -r cdir; do
+    [[ -d "$cdir" ]] || continue
+    n="$(find "$cdir" -name "*.$(core_ext)" 2>/dev/null | wc -l | tr -d ' ')"
+    [[ "$n" -gt 0 ]] || continue
+    count=$((count+n)); where="$where, $cdir"
+    core_files="$core_files$(find "$cdir" -name "*.$(core_ext)" -type f 2>/dev/null)"$'\n'
+  done < <(core_search_dirs)
+  if [[ "$count" -gt 0 ]]; then
+    _pass "libretro cores installed: $count (in ${where#, })"
   else
-    _warn "no core directory yet: $cdir"
+    _warn "no libretro cores installed yet (retro-pi installs them to $(core_dir))"
     _hint "  install cores for your enabled systems: ./bin/retropi cores install"
   fi
   if buildbot_path >/dev/null 2>&1; then
@@ -166,18 +160,30 @@ __H__
   elif [[ "$RETROPI_OS" == "macos" && "$RETROPI_ARCH" == "arm64" ]]; then
     _pass "RetroArch runs natively (arm64); hardware-rendered cores are supported"
   fi
-  if [[ -d "$cdir" && "${count:-0}" -gt 0 ]]; then
+  if [[ "$count" -gt 0 ]]; then
     local bad_arch="" cf cname
     while IFS= read -r cf; do
       [[ -n "$cf" ]] || continue
       cname="$(basename "$cf" ".$(core_ext)")"
       core_arch_matches "$cname" || bad_arch="$bad_arch $cname"
-    done < <(find "$cdir" -name "*.$(core_ext)" -type f 2>/dev/null)
+    done <<< "$core_files"
     if [[ -n "$bad_arch" ]]; then
       _fail "cores built for the wrong architecture (RetroArch needs $need_arch):$bad_arch"
       _hint "  rebuild them for the right architecture: ./bin/retropi cores install --force"
     else
       _pass "installed cores match RetroArch's architecture ($need_arch)"
+    fi
+  fi
+
+  # Over SSH, or on a server, there is no display for RetroArch or the
+  # frontend to open. Everything else still works, so this is a warning.
+  if ! platform_has_display; then
+    _warn "no graphical session in this shell (DISPLAY and WAYLAND_DISPLAY are unset)"
+    _hint "  games and the frontend need a desktop session; to smoke-test without one:"
+    if have xvfb-run; then
+      _hint "    tools/run-rom.sh nes --headless --frames 120 --screenshot /tmp/shot.png"
+    else
+      _hint "    $(pkg_install_hint "xvfb xauth"), then: tools/run-rom.sh nes --headless --frames 120"
     fi
   fi
 

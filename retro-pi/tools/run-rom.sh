@@ -9,6 +9,8 @@
 #   tools/run-rom.sh nes path/to/game.nes      # a specific ROM
 #   tools/run-rom.sh nes --emulator mesen      # a specific emulator
 #   tools/run-rom.sh nes --print               # print the command, run nothing
+#   tools/run-rom.sh nes --headless --frames 120 --screenshot shot.png
+#                                              # prove video works with no display
 
 set -o errexit
 set -o nounset
@@ -35,6 +37,10 @@ tools/run-rom.sh - launch a ROM with retro-pi's resolved emulator
   --print           print the launch command and exit
   --fullscreen      launch fullscreen (default is windowed, for debugging)
   --log <file>      write a RetroArch verbose log here
+  --frames <n>      quit after n frames instead of waiting for you
+  --screenshot <f>  save the last frame to f (implies --frames 120 if unset)
+  --headless        run inside a virtual display (xvfb-run); for servers and
+                    SSH sessions, where there is no screen to open a window on
 
 With no ROM, the first file in the system's ROM folder is used. For a quick
 smoke test with no game at all:
@@ -57,6 +63,9 @@ emulator=""
 print_only=0
 fullscreen=0
 logfile=""
+frames=""
+screenshot=""
+headless=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -64,6 +73,9 @@ while [[ $# -gt 0 ]]; do
     --print) print_only=1 ;;
     --fullscreen) fullscreen=1 ;;
     --log) logfile="${2:-}"; shift ;;
+    --frames) frames="${2:-}"; shift ;;
+    --screenshot) screenshot="${2:-}"; shift ;;
+    --headless) headless=1 ;;
     -h|--help) usage; exit 0 ;;
     -*) die "unknown option: $1" ;;
     *)
@@ -112,6 +124,24 @@ cmd="$(launch_command "$system" "$emulator")"
 # you are debugging, so strip --fullscreen unless it was asked for.
 [[ "$fullscreen" == "1" ]] || cmd="${cmd// --fullscreen/}"
 [[ -n "$logfile" ]] && cmd="$cmd --verbose --log-file \"$logfile\""
+if [[ -n "$frames" ]]; then
+  [[ "$frames" =~ ^[0-9]+$ && "$frames" -gt 0 ]] || die "--frames needs a positive number, got: $frames"
+fi
+if [[ -n "$screenshot" ]]; then
+  [[ -n "$frames" ]] || frames=120
+  mkdir -p "$(dirname "$screenshot")"
+  shot_abs="$(abspath "$screenshot")"
+fi
+[[ -n "$frames" ]] && cmd="$cmd --max-frames=$frames"
+[[ -n "$screenshot" ]] && cmd="$cmd --max-frames-ss --max-frames-ss-path=\"$shot_abs\""
+if [[ "$headless" == "1" ]]; then
+  wrapper="$(headless_wrapper)" || die "--headless needs xvfb-run: $(pkg_install_hint "xvfb xauth")"
+  [[ -n "$wrapper" ]] && cmd="$wrapper $cmd"
+elif [[ "$print_only" == "0" ]] && ! platform_has_display; then
+  die "no display in this shell (DISPLAY and WAYLAND_DISPLAY are unset)
+Run from a desktop session, or test without one:
+  tools/run-rom.sh $system --headless --frames 120 --screenshot /tmp/shot.png"
+fi
 
 # %ROM% is the frontend's placeholder; substitute the real path.
 rom_abs="$(abspath "$rom")"
@@ -128,3 +158,7 @@ fi
 
 log ""
 eval "$cmd"
+if [[ -n "$screenshot" ]]; then
+  [[ -s "$shot_abs" ]] || die "RetroArch exited without writing $shot_abs"
+  ok "screenshot: $shot_abs"
+fi

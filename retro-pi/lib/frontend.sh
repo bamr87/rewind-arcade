@@ -311,7 +311,13 @@ _fe_install_appimage() {
   cp "$img" "$dest"
   chmod +x "$dest"
   ok "installed $dest"
-  step "AppImages need FUSE: sudo apt-get install -y libfuse2"
+  # Only newer AppImage runtimes run without libfuse2 (ES-DE 3.4 does, on a
+  # Debian 13 box with just fuse3), so try it rather than guess.
+  if [[ "$RETROPI_DRY_RUN" != "1" ]] && ! "$dest" --version </dev/null >/dev/null 2>&1; then
+    warn "the AppImage does not start; it most likely needs FUSE"
+    step "install it: $(pkg_install_hint "$(appimage_fuse_package)")"
+    step "or run without FUSE: $dest --appimage-extract-and-run"
+  fi
   frontend_detect
 }
 

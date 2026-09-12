@@ -31,7 +31,7 @@ config/
 platforms/           per-OS bootstrap scripts
 tools/               launch and development helpers (run-rom.sh, validate-vscode.py)
 tests/               self-contained test suite
-docker/              Linux/arm64 container for testing the Pi path
+docker/              Debian container (bookworm or trixie) for testing the Linux paths
 ```
 
 ## Design rules

@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # platforms/raspberrypi/bootstrap.sh - get a Raspberry Pi ready to run retro-pi.
 #
-# Targets Raspberry Pi OS (Bookworm) on a Pi 4/5 (arm64) or a Pi 3 (armhf).
+# Targets Raspberry Pi OS (bookworm or trixie) on a Pi 4/5 (arm64) or a Pi 3
+# (armhf). Installs through platforms/debian/bootstrap.sh, then adds board advice.
 # Safe to re-run.
 
 set -o errexit
@@ -18,40 +19,12 @@ detect_platform
 info "retro-pi Raspberry Pi bootstrap"
 step "detected: $(platform_label)"
 
-if [[ "$RETROPI_OS" != "linux" ]]; then
-  die "this script is for Linux/Raspberry Pi OS; on a Mac use platforms/macos/bootstrap.sh"
-fi
 if [[ "$RETROPI_IS_PI" != "1" ]]; then
-  warn "this does not look like a Raspberry Pi - continuing anyway"
+  warn "this does not look like a Raspberry Pi - platforms/debian/bootstrap.sh is the generic path"
 fi
 
-if ! have apt-get; then
-  die "expected apt-get (Raspberry Pi OS / Debian). Install dependencies manually and run ./bin/retropi doctor"
-fi
-
-# --- packages -----------------------------------------------------------------
-step "updating package lists"
-run sudo apt-get update
-
-step "installing dependencies"
-run sudo apt-get install -y --no-install-recommends \
-  python3 curl unzip rsync git p7zip-full ca-certificates
-
-# --- RetroArch ----------------------------------------------------------------
-if [[ -x /opt/retropie/emulators/retroarch/bin/retroarch ]]; then
-  ok "RetroPie's RetroArch detected - using it"
-elif have retroarch; then
-  ok "RetroArch already installed: $(command -v retroarch)"
-else
-  step "installing RetroArch from apt"
-  run sudo apt-get install -y retroarch || {
-    warn "apt could not install retroarch."
-    log ""
-    log "Options:"
-    log "  * RetroPie-Setup (full stack):  https://retropie.org.uk/docs/Manual-Installation/"
-    log "  * build RetroArch from source:  https://docs.libretro.com/development/retroarch/compilation/linux-and-bsd/"
-  }
-fi
+# Packages and RetroArch are the same as any Debian machine.
+"$ROOT/platforms/debian/bootstrap.sh" "$@"
 
 # --- performance notes --------------------------------------------------------
 log ""
@@ -82,5 +55,5 @@ fi
 log ""
 info "bootstrap complete"
 log "Next:"
-log "  ./bin/retropi doctor"
 log "  ./bin/retropi install"
+log "  ./bin/retropi doctor"

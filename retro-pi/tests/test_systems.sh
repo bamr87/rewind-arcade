@@ -25,6 +25,7 @@ setup_sandbox() {
   RETROPI_FLAT="$SB/.retropi/config.flat"
   RETROPI_YAML="$SB/lib/yamlite.py"
   export RETROPI_CORE_DIR="$SB/cores"
+  export RETROPI_SYSTEM_CORE_DIRS=""
   detect_platform
   config_load --force
 }
@@ -117,6 +118,72 @@ test_core_installed_detects_files() {
   assert_fails core_installed nestopia_libretro
   touch "$RETROPI_CORE_DIR/nestopia_libretro.$(core_ext)"
   assert_ok core_installed nestopia_libretro
+}
+
+# --- Debian: apt cores live in /usr/lib/<multiarch>/libretro ------------------
+
+test_distro_core_is_found_when_retropi_has_none() {
+  RETROPI_OS="linux"; RETROPI_ARCH="x86_64"
+  mkdir -p "$SB/sys"
+  touch "$SB/sys/nestopia_libretro.so"
+  export RETROPI_SYSTEM_CORE_DIRS="$SB/missing:$SB/sys"
+  assert_eq "$SB/sys/nestopia_libretro.so" "$(core_path nestopia_libretro)"
+  assert_ok core_installed nestopia_libretro
+  assert_fails core_managed nestopia_libretro
+  assert_contains "$(launch_command nes nestopia)" "$SB/sys/nestopia_libretro.so"
+}
+
+test_installs_never_target_a_distro_core_dir() {
+  RETROPI_OS="linux"; RETROPI_ARCH="x86_64"
+  mkdir -p "$SB/sys"
+  export RETROPI_SYSTEM_CORE_DIRS="$SB/sys"
+  assert_eq "$SB/cores" "$(core_dir)"
+  assert_eq "$SB/cores/snes9x_libretro.so" "$(core_path snes9x_libretro)"
+}
+
+test_retropi_core_shadows_the_distro_one() {
+  RETROPI_OS="linux"; RETROPI_ARCH="x86_64"
+  mkdir -p "$SB/sys"
+  touch "$SB/sys/nestopia_libretro.so" "$SB/cores/nestopia_libretro.so"
+  export RETROPI_SYSTEM_CORE_DIRS="$SB/sys"
+  assert_eq "$SB/cores/nestopia_libretro.so" "$(core_path nestopia_libretro)"
+  assert_ok core_managed nestopia_libretro
+}
+
+test_retropie_nested_core_layout_is_found() {
+  RETROPI_OS="linux"; RETROPI_ARCH="aarch64"
+  mkdir -p "$SB/rp/lr-nestopia"
+  touch "$SB/rp/lr-nestopia/nestopia_libretro.so"
+  export RETROPI_SYSTEM_CORE_DIRS="$SB/rp"
+  assert_eq "$SB/rp/lr-nestopia/nestopia_libretro.so" "$(core_path nestopia_libretro)"
+}
+
+test_system_core_dirs_follow_debian_multiarch() {
+  unset RETROPI_SYSTEM_CORE_DIRS
+  RETROPI_OS="linux"
+  RETROPI_ARCH="x86_64";  assert_contains "$(system_core_dirs)" "/usr/lib/x86_64-linux-gnu/libretro"
+  RETROPI_ARCH="aarch64"; assert_contains "$(system_core_dirs)" "/usr/lib/aarch64-linux-gnu/libretro"
+  RETROPI_ARCH="armv7l";  assert_contains "$(system_core_dirs)" "/usr/lib/arm-linux-gnueabihf/libretro"
+  assert_contains "$(system_core_dirs)" "/opt/retropie/libretrocores"
+  RETROPI_OS="macos"
+  assert_eq "" "$(system_core_dirs)"
+}
+
+test_install_hints_match_the_package_manager() {
+  RETROPI_PKG="apt";    assert_eq "sudo apt-get install -y xvfb" "$(pkg_install_hint xvfb)"
+  RETROPI_PKG="dnf";    assert_eq "sudo dnf install -y xvfb" "$(pkg_install_hint xvfb)"
+  RETROPI_PKG="brew";   assert_eq "brew install xvfb" "$(pkg_install_hint xvfb)"
+  RETROPI_PKG="pacman"; assert_eq "fuse2" "$(appimage_fuse_package)"
+}
+
+test_display_detection() {
+  RETROPI_OS="macos"
+  assert_ok platform_has_display
+  assert_eq "" "$(headless_wrapper)"
+  RETROPI_OS="linux"
+  DISPLAY="" WAYLAND_DISPLAY="" assert_fails platform_has_display
+  DISPLAY=":0" WAYLAND_DISPLAY="" assert_ok platform_has_display
+  DISPLAY="" WAYLAND_DISPLAY="wayland-0" assert_ok platform_has_display
 }
 
 test_buildbot_paths_match_known_targets() {

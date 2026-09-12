@@ -205,10 +205,11 @@ These sit outside the CLI because they are development and launch aids rather th
 
 | Script | Purpose |
 |---|---|
-| `tools/run-rom.sh <system> [rom]` | launch a game using the same emulator resolution the frontend uses; `--print` shows the command, `--fullscreen` and `--log <file>` also available |
+| `tools/run-rom.sh <system> [rom]` | launch a game using the same emulator resolution the frontend uses; `--print` shows the command, `--fullscreen` and `--log <file>` also available. `--frames <n>` quits after n frames, `--screenshot <file>` keeps the last one, `--headless` runs inside Xvfb — together they prove video works on a machine with no display |
 | `tools/validate-vscode.py [--run]` | check `.vscode/` run and debug configuration; `--run` executes every launch configuration |
 | `platforms/macos/bootstrap.sh` | install macOS prerequisites |
-| `platforms/raspberrypi/bootstrap.sh` | install Raspberry Pi prerequisites |
+| `platforms/raspberrypi/bootstrap.sh` | install Raspberry Pi prerequisites (runs the Debian bootstrap, then adds board advice) |
+| `platforms/debian/bootstrap.sh [--headless]` | install Debian/Ubuntu prerequisites; `--headless` adds Xvfb |
 | `tests/fixtures/make_test_rom.py` | generate an original NES test cartridge for verifying a setup |
 
 ## Make targets
@@ -219,6 +220,6 @@ These sit outside the CLI because they are development and launch aids rather th
 |---|---|
 | `make check` | everything CI runs: lint, config validation, `.vscode` validation, tests |
 | `make test` | the test suite |
-| `make test-linux` | the suite in a Linux/arm64 container — the Raspberry Pi code path |
+| `make test-linux` | the suite in Debian bookworm and trixie containers — the Raspberry Pi and Debian code paths |
 | `make lint` | shellcheck every script |
 | `make setup` | install, build, doctor |

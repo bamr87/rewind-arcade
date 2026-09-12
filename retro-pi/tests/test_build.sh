@@ -10,6 +10,7 @@ setup_sandbox() {
   cp -R "$REPO_ROOT/bin" "$REPO_ROOT/lib" "$REPO_ROOT/cmd" "$REPO_ROOT/config" "$SB/"
   rm -f "$SB/config/local.yaml"
   export RETROPI_CORE_DIR="$SB/cores"
+  export RETROPI_SYSTEM_CORE_DIRS=""
   export RETROPI_ES_CONFIG="$SB/es"
   export RETROPI_RETROARCH_CONFIG="$SB/ra"
   export RETROPI_RETROARCH_BIN="/usr/bin/true"
@@ -17,7 +18,7 @@ setup_sandbox() {
   RP="$SB/bin/retropi"
 }
 teardown_sandbox() {
-  unset RETROPI_CORE_DIR RETROPI_ES_CONFIG RETROPI_RETROARCH_CONFIG RETROPI_RETROARCH_BIN
+  unset RETROPI_CORE_DIR RETROPI_SYSTEM_CORE_DIRS RETROPI_ES_CONFIG RETROPI_RETROARCH_CONFIG RETROPI_RETROARCH_BIN
   [[ -n "${SB:-}" ]] && rm -rf "$SB"
 }
 
@@ -26,6 +27,13 @@ test_build_creates_rom_directories() {
   assert_dir "$SB/roms/nes"
   assert_dir "$SB/roms/snes"
   assert_file "$SB/roms/nes/_ABOUT.txt"
+}
+
+test_build_creates_the_bios_directory() {
+  # RetroArch's system_directory points here; doctor used to report it
+  # missing straight after a successful build.
+  "$RP" build --systems nes >/dev/null 2>&1
+  assert_dir "$SB/bios"
 }
 
 test_build_writes_wellformed_xml() {

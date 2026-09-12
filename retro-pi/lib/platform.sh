@@ -75,6 +75,17 @@ pkg_install_cask() {
   run brew install --cask "$@"
 }
 
+# pkg_install_hint <pkg> - the command a person should run to install <pkg>.
+pkg_install_hint() {
+  case "$RETROPI_PKG" in
+    brew)   printf 'brew install %s' "$1" ;;
+    apt)    printf 'sudo apt-get install -y %s' "$1" ;;
+    dnf)    printf 'sudo dnf install -y %s' "$1" ;;
+    pacman) printf 'sudo pacman -S %s' "$1" ;;
+    *)      printf 'install %s with your package manager' "$1" ;;
+  esac
+}
+
 pkg_refresh() {
   case "$RETROPI_PKG" in
     brew) run brew update ;;
@@ -143,21 +154,57 @@ _ra_config_candidates() {
   esac
 }
 
+# core_dir - where retro-pi INSTALLS cores. Always a directory the user owns.
+#
+# Distro and RetroPie core directories are root-owned, so they are searched
+# (see core_path) but never written to: pointing `cores install` at
+# /usr/lib/x86_64-linux-gnu/libretro would fail on every download.
 core_dir() {
   if [[ -n "${RETROPI_CORE_DIR:-}" ]]; then printf '%s' "$RETROPI_CORE_DIR"; return; fi
   case "$RETROPI_OS" in
     macos) printf '%s' "$HOME/Library/Application Support/RetroArch/cores" ;;
-    *)
-      # RetroPie ships cores here; plain Debian uses the user config dir.
-      if [[ -d /opt/retropie/libretrocores ]]; then
-        printf '%s' "/opt/retropie/libretrocores"
-      elif [[ -d /usr/lib/libretro ]]; then
-        printf '%s' "/usr/lib/libretro"
-      else
-        printf '%s' "${XDG_CONFIG_HOME:-$HOME/.config}/retroarch/cores"
-      fi
-      ;;
+    *)     printf '%s' "${XDG_CONFIG_HOME:-$HOME/.config}/retroarch/cores" ;;
   esac
+}
+
+# linux_multiarch - the Debian multiarch triplet for this machine.
+# Debian and Ubuntu ship apt cores (libretro-nestopia, libretro-mgba, ...) under
+# /usr/lib/<triplet>/libretro, not /usr/lib/libretro.
+linux_multiarch() {
+  case "$RETROPI_ARCH" in
+    x86_64)          printf 'x86_64-linux-gnu' ;;
+    aarch64|arm64)   printf 'aarch64-linux-gnu' ;;
+    armv7l|armv6l)   printf 'arm-linux-gnueabihf' ;;
+    i686|i386)       printf 'i386-linux-gnu' ;;
+    *) return 1 ;;
+  esac
+}
+
+# system_core_dirs - read-only core directories the OS or RetroPie provides,
+# most specific first. RETROPI_SYSTEM_CORE_DIRS (colon-separated, may be empty)
+# replaces the list; tests set it so the host's packages cannot leak in.
+system_core_dirs() {
+  if [[ -n "${RETROPI_SYSTEM_CORE_DIRS+set}" ]]; then
+    [[ -n "$RETROPI_SYSTEM_CORE_DIRS" ]] && printf '%s\n' "$RETROPI_SYSTEM_CORE_DIRS" | tr ':' '\n'
+    return 0
+  fi
+  [[ "$RETROPI_OS" == "linux" ]] || return 0
+  local ma
+  ma="$(linux_multiarch)" && printf '%s\n' "/usr/lib/$ma/libretro"
+  printf '%s\n' /usr/lib/libretro /usr/lib64/libretro
+  # RetroPie nests each core in its own package directory (lr-snes9x/...).
+  printf '%s\n' /opt/retropie/libretrocores
+  return 0
+}
+
+# core_search_dirs - every existing directory cores are looked up in.
+core_search_dirs() {
+  local d
+  printf '%s\n' "$(core_dir)"
+  while IFS= read -r d; do
+    [[ -n "$d" && -d "$d" ]] && printf '%s\n' "$d"
+  done < <(system_core_dirs)
+  return 0
 }
 
 core_ext() {
@@ -165,12 +212,46 @@ core_ext() {
 }
 
 # core_path <core_name> - absolute path to a core binary (may not exist yet).
+#
+# A core retro-pi installed wins; otherwise one the distro or RetroPie
+# provides; otherwise the path an install would create.
 core_path() {
-  printf '%s/%s.%s' "$(core_dir)" "$1" "$(core_ext)"
+  local file dir d f
+  file="$1.$(core_ext)"
+  dir="$(core_dir)"
+  if [[ ! -f "$dir/$file" ]]; then
+    while IFS= read -r d; do
+      [[ -n "$d" && -d "$d" ]] || continue
+      [[ -f "$d/$file" ]] && { printf '%s/%s' "$d" "$file"; return 0; }
+      for f in "$d"/*/"$file"; do
+        [[ -f "$f" ]] && { printf '%s' "$f"; return 0; }
+      done
+    done < <(system_core_dirs)
+  fi
+  printf '%s/%s' "$dir" "$file"
+}
+
+# core_managed <core_name> - true when the core lives in retro-pi's own
+# directory (so retro-pi may update or remove it) rather than a package's.
+core_managed() {
+  [[ "$(core_path "$1")" == "$(core_dir)/"* ]]
 }
 
 # core_installed <core_name>
 core_installed() { [[ -f "$(core_path "$1")" ]]; }
+
+# _elf_arch <file> - the machine an ELF binary was built for, as retroarch_arch
+# spells it; empty when it cannot be told.
+_elf_arch() {
+  have file || return 0
+  case "$(file -L "$1" 2>/dev/null)" in
+    *aarch64*)         printf 'aarch64' ;;
+    *x86-64*)          printf 'x86_64' ;;
+    *"Intel 80386"*)   printf 'i686' ;;
+    *"ARM, EABI"*)     printf 'armv7l' ;;
+  esac
+  return 0
+}
 
 # core_arch_matches <core_name> - true when an installed core can actually be
 # loaded by this RetroArch. Catches the arm64-core/x86_64-RetroArch mismatch
@@ -186,7 +267,12 @@ core_arch_matches() {
     case " $got " in *" $want "*) return 0 ;; esac
     return 1
   fi
-  return 0
+  got="$(_elf_arch "$f")"
+  [[ -z "$got" ]] && return 0
+  case "$want:$got" in
+    arm64:aarch64|armv6l:armv7l) return 0 ;;
+  esac
+  [[ "$want" == "$got" ]]
 }
 
 # retroarch_bin - the launcher command ES will invoke.
@@ -252,6 +338,37 @@ buildbot_path() {
     linux:x86_64)              printf 'linux/x86_64' ;;
     linux:i686|linux:i386)     printf 'linux/x86' ;;
     *) return 1 ;;
+  esac
+}
+
+# --- display -----------------------------------------------------------------
+
+# platform_has_display - true when a GUI program can open a window here.
+# A Mac always can. On Linux an SSH session into a desktop machine has no
+# DISPLAY either, so this answers "from this shell", not "on this machine".
+platform_has_display() {
+  [[ "$RETROPI_OS" == "linux" ]] || return 0
+  [[ -n "${DISPLAY:-}" || -n "${WAYLAND_DISPLAY:-}" ]]
+}
+
+# headless_wrapper - print the command prefix that gives a GUI program a
+# virtual display (empty where none is needed), or fail when there is no way to.
+headless_wrapper() {
+  [[ "$RETROPI_OS" == "linux" ]] || return 0
+  have xvfb-run || return 1
+  printf "xvfb-run -a -s '-screen 0 1280x720x24'"
+}
+
+# appimage_fuse_package - the package that lets an AppImage mount itself.
+# Debian 13 and Ubuntu 24.04 renamed libfuse2 to libfuse2t64.
+appimage_fuse_package() {
+  case "$RETROPI_PKG" in
+    apt)
+      if apt-cache show libfuse2t64 >/dev/null 2>&1; then printf 'libfuse2t64'
+      else printf 'libfuse2'; fi ;;
+    dnf)    printf 'fuse-libs' ;;
+    pacman) printf 'fuse2' ;;
+    *)      printf 'libfuse2' ;;
   esac
 }
 

@@ -79,10 +79,15 @@ validate-vscode-run: ## Check .vscode AND execute every launch configuration
 .PHONY: check
 check: lint validate validate-vscode test ## Everything CI runs
 
+DEBIAN_RELEASES ?= bookworm trixie
+
 .PHONY: test-linux
-test-linux: ## Run the suite in a Linux container (the Raspberry Pi code path)
-	@docker build -q -f docker/Dockerfile -t retropi-test . >/dev/null
-	@docker run --rm retropi-test
+test-linux: ## Run the suite in Debian containers (bookworm = Pi OS, trixie = Debian 13)
+	@for r in $(DEBIAN_RELEASES); do \
+	  echo "== debian $$r =="; \
+	  docker build -q --build-arg DEBIAN=$$r -f docker/Dockerfile -t retropi-test:$$r . >/dev/null \
+	    && docker run --rm retropi-test:$$r || exit 1; \
+	done
 
 # --- distribution -------------------------------------------------------------
 

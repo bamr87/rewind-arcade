@@ -32,7 +32,7 @@ Both read the same `es_systems.xml`, which is what lets one configuration serve 
 
 Asset URLs are opaque IDs rather than predictable paths, so they are looked up rather than constructed — the version you get is whatever upstream has published.
 
-On macOS the disk image carries a licence agreement that would otherwise block the mount; retro-pi accepts it, copies the app to `/Applications`, and clears the download quarantine flag. On Linux the AppImage lands in `~/Applications` and needs FUSE (`sudo apt-get install -y libfuse2`).
+On macOS the disk image carries a licence agreement that would otherwise block the mount; retro-pi accepts it, copies the app to `/Applications`, and clears the download quarantine flag. On Linux the AppImage lands in `~/Applications`, and retro-pi runs it once to prove it starts; if it does not, it names the FUSE package for your release (`libfuse2t64` on Debian 13, see [debian.md](debian.md)).
 
 If RetroPie is already installed, retro-pi detects and uses it instead of installing anything.
 

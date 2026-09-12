@@ -91,3 +91,14 @@ jobs:
         run: docker build --platform linux/arm64 -f docker/Dockerfile -t retropi-test .
       - name: Run the suite on arm64
         run: docker run --rm --platform linux/arm64 retropi-test
+
+  # Current Debian: bash 5.2, python 3.13, cores packaged under multiarch paths.
+  debian-trixie:
+    name: debian 13 trixie (linux/amd64)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the Debian 13 image
+        run: docker build --build-arg DEBIAN=trixie -f docker/Dockerfile -t retropi-test:trixie .
+      - name: Run the suite on Debian 13
+        run: docker run --rm retropi-test:trixie

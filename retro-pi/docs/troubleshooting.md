@@ -32,6 +32,20 @@ macOS quarantines downloaded binaries:
 xattr -dr com.apple.quarantine "$(./bin/retropi cores dir)"
 ```
 
+## Nothing opens over SSH, or on a server
+
+RetroArch and the frontend need a display, and an SSH shell has none even when the machine has a desktop. `tools/run-rom.sh` says so instead of launching. Play from the machine's desktop session, or prove the setup works without one:
+
+```sh
+tools/run-rom.sh nes --headless --frames 120 --screenshot /tmp/shot.png
+```
+
+See [debian.md](debian.md#no-display-servers-and-ssh).
+
+## A core apt installed shows as missing
+
+retro-pi searches `/usr/lib/<multiarch>/libretro` (Debian, Ubuntu), `/usr/lib/libretro` and RetroPie's `/opt/retropie/libretrocores`. `./bin/retropi cores list` prints every directory it searched. A core somewhere else is not found; install retro-pi's own copy with `./bin/retropi cores install <core>`.
+
 ## "incompatible architecture" when launching
 
 The core does not match the RetroArch binary. On Apple Silicon this usually means an x86_64 RetroArch (the Homebrew cask) with arm64 cores.

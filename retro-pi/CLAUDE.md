@@ -4,7 +4,7 @@ Guidance for working in this repository.
 
 ## What this is
 
-A portable retro gaming workspace: declarative system manifests plus shell tooling that generates EmulationStation and RetroArch configuration. Targets macOS and Raspberry Pi from one tree.
+A portable retro gaming workspace: declarative system manifests plus shell tooling that generates EmulationStation and RetroArch configuration. Targets macOS, Raspberry Pi and Debian/Ubuntu from one tree.
 
 ## Hard constraints
 
@@ -44,6 +44,16 @@ This class of bug is invisible on a Mac — run `make test-linux` before trustin
 Cores are `dlopen()`ed into RetroArch, so they must match the **RetroArch binary**. On Apple Silicon the Homebrew cask is x86_64-only (Rosetta), so an arm64 Mac needs x86_64 cores. `retroarch_arch()` in `lib/platform.sh` inspects the binary with `lipo`; `buildbot_path()` uses it, never `uname -m`.
 
 Tests that assert on `buildbot_path()` must pin `RETROPI_RETROARCH_BIN=/nonexistent/retroarch` or `RETROPI_CORE_ARCH`, or they pick up whatever RetroArch the host happens to have and stop being hermetic.
+
+## Linux cores live in more than one place
+
+`core_dir()` is where retro-pi *installs* cores and is always user-owned (`~/.config/retroarch/cores` on Linux). `core_path()` also searches `system_core_dirs()`: Debian's apt cores under `/usr/lib/<multiarch>/libretro` (not `/usr/lib/libretro`), and RetroPie's nested `/opt/retropie/libretrocores/lr-*/`. Never make a root-owned directory the install target, and never let `cores remove` delete a core `core_managed()` says a package owns.
+
+Tests that touch core resolution must set `RETROPI_SYSTEM_CORE_DIRS=""` (or a sandbox path); otherwise a host with `libretro-nestopia` installed changes the result.
+
+## No display is a normal state on Linux
+
+Over SSH or on a server, `DISPLAY`/`WAYLAND_DISPLAY` are unset. `platform_has_display()` reports it; `tools/run-rom.sh --headless --frames N --screenshot F` runs RetroArch in Xvfb and is how to verify rendering on such a machine. The NES test cartridge cycles its backdrop through the palette, black included, so compare screenshots at several frame counts before concluding video is broken.
 
 ## macOS: install RetroArch from upstream, not Homebrew
 
@@ -96,7 +106,7 @@ One file in `config/systems/`. Never special-case a console in code. `tests/test
 
 ```sh
 make check          # shellcheck + config validation + tests
-make test-linux     # the Raspberry Pi code path (bash 5.x, no PyYAML)
+make test-linux     # Debian bookworm + trixie containers (bash 5.x, no PyYAML)
 ```
 
 Both parsers must produce identical output — `RETROPI_YAML_PURE=1` forces the built-in one. A divergence means a manifest behaves differently per machine.

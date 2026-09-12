@@ -1,6 +1,6 @@
 # retro-pi
 
-A portable, packageable workspace for building, installing, maintaining and extending a retro gaming setup — one repository that works the same on **macOS** and a **Raspberry Pi**, driving **EmulationStation** and **RetroArch**.
+A portable, packageable workspace for building, installing, maintaining and extending a retro gaming setup — one repository that works the same on **macOS**, a **Raspberry Pi** and **Debian/Ubuntu**, driving **EmulationStation** and **RetroArch**.
 
 NES, SNES, N64, Game Boy, Genesis/Mega Drive, Master System, Game Gear, SG-1000, Sega CD, 32X, Saturn, Dreamcast, PlayStation, PSP, Atari, PC Engine, Neo Geo, arcade, DOS and C64 ship configured — two dozen systems, and adding another is one YAML file.
 
@@ -127,10 +127,10 @@ retro-pi ships no games and no firmware, and will not download either. It organi
 ```sh
 make check         # lint + validate + test
 make test          # the test suite
-make test-linux    # run the suite in a Linux/arm64 container (the Pi path)
+make test-linux    # run the suite in Debian bookworm + trixie containers
 ```
 
-CI runs the suite on macOS (bash 3.2) and Ubuntu (bash 5.x), again with the built-in YAML parser forced, and once more on `linux/arm64` under QEMU — the real Raspberry Pi target.
+CI runs the suite on macOS (bash 3.2) and Ubuntu (bash 5.x), again with the built-in YAML parser forced, once more on `linux/arm64` under QEMU — the real Raspberry Pi target — and on Debian 13 (trixie).
 
 To launch a game without needing one, generate an original test cartridge:
 

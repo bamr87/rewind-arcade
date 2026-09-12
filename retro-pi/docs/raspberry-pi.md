@@ -19,7 +19,7 @@ git clone <your-fork> retro-pi && cd retro-pi
 ./bin/retropi install
 ```
 
-The bootstrap installs dependencies, installs RetroArch from apt (or detects an existing RetroPie install), and prints performance advice for your board.
+The bootstrap runs the generic [Debian bootstrap](debian.md) — dependencies, RetroArch from apt, or an existing RetroPie install — and then prints performance advice for your board.
 
 ## Works alongside RetroPie
 

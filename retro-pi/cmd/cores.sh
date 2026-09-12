@@ -61,6 +61,10 @@ _cores_list() {
   done
 
   info "core directory: $(core_dir)"
+  local d
+  while IFS= read -r d; do
+    [[ "$d" == "$(core_dir)" ]] || step "also searched: $d"
+  done < <(core_search_dirs)
   while IFS= read -r core; do
     [[ -n "$core" ]] || continue
     if core_installed "$core"; then
@@ -199,7 +203,9 @@ _cores_remove() {
   local core f
   for core in "$@"; do
     f="$(core_path "$core")"
-    if [[ -f "$f" ]]; then
+    if [[ -f "$f" ]] && ! core_managed "$core"; then
+      warn "$core is provided by the system ($f); remove it with your package manager"
+    elif [[ -f "$f" ]]; then
       run rm -f "$f"
       ok "removed $core"
     else

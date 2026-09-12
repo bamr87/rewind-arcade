@@ -115,3 +115,29 @@ test_double_dash_stops_flag_interpretation() {
 test_unknown_option_is_still_rejected() {
   assert_fails "$RP" doctor --definitely-not-a-flag
 }
+
+# tools/run-rom.sh: bounded, screenshot-taking, display-free runs are how a
+# server (or CI) proves a core really renders.
+test_run_rom_bounded_headless_command() {
+  local tmp out
+  tmp="$(mktemp -d "${TMPDIR:-/tmp}/retropi-runrom.XXXXXX")"
+  mkdir -p "$tmp/cores"
+  touch "$tmp/cores/nestopia_libretro.so" "$tmp/cores/nestopia_libretro.dylib" "$tmp/game.nes"
+  out="$(RETROPI_CORE_DIR="$tmp/cores" RETROPI_SYSTEM_CORE_DIRS="" RETROPI_RETROARCH_BIN=/usr/bin/true \
+    "$REPO_ROOT/tools/run-rom.sh" nes "$tmp/game.nes" --emulator nestopia --print \
+    --frames 90 --screenshot "$tmp/shot.png" 2>/dev/null)"
+  rm -rf "$tmp"
+  assert_contains "$out" "--max-frames=90"
+  assert_contains "$out" "--max-frames-ss-path="
+  assert_contains "$out" "shot.png"
+}
+
+test_run_rom_rejects_a_bad_frame_count() {
+  local tmp
+  tmp="$(mktemp -d "${TMPDIR:-/tmp}/retropi-runrom.XXXXXX")"
+  mkdir -p "$tmp/cores"
+  touch "$tmp/cores/nestopia_libretro.so" "$tmp/cores/nestopia_libretro.dylib" "$tmp/game.nes"
+  assert_fails env RETROPI_CORE_DIR="$tmp/cores" RETROPI_SYSTEM_CORE_DIRS="" RETROPI_RETROARCH_BIN=/usr/bin/true \
+    "$REPO_ROOT/tools/run-rom.sh" nes "$tmp/game.nes" --emulator nestopia --print --frames soon
+  rm -rf "$tmp"
+}

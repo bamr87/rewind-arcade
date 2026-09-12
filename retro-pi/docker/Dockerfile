@@ -1,15 +1,18 @@
 # Exercises the Raspberry Pi code path from any machine.
 #
-# Deliberately minimal: Debian Bookworm (what Raspberry Pi OS is built on)
-# with python3 but WITHOUT python3-yaml, so the suite runs against the
-# built-in YAML parser exactly as it would on a fresh Pi image.
+# Deliberately minimal: Debian with python3 but WITHOUT python3-yaml, so the
+# suite runs against the built-in YAML parser exactly as it would on a fresh
+# Pi image. DEBIAN picks the release: bookworm (Raspberry Pi OS 12) by
+# default, trixie (Debian 13, bash 5.2, python 3.13) for current Debian.
 #
 #   docker build -f docker/Dockerfile -t retropi-test .
+#   docker build --build-arg DEBIAN=trixie -f docker/Dockerfile -t retropi-test .
 #   docker run --rm retropi-test
 #
 # Build for the real Pi architecture with:
 #   docker build --platform linux/arm64 -f docker/Dockerfile -t retropi-test .
-FROM debian:bookworm-slim
+ARG DEBIAN=bookworm
+FROM debian:${DEBIAN}-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
       bash python3 curl unzip rsync git ca-certificates file \
