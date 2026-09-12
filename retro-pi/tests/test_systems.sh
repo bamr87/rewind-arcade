@@ -101,6 +101,7 @@ test_launch_command_references_the_right_core() {
 
 test_launch_command_uses_so_on_linux() {
   RETROPI_OS="linux"; RETROPI_ARCH="aarch64"
+  export RETROPI_RETROARCH_BIN="/nonexistent/retroarch"
   unset RETROPI_CORE_DIR
   local cmd
   cmd="$(launch_command nes nestopia)"
@@ -115,6 +116,9 @@ test_core_installed_detects_files() {
 }
 
 test_buildbot_paths_match_known_targets() {
+  # Pin to the host arch: buildbot_path() consults the installed RetroArch
+  # binary, and this test is about the arch -> path mapping alone.
+  export RETROPI_RETROARCH_BIN="/nonexistent/retroarch"
   RETROPI_OS="macos"; RETROPI_ARCH="arm64"
   assert_eq "apple/osx/arm64" "$(buildbot_path)"
   # 64-bit ARM is "aarch64" upstream, not "arm64" - the Raspberry Pi 4/5 path.
@@ -124,10 +128,48 @@ test_buildbot_paths_match_known_targets() {
   assert_eq "linux/armv7-neon-hf" "$(buildbot_path)"
   RETROPI_OS="plan9"; RETROPI_ARCH="sparc"
   assert_fails buildbot_path
+  unset RETROPI_RETROARCH_BIN
 }
 
 test_core_download_url_is_zipped_and_platform_matched() {
+  export RETROPI_RETROARCH_BIN="/nonexistent/retroarch"
   RETROPI_OS="linux"; RETROPI_ARCH="aarch64"
   assert_eq "https://buildbot.libretro.com/nightly/linux/aarch64/latest/snes9x_libretro.so.zip" \
             "$(core_download_url snes9x_libretro)"
+  unset RETROPI_RETROARCH_BIN
+}
+
+# --- core architecture must match the RetroArch binary, not the OS -----------
+# Found the hard way: the Homebrew cask ships an x86_64-only RetroArch, so an
+# arm64 Mac downloading arm64 cores gets "incompatible architecture" at dlopen.
+
+test_core_arch_override_drives_buildbot_path() {
+  RETROPI_OS="macos"; RETROPI_ARCH="arm64"
+  # An x86_64 RetroArch on arm64 hardware must pull x86_64 cores.
+  export RETROPI_CORE_ARCH="x86_64"
+  assert_eq "x86_64" "$(retroarch_arch)"
+  assert_eq "apple/osx/x86_64" "$(buildbot_path)"
+  assert_contains "$(core_download_url snes9x_libretro)" "apple/osx/x86_64"
+  unset RETROPI_CORE_ARCH
+}
+
+test_core_arch_defaults_to_host_when_no_binary() {
+  RETROPI_OS="macos"; RETROPI_ARCH="arm64"
+  export RETROPI_RETROARCH_BIN="/nonexistent/retroarch"
+  assert_eq "arm64" "$(retroarch_arch)"
+  unset RETROPI_RETROARCH_BIN
+}
+
+test_native_arm64_retroarch_uses_arm64_cores() {
+  RETROPI_OS="macos"; RETROPI_ARCH="arm64"
+  export RETROPI_CORE_ARCH="arm64"
+  assert_eq "apple/osx/arm64" "$(buildbot_path)"
+  unset RETROPI_CORE_ARCH
+}
+
+test_pi_arch_detection_is_unaffected() {
+  RETROPI_OS="linux"; RETROPI_ARCH="aarch64"
+  export RETROPI_RETROARCH_BIN="/nonexistent/retroarch"
+  assert_eq "linux/aarch64" "$(buildbot_path)"
+  unset RETROPI_RETROARCH_BIN
 }

@@ -32,6 +32,15 @@ macOS quarantines downloaded binaries:
 xattr -dr com.apple.quarantine "$(./bin/retropi cores dir)"
 ```
 
+## "incompatible architecture" when launching
+
+The core does not match the RetroArch binary. On Apple Silicon this usually means an x86_64 RetroArch (the Homebrew cask) with arm64 cores.
+
+```sh
+./bin/retropi doctor                  # names the architecture actually required
+./bin/retropi cores install --force   # re-download matching cores
+```
+
 ## A core will not download
 
 ```sh

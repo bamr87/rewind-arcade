@@ -137,6 +137,23 @@ core_path() {
 # core_installed <core_name>
 core_installed() { [[ -f "$(core_path "$1")" ]]; }
 
+# core_arch_matches <core_name> - true when an installed core can actually be
+# loaded by this RetroArch. Catches the arm64-core/x86_64-RetroArch mismatch
+# that otherwise only shows up as a runtime dlopen failure.
+core_arch_matches() {
+  local f want got
+  f="$(core_path "$1")"
+  [[ -f "$f" ]] || return 1
+  want="$(retroarch_arch)"
+  if [[ "$RETROPI_OS" == "macos" ]] && have lipo; then
+    got="$(lipo -archs "$f" 2>/dev/null || true)"
+    [[ -z "$got" ]] && return 0          # cannot tell: do not cry wolf
+    case " $got " in *" $want "*) return 0 ;; esac
+    return 1
+  fi
+  return 0
+}
+
 # retroarch_bin - the launcher command ES will invoke.
 retroarch_bin() {
   if [[ -n "${RETROPI_RETROARCH_BIN:-}" ]]; then printf '%s' "$RETROPI_RETROARCH_BIN"; return; fi
@@ -155,11 +172,43 @@ retroarch_bin() {
 
 buildbot_base() { printf '%s' "${RETROPI_BUILDBOT:-https://buildbot.libretro.com/nightly}"; }
 
+# retroarch_arch - the architecture cores must be built for.
+#
+# This is NOT necessarily `uname -m`. RetroArch dlopen()s cores into its own
+# process, so a core has to match the RETROARCH BINARY. On Apple Silicon the
+# Homebrew cask ships an x86_64-only build that runs under Rosetta, so a Mac
+# reporting arm64 needs x86_64 cores. Getting this wrong fails at load time
+# with "incompatible architecture", long after a successful download.
+retroarch_arch() {
+  if [[ -n "${RETROPI_CORE_ARCH:-}" ]]; then printf '%s' "$RETROPI_CORE_ARCH"; return; fi
+  local bin archs
+  bin="$(retroarch_bin)"
+  have "$bin" && bin="$(command -v "$bin")"
+  if [[ -x "$bin" ]]; then
+    if [[ "$RETROPI_OS" == "macos" ]] && have lipo; then
+      archs="$(lipo -archs "$bin" 2>/dev/null || true)"
+      # A universal binary runs native, so prefer arm64 when it is offered.
+      case " $archs " in
+        *" arm64 "*)  printf 'arm64';  return ;;
+        *" x86_64 "*) printf 'x86_64'; return ;;
+      esac
+    elif have file; then
+      archs="$(file -L "$bin" 2>/dev/null || true)"
+      case "$archs" in
+        *aarch64*)         printf 'aarch64'; return ;;
+        *x86-64*|*x86_64*) printf 'x86_64';  return ;;
+        *armv7*)           printf 'armv7l';  return ;;
+      esac
+    fi
+  fi
+  printf '%s' "$RETROPI_ARCH"
+}
+
 buildbot_path() {
   # These strings are the buildbot's actual directory names, verified against
   # the live index. Note 64-bit ARM is "aarch64" there, NOT "arm64" - that is
   # the Raspberry Pi 4/5 path and getting it wrong 404s every core download.
-  case "$RETROPI_OS:$RETROPI_ARCH" in
+  case "$RETROPI_OS:$(retroarch_arch)" in
     macos:arm64)               printf 'apple/osx/arm64' ;;
     macos:x86_64)              printf 'apple/osx/x86_64' ;;
     linux:aarch64|linux:arm64) printf 'linux/aarch64' ;;

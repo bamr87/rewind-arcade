@@ -22,6 +22,20 @@ retro-pi writes to `~/.emulationstation/custom_systems/es_systems.xml`, which ES
 
 You can skip the frontend entirely and launch games from RetroArch — the cores and paths are configured either way.
 
+## Core architecture: the Rosetta trap
+
+Cores are `dlopen()`ed into the RetroArch process, so a core must match the **RetroArch binary** — not your CPU. This bites on Apple Silicon: the Homebrew cask currently ships an **x86_64-only** RetroArch that runs under Rosetta, so an arm64 Mac needs **x86_64** cores. Download arm64 cores instead and every launch dies with `incompatible architecture (have 'arm64', need 'x86_64')`.
+
+retro-pi handles this for you: it inspects the installed RetroArch with `lipo` and picks the matching buildbot path, preferring arm64 when a universal build offers it.
+
+```sh
+./bin/retropi doctor      # reports "cores must be x86_64" and flags mismatches
+./bin/retropi cores list  # marks any core built for the wrong architecture
+./bin/retropi cores install --force   # rebuild them for the right one
+```
+
+If you later install a native arm64 RetroArch, re-run `cores install --force` and retro-pi will switch to arm64 cores automatically.
+
 ## Gatekeeper
 
 macOS quarantines downloaded binaries. If RetroArch refuses to load a core:

@@ -50,7 +50,7 @@ _required_cores() {
 }
 
 _cores_list() {
-  local mode="enabled" want="" core n_have=0 n_miss=0
+  local mode="enabled" want="" core n_have=0 n_miss=0 n_bad=0
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --all) mode="all" ;;
@@ -64,8 +64,14 @@ _cores_list() {
   while IFS= read -r core; do
     [[ -n "$core" ]] || continue
     if core_installed "$core"; then
-      printf '  %s+%s %-34s %s\n' "$C_GREEN" "$C_RESET" "$core" "$(_core_size "$core")" >&2
-      n_have=$((n_have+1))
+      if core_arch_matches "$core"; then
+        printf '  %s+%s %-34s %s\n' "$C_GREEN" "$C_RESET" "$core" "$(_core_size "$core")" >&2
+        n_have=$((n_have+1))
+      else
+        printf '  %sx%s %-34s %swrong architecture (need %s)%s\n' \
+          "$C_RED" "$C_RESET" "$core" "$C_RED" "$(retroarch_arch)" "$C_RESET" >&2
+        n_bad=$((n_bad+1))
+      fi
     else
       printf '  %s-%s %-34s %smissing%s\n' "$C_YELLOW" "$C_RESET" "$core" "$C_DIM" "$C_RESET" >&2
       n_miss=$((n_miss+1))
@@ -73,8 +79,9 @@ _cores_list() {
   done < <(_required_cores "$mode" "$want")
 
   log ""
-  info "$n_have installed, $n_miss missing"
+  info "$n_have installed, $n_miss missing, $n_bad wrong architecture"
   [[ "$n_miss" -gt 0 ]] && step "install them: ./bin/retropi cores install"
+  [[ "$n_bad" -gt 0 ]] && step "fix architecture: ./bin/retropi cores install --force"
   return 0
 }
 

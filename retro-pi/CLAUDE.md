@@ -39,6 +39,12 @@ Since bash 5.2, an unquoted `&` in `${var//pat/repl}` expands to the matched tex
 
 This class of bug is invisible on a Mac — run `make test-linux` before trusting cross-platform string handling.
 
+## Core architecture is not the OS architecture
+
+Cores are `dlopen()`ed into RetroArch, so they must match the **RetroArch binary**. On Apple Silicon the Homebrew cask is x86_64-only (Rosetta), so an arm64 Mac needs x86_64 cores. `retroarch_arch()` in `lib/platform.sh` inspects the binary with `lipo`; `buildbot_path()` uses it, never `uname -m`.
+
+Tests that assert on `buildbot_path()` must pin `RETROPI_RETROARCH_BIN=/nonexistent/retroarch` or `RETROPI_CORE_ARCH`, or they pick up whatever RetroArch the host happens to have and stop being hermetic.
+
 ## Layout
 
 ```

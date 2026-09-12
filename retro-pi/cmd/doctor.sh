@@ -141,7 +141,31 @@ __H__
   if buildbot_path >/dev/null 2>&1; then
     _pass "libretro buildbot target: $(buildbot_path)"
   else
-    _warn "no libretro buildbot build for $RETROPI_OS/$RETROPI_ARCH - build cores from source"
+    _warn "no libretro buildbot build for $RETROPI_OS/$(retroarch_arch) - build cores from source"
+  fi
+
+  # Cores are dlopen()ed into RetroArch, so they must match the RETROARCH
+  # binary, not the OS. On Apple Silicon the Homebrew cask is x86_64-only, so
+  # an arm64 Mac still needs x86_64 cores. Without this check the mismatch
+  # only appears as a dlopen failure when you try to play something.
+  local need_arch
+  need_arch="$(retroarch_arch)"
+  if [[ "$need_arch" != "$RETROPI_ARCH" ]]; then
+    _pass "cores must be $need_arch (RetroArch is $need_arch on $RETROPI_ARCH hardware)"
+  fi
+  if [[ -d "$cdir" && "${count:-0}" -gt 0 ]]; then
+    local bad_arch="" cf cname
+    while IFS= read -r cf; do
+      [[ -n "$cf" ]] || continue
+      cname="$(basename "$cf" ".$(core_ext)")"
+      core_arch_matches "$cname" || bad_arch="$bad_arch $cname"
+    done < <(find "$cdir" -name "*.$(core_ext)" -type f 2>/dev/null)
+    if [[ -n "$bad_arch" ]]; then
+      _fail "cores built for the wrong architecture (RetroArch needs $need_arch):$bad_arch"
+      _hint "  rebuild them for the right architecture: ./bin/retropi cores install --force"
+    else
+      _pass "installed cores match RetroArch's architecture ($need_arch)"
+    fi
   fi
 
   hr "frontend"
