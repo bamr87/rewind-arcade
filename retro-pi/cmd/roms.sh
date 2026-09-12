@@ -11,6 +11,7 @@ cmd_roms() {
     scan)    _roms_scan "$@" ;;
     list)    _roms_list "$@" ;;
     add)     _roms_add "$@" ;;
+    import)  _roms_import "$@" ;;
     verify)  _roms_verify "$@" ;;
     checksum) _roms_checksum "$@" ;;
     find)    _roms_find "$@" ;;
@@ -20,6 +21,10 @@ retropi roms - inventory and organize your game library
 
   roms scan                 count games per system and write an inventory
   roms list [system]        list games, optionally for one system
+  roms import <archive>     import a collection laid out one folder per console
+      --dry-run             show the plan, extract nothing
+      --overwrite           replace games that are already present
+      --map "Folder=id"     force a folder to a system (repeatable)
   roms add <file>...        file games into the right system folder
       --system <id>         force the target system (needed for .zip/.bin)
       --move                move instead of copy
@@ -182,6 +187,118 @@ _roms_add() {
   log ""
   info "added $n_ok, skipped $n_skip"
   [[ "$n_ok" -gt 0 ]] && step "refresh your frontend: ./bin/retropi build"
+  return 0
+}
+
+# _roms_import - bulk import from an archive organised by console folder.
+#
+# Folder names carry the system, which matters because extensions often do
+# not: .bin and .zip belong to many consoles, and .sg to none of the ones a
+# plain extension table would know.
+_roms_import() {
+  local archive="" dry=0 overwrite=0 forced=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --dry-run|-n) dry=1 ;;
+      --overwrite)  overwrite=1 ;;
+      --map)        forced="$forced ${2:-}"; shift ;;
+      -*) die "roms import: unknown option $1" ;;
+      *) archive="$1" ;;
+    esac
+    shift
+  done
+  [[ -n "$archive" ]] || die "roms import: name an archive"
+  [[ -f "$archive" ]] || die "no such file: $archive"
+  [[ "$RETROPI_DRY_RUN" == "1" ]] && dry=1
+
+  local helper mapfile plan folder count exts bytes id
+  helper="$RETROPI_ROOT/lib/romimport.py"
+  mapfile="$RETROPI_STATE/import-map.tsv"
+  ensure_dir "$RETROPI_STATE"
+
+  plan="$(python3 "$helper" plan "$archive")" || die "could not read $archive"
+  [[ -n "$plan" ]] || die "no importable files in $archive"
+
+  info "planning import from $(basename "$archive")"
+  : > "$mapfile"
+  local n_known=0 n_unknown=0 total_files=0
+  while IFS="$(printf '\t')" read -r folder count exts bytes; do
+    [[ -n "$count" ]] || continue
+    total_files=$((total_files + count))
+
+    id=""
+    # An explicit --map wins over name matching.
+    local pair
+    for pair in $forced; do
+      case "$pair" in
+        "$folder="*) id="${pair#*=}" ;;
+      esac
+    done
+    if [[ "$folder" != "(root)" && -z "$id" ]]; then
+      id="$(system_match "$folder" 2>/dev/null || printf '')"
+    fi
+
+    if [[ -z "$id" ]]; then
+      if [[ "$folder" == "(root)" ]]; then
+        printf '  %s-%s %-18s %3s files  %s (archive root, not a console)\n' \
+          "$C_DIM" "$C_RESET" "$folder" "$count" "$exts" >&2
+      else
+        printf '  %s?%s %-18s %3s files  %s %sno matching system%s\n' \
+          "$C_YELLOW" "$C_RESET" "$folder" "$count" "$exts" "$C_YELLOW" "$C_RESET" >&2
+      fi
+      n_unknown=$((n_unknown + count))
+      continue
+    fi
+    if ! system_exists "$id"; then
+      warn "$folder -> '$id' has no manifest; skipping"
+      n_unknown=$((n_unknown + count))
+      continue
+    fi
+    printf '  %s+%s %-18s %3s files  %-10s -> %s\n' \
+      "$C_GREEN" "$C_RESET" "$folder" "$count" "$exts" "$id" >&2
+    printf '%s\t%s\n' "$folder" "$id" >> "$mapfile"
+    n_known=$((n_known + count))
+  done <<< "$plan"
+
+  hr
+  info "$n_known games map to a system, $n_unknown skipped, $total_files in the archive"
+  [[ "$n_unknown" -gt 0 ]] && step "force a folder with: --map \"Folder Name=system_id\""
+  [[ "$n_known" -eq 0 ]] && { warn "nothing to import"; return 1; }
+
+  if [[ "$dry" == "0" ]]; then
+    confirm "extract $n_known games into $(roms_dir)?" || { info "cancelled"; return 0; }
+  fi
+
+  local flags=""
+  [[ "$dry" == "1" ]] && flags="--dry-run"
+  [[ "$overwrite" == "1" ]] && flags="$flags --overwrite"
+
+  info "extracting"
+  local result
+  # shellcheck disable=SC2086
+  result="$(python3 "$helper" extract "$archive" "$(roms_dir)" "$mapfile" $flags)" \
+    || die "extraction failed"
+
+  local verb="imported"
+  [[ "$dry" == "1" ]] && verb="would import"
+  printf '%s\n' "$result" | awk -F'\t' -v verb="$verb" '
+    $3=="added" || $3=="would-add" {added[$1]++}
+    $3=="exists"                   {skipped[$1]++}
+    END{
+      for (s in added)   printf "  %-14s %3d %s\n", s, added[s], verb
+      for (s in skipped) printf "  %-14s %3d already present\n", s, skipped[s]
+    }' | sort >&2
+
+  hr
+  local n_added n_exists
+  n_added="$(printf '%s\n' "$result" | grep -cE "	(added|would-add)$" || true)"
+  n_exists="$(printf '%s\n' "$result" | grep -cE "	exists$" || true)"
+  if [[ "$dry" == "1" ]]; then
+    info "dry run: $n_added would be imported, $n_exists already present"
+    return 0
+  fi
+  ok "imported $n_added games ($n_exists already present)"
+  step "refresh the frontend: ./bin/retropi build"
   return 0
 }
 

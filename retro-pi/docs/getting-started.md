@@ -58,6 +58,15 @@ cp ~/Downloads/*.sfc roms/snes/
 
 `roms add` picks the target folder from the file extension and asks when the extension is ambiguous (`.zip` and `.bin` belong to many systems).
 
+For a collection organised one folder per console, import the archive whole:
+
+```sh
+./bin/retropi roms import collection.zip --dry-run   # show the plan first
+./bin/retropi roms import collection.zip
+```
+
+Folder names are matched against every name a system answers to — its id, aliases, short name and full name, with a leading manufacturer dropped if that helps — so "Sega Genesis" lands in `megadrive/` and "Nintendo 64" in `n64/`. This matters because the extension frequently cannot decide: `.bin` and `.zip` belong to a dozen systems. Anything unmatched is reported rather than guessed, and `--map "Folder Name=system_id"` forces it. Games already present are never overwritten.
+
 ## 6. Regenerate and play
 
 ```sh

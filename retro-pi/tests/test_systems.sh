@@ -50,7 +50,11 @@ test_every_manifest_is_listed() {
   ids="$(system_ids)"
   assert_contains "$ids" "nes"
   assert_contains "$ids" "dreamcast"
-  assert_eq "23" "$(system_ids | wc -l | tr -d ' ')"
+  # Count the manifests rather than hardcoding a number: adding a console is
+  # supposed to be a one-file change, not a test edit.
+  local on_disk
+  on_disk="$(find "$(systems_dir)" -name '*.yaml' | wc -l | tr -d ' ')"
+  assert_eq "$on_disk" "$(system_ids | wc -l | tr -d ' ')"
 }
 
 test_platform_filter_excludes_foreign_emulators() {
@@ -260,4 +264,35 @@ test_retroarch_config_dir_falls_back_to_a_used_directory() {
   mkdir -p "$HOME/Documents/RetroArch/system"
   assert_eq "$HOME/Documents/RetroArch" "$(retroarch_config_dir)"
   HOME="$HOME_SAVE"
+}
+
+# --- folder names resolve to systems -----------------------------------------
+# Bulk collections are organised by console folder, and that name is often the
+# only usable signal: .bin and .zip belong to many systems, .sg to none that a
+# plain extension table knows.
+
+test_folder_name_matches_by_id() {
+  assert_eq "gamegear"     "$(system_match 'Game Gear')"
+  assert_eq "mastersystem" "$(system_match 'Master System')"
+  assert_eq "sega32x"      "$(system_match 'Sega 32X')"
+}
+
+test_folder_name_matches_by_full_name() {
+  assert_eq "n64" "$(system_match 'Nintendo 64')"
+}
+
+test_folder_name_matches_after_dropping_the_manufacturer() {
+  # "Sega Genesis" is not an id, a name or an alias - but "genesis" is.
+  assert_eq "megadrive" "$(system_match 'Sega Genesis')"
+}
+
+test_folder_name_matching_ignores_case_and_punctuation() {
+  assert_eq "sg1000" "$(system_match 'SG-1000')"
+  assert_eq "nes"    "$(system_match 'n.e.s.')"
+  assert_eq "snes"   "$(system_match '  SNES  ')"
+}
+
+test_unknown_folder_name_does_not_match() {
+  assert_fails system_match "Some Console That Does Not Exist"
+  assert_fails system_match ""
 }

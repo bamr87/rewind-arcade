@@ -44,6 +44,45 @@ system_resolve() {
   return 1
 }
 
+# _norm <text> - lowercase, strip everything that is not a letter or digit.
+# "Sega Genesis" -> segagenesis, "SG-1000" -> sg1000, "Nintendo 64" -> nintendo64
+_norm() {
+  printf '%s' "$1" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]//g'
+}
+
+# _system_match_exact <normalized> - compare against every name a system
+# answers to: id, aliases, short_name and full name.
+_system_match_exact() {
+  local want="$1" id cand a
+  [[ -n "$want" ]] || return 1
+  while IFS= read -r id; do
+    [[ -n "$id" ]] || continue
+    for cand in "$id" "$(sys_get "$id" short_name '')" "$(sys_get "$id" name '')"; do
+      [[ -n "$cand" ]] || continue
+      [[ "$(_norm "$cand")" == "$want" ]] && { printf '%s' "$id"; return 0; }
+    done
+    while IFS= read -r a; do
+      [[ -n "$a" ]] || continue
+      [[ "$(_norm "$a")" == "$want" ]] && { printf '%s' "$id"; return 0; }
+    done < <(sys_list "$id" aliases)
+  done < <(system_ids)
+  return 1
+}
+
+# system_match <text> - resolve a human label to a system id.
+# Handles the folder names bulk archives use ("Sega Genesis", "Nintendo 64")
+# where an extension alone is ambiguous or absent.
+system_match() {
+  local want stripped
+  want="$(_norm "$1")"
+  [[ -n "$want" ]] || return 1
+  _system_match_exact "$want" && return 0
+  # Drop a leading manufacturer and try once more: "Sega Genesis" -> genesis.
+  stripped="$(printf '%s' "$want" | sed -E 's/^(sega|nintendo|sony|nec|snk|atari|commodore|bandai|microsoft|gce)//')"
+  [[ -n "$stripped" && "$stripped" != "$want" ]] || return 1
+  _system_match_exact "$stripped"
+}
+
 # --- manifest access (flat-file cached, same trick as config.sh) --------------
 
 _sys_flat() {
