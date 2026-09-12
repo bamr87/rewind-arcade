@@ -70,12 +70,18 @@ Explicit overrides (`RETROPI_ES_CONFIG_HOME`, `RETROPI_FRONTEND_BIN`) are author
 ```
 bin/retropi      dispatcher; parses global flags, sources cmd/<name>.sh
 lib/common.sh    logging, run(), checksums, fetch, xml_escape
-lib/platform.sh  OS/arch detection, package managers, core + frontend paths
+lib/platform.sh  OS/arch detection, package managers, RetroArch + core paths
+lib/frontend.sh  EmulationStation: detection, layout, install, launch
 lib/config.sh    layered config; flattens to .retropi/config.flat
-lib/systems.sh   manifest access, emulator resolution, launch commands
+lib/systems.sh   manifest access, name matching, emulator resolution, launch commands
 lib/yamlite.py   dependency-free YAML reader (must match PyYAML exactly)
+lib/gamelist.py  gamelist.xml generation; merges, never clobbers scraped data
+lib/es_settings.py  es_settings.xml merge
+lib/romimport.py bulk import from folder-per-console archives
 cmd/<name>.sh    one subcommand per file, defining cmd_<name>()
 config/systems/  one YAML manifest per console
+tools/           run-rom.sh (launch a game), validate-vscode.py
+docs/            user documentation; commands.md is the CLI reference
 ```
 
 ## Adding a subcommand
@@ -89,7 +95,7 @@ One file in `config/systems/`. Never special-case a console in code. `tests/test
 ## Before committing
 
 ```sh
-make check          # shellcheck + config validation + 68 tests
+make check          # shellcheck + config validation + tests
 make test-linux     # the Raspberry Pi code path (bash 5.x, no PyYAML)
 ```
 

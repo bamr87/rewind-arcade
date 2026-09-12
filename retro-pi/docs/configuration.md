@@ -43,7 +43,7 @@ gives you exactly two systems, not the defaults plus two.
 | `paths.bios` | `bios` | Where BIOS files are looked up |
 | `frontend.kind` | `es-de` | `es-de`, `emulationstation`, or `none` |
 | `emulation.fullscreen` | `true` | Adds `--fullscreen` to generated commands |
-| `systems.enabled` | 23 systems | What the frontend shows |
+| `systems.enabled` | every system | What the frontend shows |
 | `emulators.<system>` | — | Override the default emulator for one system |
 | `saves.centralize` | `true` | Keep saves out of the ROM tree |
 | `controls.hotkeys.*` | see file | Hotkey combos written to RetroArch |

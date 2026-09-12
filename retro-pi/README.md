@@ -2,7 +2,7 @@
 
 A portable, packageable workspace for building, installing, maintaining and extending a retro gaming setup — one repository that works the same on **macOS** and a **Raspberry Pi**, driving **EmulationStation** and **RetroArch**.
 
-NES, SNES, N64, Game Boy, Genesis/Mega Drive, Master System, Game Gear, Sega CD, 32X, Saturn, Dreamcast, PlayStation, PSP, Atari, PC Engine, Neo Geo, arcade, DOS and C64 ship configured — 23 systems, and adding another is one YAML file.
+NES, SNES, N64, Game Boy, Genesis/Mega Drive, Master System, Game Gear, SG-1000, Sega CD, 32X, Saturn, Dreamcast, PlayStation, PSP, Atari, PC Engine, Neo Geo, arcade, DOS and C64 ship configured — two dozen systems, and adding another is one YAML file.
 
 ```sh
 git clone <your-fork> retro-pi && cd retro-pi
@@ -35,7 +35,7 @@ retro-pi keeps the *setup* — not the games — as version-controlled, declarat
 | **Organize** | Files ROMs by extension, inventories the library, checksums it |
 | **Maintain** | Verifies BIOS by MD5, detects bit rot, syncs Mac ⇄ Pi over rsync |
 | **Extend** | `extend system <id>` scaffolds a console; no code changes |
-| **Test** | 68 tests across macOS bash 3.2 and Linux bash 5.x |
+| **Test** | a self-contained suite, run on macOS bash 3.2 and Linux bash 5.x |
 
 ## Commands
 
@@ -126,7 +126,7 @@ retro-pi ships no games and no firmware, and will not download either. It organi
 
 ```sh
 make check         # lint + validate + test
-make test          # 68 tests
+make test          # the test suite
 make test-linux    # run the suite in a Linux/arm64 container (the Pi path)
 ```
 
@@ -157,7 +157,9 @@ The Python configurations work as soon as the Python extension is installed. Ste
 
 ## Documentation
 
+- [All documentation](docs/README.md)
 - [Getting started](docs/getting-started.md)
+- [Command reference](docs/commands.md)
 - [macOS](docs/macos.md) · [Raspberry Pi](docs/raspberry-pi.md)
 - [EmulationStation](docs/emulationstation.md)
 - [Configuration](docs/configuration.md)

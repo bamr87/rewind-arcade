@@ -36,7 +36,7 @@ To be selective:
 
 ## 4. Choose your systems
 
-23 systems ship enabled. Trim the list so the frontend only shows what you actually play:
+Two dozen systems ship enabled. Trim the list so the frontend only shows what you actually play:
 
 ```sh
 ./bin/retropi systems list

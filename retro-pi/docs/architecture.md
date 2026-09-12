@@ -21,6 +21,7 @@ lib/
   frontend.sh        EmulationStation: detection, layout, install, gamelists
   gamelist.py        gamelist.xml generation (title cleaning, metadata merge)
   es_settings.py     es_settings.xml merge
+  romimport.py       bulk import from folder-per-console archives
   yamlite.py         dependency-free YAML reader
 cmd/<name>.sh        one file per subcommand, defines cmd_<name>()
 config/
@@ -28,6 +29,7 @@ config/
   local.yaml         machine-local overrides (gitignored)
   systems/*.yaml     one manifest per console
 platforms/           per-OS bootstrap scripts
+tools/               launch and development helpers (run-rom.sh, validate-vscode.py)
 tests/               self-contained test suite
 docker/              Linux/arm64 container for testing the Pi path
 ```
