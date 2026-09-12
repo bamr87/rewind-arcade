@@ -57,8 +57,26 @@ _install_retroarch() {
   info "installing RetroArch"
   case "$RETROPI_OS" in
     macos)
-      need brew "install Homebrew from https://brew.sh"
-      run brew install --cask retroarch
+      # NOT the Homebrew cask: it is x86_64/OpenGL, which leaves every
+      # hardware-rendered core broken on Apple Silicon.
+      local url dmg dest
+      if url="$(retroarch_macos_url)"; then
+        dmg="$(downloads_dir)/$(basename "$url")"
+        step "downloading $(basename "$url") (universal, Metal)"
+        if fetch "$url" "$dmg"; then
+          if [[ "$RETROPI_DRY_RUN" == "1" ]]; then
+            step "dry run: would install $dmg"
+          elif dest="$(install_app_from_dmg "$dmg")"; then
+            ok "installed $dest"
+          else
+            warn "could not install the universal build"
+          fi
+        else
+          warn "download failed: $url"
+        fi
+      else
+        warn "could not resolve a RetroArch build; install manually from https://www.retroarch.com/"
+      fi
       ;;
     linux)
       if [[ -x /opt/retropie/emulators/retroarch/bin/retroarch ]]; then

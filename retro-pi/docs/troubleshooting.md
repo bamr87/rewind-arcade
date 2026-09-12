@@ -49,6 +49,24 @@ The core does not match the RetroArch binary. On Apple Silicon this usually mean
 
 Not every core is built for every platform. The failure message links to the buildbot index for your exact architecture — if the file is not listed there, it needs building from source or a different core.
 
+## A 3D system loads the ROM and then quits ("Cannot open video driver")
+
+N64, Dreamcast, PSP and Saturn cores render in hardware and need a working video context. 2D cores do not, which is why NES and SNES keep working and only the 3D systems fail — it looks like a bad ROM, but the log shows the ROM being read correctly first.
+
+On Apple Silicon the usual cause is an x86_64 RetroArch (the Homebrew cask) running under Rosetta and asking for an OpenGL context macOS no longer provides:
+
+```
+[INFO]  [Environ] SET_HW_RENDER, context type: gl.
+[ERROR] [GL] GL: Invalid enum.
+[ERROR] [Video] Cannot open video driver. Exiting...
+```
+
+```sh
+./bin/retropi doctor                   # reports it explicitly
+./bin/retropi install --retroarch      # native universal (Metal) build
+./bin/retropi cores install --force    # rebuild cores for the new architecture
+```
+
 ## Disc-based games (PS1, Sega CD, Saturn, Dreamcast)
 
 - Required BIOS missing? `./bin/retropi bios check`

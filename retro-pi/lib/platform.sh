@@ -220,6 +220,70 @@ buildbot_path() {
   esac
 }
 
+# --- macOS: RetroArch build selection ----------------------------------------
+# The Homebrew cask ships an x86_64 OpenGL build. On Apple Silicon that runs
+# under Rosetta AND asks for an OpenGL context macOS no longer provides well,
+# so any core that hardware-renders (N64, Dreamcast, PSP, Saturn) dies with
+# "Cannot open video driver". Upstream's universal build uses Metal and runs
+# natively, so that is what retro-pi installs.
+
+# retroarch_translated - true when RetroArch is x86_64 on arm64 hardware.
+retroarch_translated() {
+  [[ "$RETROPI_OS" == "macos" ]] || return 1
+  [[ "$RETROPI_ARCH" == "arm64" ]] || return 1
+  [[ "$(retroarch_arch)" == "x86_64" ]] || return 1
+  return 0
+}
+
+# retroarch_macos_url - latest stable universal (Metal) build.
+retroarch_macos_url() {
+  local ver="${RETROPI_RETROARCH_VERSION:-}"
+  if [[ -z "$ver" ]]; then
+    ver="$(_http_get "https://buildbot.libretro.com/stable/" 2>/dev/null \
+          | grep -oE 'href="/stable/[0-9.]+/"' \
+          | sed 's|href="/stable/||; s|/"||' | sort -t. -k1,1n -k2,2n -k3,3n | tail -1)"
+  fi
+  [[ -n "$ver" ]] || return 1
+  printf 'https://buildbot.libretro.com/stable/%s/apple/osx/universal/RetroArch_Metal.dmg' "$ver"
+}
+
+# _http_get <url> - fetch to stdout.
+_http_get() {
+  if have curl; then curl -fsSL --max-time 45 "$1"
+  elif have wget; then wget -qO- "$1"
+  else return 1; fi
+}
+
+# install_app_from_dmg <dmg> - mount, copy the .app to /Applications, detach.
+# Shared by the RetroArch and ES-DE installers; both images carry a licence
+# agreement that hdiutil would otherwise block on interactively.
+install_app_from_dmg() {
+  local dmg="$1" mnt app dest
+  need hdiutil "required to mount disk images"
+  mnt="$(printf 'Y\n' | hdiutil attach -nobrowse -readonly "$dmg" 2>/dev/null \
+        | grep -o '/Volumes/.*' | tail -1)"
+  [[ -n "$mnt" && -d "$mnt" ]] || { error "could not mount $dmg"; return 1; }
+
+  app="$(find "$mnt" -maxdepth 1 -name "*.app" 2>/dev/null | head -1)"
+  if [[ -z "$app" ]]; then
+    hdiutil detach "$mnt" >/dev/null 2>&1 || true
+    error "no .app inside $dmg"
+    return 1
+  fi
+  dest="/Applications/$(basename "$app")"
+  [[ -d "$dest" ]] && { step "replacing $dest"; rm -rf "$dest"; }
+  step "copying $(basename "$app") to /Applications"
+  if ! cp -R "$app" "$dest" 2>/dev/null; then
+    hdiutil detach "$mnt" >/dev/null 2>&1 || true
+    error "could not write to /Applications"
+    return 1
+  fi
+  hdiutil detach "$mnt" >/dev/null 2>&1 || true
+  have xattr && xattr -dr com.apple.quarantine "$dest" 2>/dev/null || true
+  printf '%s' "$dest"
+  return 0
+}
+
 # core_download_url <core_name> - zipped core matching this host.
 core_download_url() {
   local path

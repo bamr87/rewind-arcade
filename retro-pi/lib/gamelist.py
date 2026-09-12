@@ -67,6 +67,35 @@ def sort_name(title: str) -> str:
     return f"{m.group(2)}, {m.group(1)}" if m else title
 
 
+# Archives are usually named more loosely than the ROM inside them
+# ("perfect-dark.zip" wrapping "Perfect Dark (U) (V1.1) [!].z64"). When an
+# archive holds exactly one ROM, that inner name is the better title source.
+_ARCHIVE_EXT = {".zip", ".7z"}
+
+
+def archive_inner_name(path: str) -> str | None:
+    """Sole entry inside a single-ROM archive, else None."""
+    if os.path.splitext(path)[1].lower() != ".zip":
+        return None  # .7z needs a third-party library; not a dependency here
+    try:
+        import zipfile
+        with zipfile.ZipFile(path) as zf:
+            entries = [i.filename for i in zf.infolist()
+                       if not i.is_dir() and not i.filename.startswith("__MACOSX")]
+    except Exception:
+        return None  # unreadable or not really a zip: fall back to the filename
+    return entries[0] if len(entries) == 1 else None
+
+
+def title_source(rom_path: str) -> str:
+    """The filename a title should be derived from."""
+    if os.path.splitext(rom_path)[1].lower() in _ARCHIVE_EXT:
+        inner = archive_inner_name(rom_path)
+        if inner:
+            return os.path.basename(inner)
+    return os.path.basename(rom_path)
+
+
 def find_roms(rom_dir: str, extensions: list[str]) -> list[str]:
     wanted = {e.lower() for e in extensions}
     found = []
@@ -130,7 +159,7 @@ def generate(system_id: str, rom_dir: str, out_xml: str,
             continue
         game = ET.SubElement(root, "game")
         ET.SubElement(game, "path").text = f"./{rom}"
-        title = clean_name(rom)
+        title = clean_name(title_source(os.path.join(rom_dir, rom)))
         ET.SubElement(game, "name").text = title
         srt = sort_name(title)
         if srt != title:
@@ -158,10 +187,16 @@ def main() -> int:
     ap.add_argument("--ext", action="append", default=[], dest="extensions")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--clean-name", help="show the title derived from a filename")
+    ap.add_argument("--title-for", help="show the title derived from a file on disk, "
+                                        "looking inside single-ROM archives")
     args = ap.parse_args()
 
     if args.clean_name:
         print(clean_name(args.clean_name))
+        return 0
+
+    if args.title_for:
+        print(clean_name(title_source(args.title_for)))
         return 0
 
     if not (args.system and args.rom_dir and args.out_xml):

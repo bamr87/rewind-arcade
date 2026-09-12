@@ -153,6 +153,19 @@ __H__
   if [[ "$need_arch" != "$RETROPI_ARCH" ]]; then
     _pass "cores must be $need_arch (RetroArch is $need_arch on $RETROPI_ARCH hardware)"
   fi
+
+  # An x86_64 RetroArch on Apple Silicon loads 2D cores fine, then fails to
+  # create a video context for anything that hardware-renders. The symptom is
+  # a core that loads the ROM correctly and then exits with
+  # "Cannot open video driver", which looks like a bad ROM but is not.
+  if retroarch_translated; then
+    _fail "RetroArch is an x86_64 build running under Rosetta on arm64 hardware"
+    _hint "  3D systems (n64, dreamcast, psp, saturn) will fail with \"Cannot open video driver\"."
+    _hint "  Install the native universal build: ./bin/retropi install --retroarch"
+    _hint "  Then rebuild cores for the new architecture: ./bin/retropi cores install --force"
+  elif [[ "$RETROPI_OS" == "macos" && "$RETROPI_ARCH" == "arm64" ]]; then
+    _pass "RetroArch runs natively (arm64); hardware-rendered cores are supported"
+  fi
   if [[ -d "$cdir" && "${count:-0}" -gt 0 ]]; then
     local bad_arch="" cf cname
     while IFS= read -r cf; do

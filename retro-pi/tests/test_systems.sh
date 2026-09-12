@@ -173,3 +173,45 @@ test_pi_arch_detection_is_unaffected() {
   assert_eq "linux/aarch64" "$(buildbot_path)"
   unset RETROPI_RETROARCH_BIN
 }
+
+# --- Rosetta detection: x86_64 RetroArch on arm64 breaks 3D cores -------------
+# Symptom is misleading: the core loads the ROM fine, then exits with
+# "Cannot open video driver", which looks like a bad ROM.
+
+test_translated_retroarch_is_detected() {
+  RETROPI_OS="macos"; RETROPI_ARCH="arm64"
+  export RETROPI_CORE_ARCH="x86_64"
+  assert_ok retroarch_translated
+  unset RETROPI_CORE_ARCH
+}
+
+test_native_arm64_retroarch_is_not_flagged() {
+  RETROPI_OS="macos"; RETROPI_ARCH="arm64"
+  export RETROPI_CORE_ARCH="arm64"
+  assert_fails retroarch_translated
+  unset RETROPI_CORE_ARCH
+}
+
+test_intel_mac_is_not_translated() {
+  RETROPI_OS="macos"; RETROPI_ARCH="x86_64"
+  export RETROPI_CORE_ARCH="x86_64"
+  assert_fails retroarch_translated
+  unset RETROPI_CORE_ARCH
+}
+
+test_linux_is_never_translated() {
+  RETROPI_OS="linux"; RETROPI_ARCH="aarch64"
+  export RETROPI_CORE_ARCH="x86_64"
+  assert_fails retroarch_translated
+  unset RETROPI_CORE_ARCH
+}
+
+test_macos_retroarch_url_is_the_universal_metal_build() {
+  export RETROPI_RETROARCH_VERSION="1.22.2"
+  local url
+  url="$(retroarch_macos_url)"
+  assert_contains "$url" "universal"
+  assert_contains "$url" "RetroArch_Metal.dmg"
+  assert_contains "$url" "1.22.2"
+  unset RETROPI_RETROARCH_VERSION
+}

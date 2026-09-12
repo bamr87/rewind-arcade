@@ -296,40 +296,9 @@ frontend_install() {
 }
 
 _fe_install_dmg() {
-  local dmg="$1" mnt=""
-  need hdiutil "required to mount the ES-DE disk image"
-  step "mounting $(basename "$dmg")"
-  # The image carries a software license agreement that hdiutil presents
-  # interactively; feeding it "Y" accepts it so the mount is not left hanging.
-  # The agreement text is printed before the mount table, so the mount point is
-  # taken from the LAST /Volumes line rather than by column position.
-  mnt="$(printf 'Y\n' | hdiutil attach -nobrowse -readonly "$dmg" 2>/dev/null \
-        | grep -o '/Volumes/.*' | tail -1)"
-  [[ -n "$mnt" && -d "$mnt" ]] || { error "could not mount $dmg"; return 1; }
-
-  local app
-  app="$(find "$mnt" -maxdepth 1 -name "*.app" 2>/dev/null | head -1)"
-  if [[ -z "$app" ]]; then
-    hdiutil detach "$mnt" >/dev/null 2>&1 || true
-    error "no .app inside $dmg"
-    return 1
-  fi
-
   local dest
-  dest="/Applications/$(basename "$app")"
-  if [[ -d "$dest" ]]; then
-    step "replacing $dest"
-    rm -rf "$dest"
-  fi
-  step "copying $(basename "$app") to /Applications"
-  if ! cp -R "$app" "$dest" 2>/dev/null; then
-    hdiutil detach "$mnt" >/dev/null 2>&1 || true
-    error "could not write to /Applications (permission denied?)"
-    return 1
-  fi
-  hdiutil detach "$mnt" >/dev/null 2>&1 || true
-  # Downloaded apps are quarantined; clear it so the app opens without a prompt.
-  have xattr && xattr -dr com.apple.quarantine "$dest" 2>/dev/null || true
+  step "mounting $(basename "$1")"
+  dest="$(install_app_from_dmg "$1")" || return 1
   ok "installed $dest"
   frontend_detect
 }

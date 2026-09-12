@@ -11,7 +11,7 @@ Works on both Apple Silicon and Intel; the correct core builds are selected auto
 
 ## The frontend
 
-RetroArch installs from Homebrew. **ES-DE does not** — it ships as a signed DMG, so it is a manual step:
+RetroArch is installed from the upstream universal build, not Homebrew: the cask is x86_64/OpenGL, which runs under Rosetta on Apple Silicon and cannot open a video context for hardware-rendered cores, so N64, Dreamcast, PSP and Saturn all fail while 2D systems keep working. The universal build is native and uses Metal. **ES-DE does not** — it ships as a signed DMG, so it is a manual step:
 
 1. Download from <https://es-de.org/#Downloads>
 2. Drag `ES-DE.app` to `/Applications`

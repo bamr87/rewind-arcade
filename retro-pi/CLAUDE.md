@@ -45,6 +45,10 @@ Cores are `dlopen()`ed into RetroArch, so they must match the **RetroArch binary
 
 Tests that assert on `buildbot_path()` must pin `RETROPI_RETROARCH_BIN=/nonexistent/retroarch` or `RETROPI_CORE_ARCH`, or they pick up whatever RetroArch the host happens to have and stop being hermetic.
 
+## macOS: install RetroArch from upstream, not Homebrew
+
+The Homebrew cask is an x86_64 OpenGL build. On Apple Silicon it runs under Rosetta and cannot create a video context, so every hardware-rendered core (n64, dreamcast, psp, saturn) loads its ROM and then exits with "Cannot open video driver" — while 2D cores work, which makes it look like a content problem. `retroarch_macos_url()` resolves the upstream universal Metal build; `retroarch_translated()` detects the broken combination and `doctor` fails on it.
+
 ## EmulationStation layout is derived from the version, not probed
 
 `lib/frontend.sh` owns every fact about the frontend. ES-DE 3.0 moved its data directory from `~/.emulationstation` to `~/ES-DE` and its settings to `<home>/settings/`. An installed frontend therefore decides its own paths from its version; probing for an existing directory is wrong, because retro-pi itself used to create `~/.emulationstation` and that stale directory would win.
