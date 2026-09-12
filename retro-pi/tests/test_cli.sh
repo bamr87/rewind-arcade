@@ -30,7 +30,7 @@ test_no_arguments_shows_usage_and_fails() {
 
 test_every_command_has_help() {
   local c out
-  for c in doctor install build config systems roms bios cores sync package extend clean; do
+  for c in doctor install build config systems roms bios cores sync package extend clean audio; do
     out="$("$RP" "$c" --help 2>&1)" || true
     assert_contains "$out" "retropi $c" "no help text for '$c'" || return 1
   done

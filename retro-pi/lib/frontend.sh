@@ -390,6 +390,15 @@ frontend_session_start() {
   if xset -display "$disp" q >/dev/null 2>&1; then
     die "an X server is already using display $disp; stop it or set display.x_display"
   fi
+  local want_audio desc
+  want_audio="$(cfg audio.output "")"
+  if [[ -n "$want_audio" ]]; then
+    if audio_supported && desc="$(audio_set_output "$want_audio")"; then
+      step "audio: $desc"
+    else
+      warn "audio.output '$want_audio' matches no output; sound stays on the current default"
+    fi
+  fi
   info "starting $(frontend_flavor) on display $disp, vt$vt"
   step "rotate: $(cfg display.rotate normal)   region: $(cfg display.region full)"
   [[ "$RETROPI_DRY_RUN" == "1" ]] && { step "dry run: would start the session"; return 0; }

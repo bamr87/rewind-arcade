@@ -76,6 +76,18 @@ controls:
 
 The session rotates the output, measures the rotated screen, sizes ES-DE to the region, and writes `build/retroarch-display.cfg` so every game opens as a borderless window in the same place. With `rotate` in xrandr's terms, `left` turns the picture 90° counter-clockwise; if the result is upside down, use the other one.
 
+### Sound through the monitor
+
+RetroArch and ES-DE play to PipeWire's default output, which on a machine with onboard audio is usually not the HDMI port. Speakers on the monitor, or a Dell soundbar on its audio-out, need the graphics card's HDMI output to be the default:
+
+```sh
+./bin/retropi audio list          # * marks the current default
+./bin/retropi audio set hdmi
+./bin/retropi config set audio.output hdmi   # and keep applying it for sessions
+```
+
+If the list has no HDMI output, the card's HDMI profile is off or the monitor is on another connector; `wpctl status` and `/proc/asound/card*/eld*` (look for `monitor_present 1`) show which.
+
 ### Controllers in a session started over SSH
 
 The X server inherits the SSH login, not a local seat, so it gets no access to `/dev/input/event*` — RetroArch's `udev` driver and ES-DE both see no gamepad. The classic joystick nodes (`/dev/input/js*`) stay readable, so set `controls.joypad_driver: linuxraw`: RetroArch uses them, and the session tells ES-DE's SDL to as well.

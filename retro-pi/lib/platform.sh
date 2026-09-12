@@ -378,6 +378,56 @@ controller_profile_drivers() {
   return 0
 }
 
+# --- audio ---------------------------------------------------------------------
+# RetroArch (pulse driver) and ES-DE (SDL) both play to the sound server's
+# default output, so choosing an output means changing that default. Linux with
+# PipeWire only; WirePlumber remembers the choice across restarts.
+
+# audio_supported - true when outputs can be listed and selected here.
+audio_supported() {
+  [[ "$RETROPI_OS" == "linux" ]] && have wpctl
+}
+
+# audio_outputs - one "id<TAB>default-mark<TAB>description" line per output.
+# Parsed from `wpctl status`: the Sinks block of the Audio section.
+audio_outputs() {
+  audio_supported || return 1
+  wpctl status 2>/dev/null | awk '
+    /^Audio/ { audio = 1; next }
+    /^(Video|Settings)/ { audio = 0 }
+    audio && /Sinks:/ { sinks = 1; next }
+    audio && /(Sources|Filters|Streams):/ { sinks = 0 }
+    sinks && match($0, /[0-9]+\. /) {
+      id = substr($0, RSTART, RLENGTH - 2)
+      desc = substr($0, RSTART + RLENGTH)
+      sub(/ *\[vol:.*$/, "", desc)
+      mark = (index(substr($0, 1, RSTART), "*") > 0) ? "*" : ""
+      printf "%s\t%s\t%s\n", id, mark, desc
+    }'
+  return 0
+}
+
+# audio_set_output <pattern> - make the first output whose description
+# contains <pattern> (case-insensitive) the default. Prints its description.
+audio_set_output() {
+  local want line id desc lower_desc lower_want
+  want="$1"
+  [[ -n "$want" ]] || return 1
+  lower_want="$(printf '%s' "$want" | tr '[:upper:]' '[:lower:]')"
+  while IFS= read -r line; do
+    id="${line%%$'\t'*}"
+    desc="${line##*$'\t'}"
+    lower_desc="$(printf '%s' "$desc" | tr '[:upper:]' '[:lower:]')"
+    case "$lower_desc" in
+      *"$lower_want"*)
+        run wpctl set-default "$id" || return 1
+        printf '%s' "$desc"
+        return 0 ;;
+    esac
+  done < <(audio_outputs)
+  return 1
+}
+
 # appimage_fuse_package - the package that lets an AppImage mount itself.
 # Debian 13 and Ubuntu 24.04 renamed libfuse2 to libfuse2t64.
 appimage_fuse_package() {

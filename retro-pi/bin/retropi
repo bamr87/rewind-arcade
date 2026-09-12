@@ -51,6 +51,7 @@ CONTENT
   roms              Inventory, verify and organize your ROM library
   bios              Report which BIOS files each system still needs
   cores             List, install and update libretro cores
+  audio             Choose the sound output (e.g. HDMI speakers)
 
 MAINTENANCE
   sync              Push or pull the workspace to another machine (rsync)

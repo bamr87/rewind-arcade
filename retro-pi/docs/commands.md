@@ -152,6 +152,16 @@ frontend dirs              print every managed path
 
 See [emulationstation.md](emulationstation.md).
 
+### `audio`
+
+```
+audio list            outputs the sound server offers (* = current default)
+audio set <name>      make the output matching <name> the default now
+audio apply           apply audio.output from your config
+```
+
+RetroArch and the frontend play to the system's default output, so this is how sound reaches speakers on an HDMI monitor. Names match case-insensitively (`retropi audio set hdmi`). Linux with PipeWire; the choice persists across restarts, and `frontend session start` applies `audio.output` too.
+
 ## Maintenance
 
 ### `sync`

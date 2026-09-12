@@ -45,6 +45,7 @@ gives you exactly two systems, not the defaults plus two.
 | `emulation.fullscreen` | `true` | Adds `--fullscreen` to generated commands |
 | `display.rotate` | `normal` | `normal`, `left`, `right`, `inverted` — applied by `frontend session` |
 | `display.region` | `full` | `full`, `top-half`, `bottom-half`, `left-half`, `right-half`; anything but `full` runs games in a borderless window of that size |
+| `audio.output` | `""` | Output to play through, matched against `retropi audio list` (e.g. `hdmi`); applied by `audio apply` and `frontend session start` |
 | `controls.joypad_driver` | `auto` | RetroArch joypad driver; `linuxraw` for sessions started over SSH |
 | `systems.enabled` | every system | What the frontend shows |
 | `emulators.<system>` | — | Override the default emulator for one system |

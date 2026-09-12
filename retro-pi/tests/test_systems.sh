@@ -200,6 +200,68 @@ test_display_region_turns_fullscreen_into_a_window_overlay() {
   assert_contains "$cmd" "retroarch-display.cfg"
 }
 
+# --- audio: choosing the output games play through -----------------------------
+
+_stub_wpctl() {
+  mkdir -p "$SB/bin"
+  cat > "$SB/bin/wpctl" <<__S__
+#!/bin/sh
+if [ "\$1" = "set-default" ]; then echo "\$2" > "$SB/default"; exit 0; fi
+cat <<'__STATUS__'
+PipeWire 'pipewire-0' [1.4.2, amr@forge, cookie:1]
+ └─ Clients:
+        33. WirePlumber                         [1.4.2, amr@forge, pid:1]
+
+Audio
+ ├─ Devices:
+ │      48. GK106 HDMI Audio Controller         [alsa]
+ │      49. Built-in Audio                      [alsa]
+ │
+ ├─ Sinks:
+ │  *   35. Built-in Audio Digital Stereo (IEC958) [vol: 0.40]
+ │      56. GK106 HDMI Audio Controller Digital Stereo (HDMI) [vol: 0.40]
+ │
+ ├─ Sources:
+ │      60. Built-in Audio Analog Stereo        [vol: 1.00]
+ │
+ ├─ Filters:
+ │
+ └─ Streams:
+
+Video
+ ├─ Devices:
+ │      70. Fake HDMI Camera                    [v4l2]
+__STATUS__
+__S__
+  chmod +x "$SB/bin/wpctl"
+  export PATH="$SB/bin:$PATH"
+}
+
+test_audio_outputs_lists_sinks_only() {
+  RETROPI_OS="linux"
+  _stub_wpctl
+  local out
+  out="$(audio_outputs)"
+  assert_eq 2 "$(printf '%s\n' "$out" | grep -c .)" "only the two sinks: $out"
+  assert_contains "$out" "$(printf '35\t*\tBuilt-in Audio Digital Stereo (IEC958)')"
+  assert_contains "$out" "$(printf '56\t\tGK106 HDMI Audio Controller Digital Stereo (HDMI)')"
+  assert_not_contains "$out" "Camera"
+  assert_not_contains "$out" "Analog Stereo"
+}
+
+test_audio_set_output_matches_case_insensitively() {
+  RETROPI_OS="linux"
+  _stub_wpctl
+  assert_eq "GK106 HDMI Audio Controller Digital Stereo (HDMI)" "$(audio_set_output hdmi)"
+  assert_eq "56" "$(cat "$SB/default")"
+  assert_fails audio_set_output "bluetooth"
+}
+
+test_audio_is_linux_only() {
+  RETROPI_OS="macos"
+  assert_fails audio_supported
+}
+
 test_buildbot_paths_match_known_targets() {
   # Pin to the host arch: buildbot_path() consults the installed RetroArch
   # binary, and this test is about the arch -> path mapping alone.

@@ -49,6 +49,7 @@ CONTENT    systems     list and inspect supported systems
            roms        inventory, verify and organize your library
            bios        report which firmware each system still needs
            cores       list, install and update libretro cores
+           audio       choose the sound output (e.g. HDMI speakers)
 
 MAINTAIN   sync        push/pull the workspace to another machine
            package     build a portable archive

@@ -108,6 +108,14 @@ display:
   x_display: ":1"
   vt: 7
 
+# ------------------------------------------------------------------ audio ----
+audio:
+  # Output to play through, matched against the names `retropi audio list`
+  # prints (case-insensitive substring), e.g. "hdmi" for speakers fed by the
+  # monitor. Empty leaves the system default alone. Applied by `retropi audio
+  # apply` and by `frontend session start`. Linux/PipeWire.
+  output: ""
+
 # --------------------------------------------------------------- controls ----
 controls:
   # Write a shared RetroArch autoconfig + hotkeys so both machines behave alike.
