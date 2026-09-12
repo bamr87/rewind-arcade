@@ -29,5 +29,10 @@ config/*.local.yaml
 Thumbs.db
 *.swp
 .idea/
+
+# Shared editor config is deliberately tracked; personal state is not.
 .vscode/*
 !.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/settings.json

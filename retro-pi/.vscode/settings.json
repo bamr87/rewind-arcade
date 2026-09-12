@@ -1,0 +1,39 @@
+{
+  // Match what `make lint` and CI run, so the editor agrees with the build.
+  "shellcheck.enable": true,
+  "shellcheck.useWorkspaceRootAsCwd": true,
+  // -x lets shellcheck follow `source lib/*.sh` across files.
+  "shellcheck.customArgs": ["-x"],
+  // SC2034 fires on variables that are set here and consumed elsewhere after
+  // sourcing, which is the normal shape of this codebase.
+  "shellcheck.exclude": ["SC2034"],
+
+  "files.associations": {
+    "retropi": "shellscript",
+    "*.sh": "shellscript"
+  },
+  "[shellscript]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": false
+  },
+  "[yaml]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "editor.autoIndent": "keep"
+  },
+
+  // Generated output and game content: noise in search results.
+  "search.exclude": {
+    "**/build/**": true,
+    "**/dist/**": true,
+    "**/.retropi/**": true,
+    "**/roms/**": true,
+    "**/bios/**": true
+  },
+  "files.watcherExclude": {
+    "**/build/**": true,
+    "**/.retropi/**": true,
+    "**/roms/**": true
+  }
+}

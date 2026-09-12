@@ -1,0 +1,135 @@
+{
+  // Run-only workflows. Debugging lives in launch.json.
+  // Ctrl/Cmd+Shift+B runs the default build task ("check").
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "check",
+      "detail": "shellcheck + config validation + the full test suite",
+      "type": "shell",
+      "command": "make check",
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "test",
+      "detail": "Run the test suite",
+      "type": "shell",
+      "command": "./tests/run.sh",
+      "group": { "kind": "test", "isDefault": true },
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "test (verbose)",
+      "type": "shell",
+      "command": "./tests/run.sh -v",
+      "group": "test",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "test: built-in YAML parser (Pi path)",
+      "detail": "Forces the parser a stock Raspberry Pi uses",
+      "type": "shell",
+      "command": "RETROPI_YAML_PURE=1 ./tests/run.sh",
+      "group": "test",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "test: Linux container (Raspberry Pi code path)",
+      "detail": "bash 5.x on Debian with no PyYAML - needs Docker",
+      "type": "shell",
+      "command": "make test-linux",
+      "group": "test",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "lint",
+      "type": "shell",
+      "command": "make lint",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "doctor",
+      "detail": "Check this machine and report what is missing",
+      "type": "shell",
+      "command": "./bin/retropi doctor",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "build",
+      "detail": "Regenerate frontend + emulator configuration",
+      "type": "shell",
+      "command": "./bin/retropi build",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "build (no install)",
+      "detail": "Generate into build/ without touching your frontend",
+      "type": "shell",
+      "command": "./bin/retropi build --no-install",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "cores: install for enabled systems",
+      "type": "shell",
+      "command": "./bin/retropi cores install",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "generate NES test ROM",
+      "detail": "An original test cartridge - no game required",
+      "type": "shell",
+      "command": "mkdir -p roms/nes && python3 tests/fixtures/make_test_rom.py roms/nes/retropi-test.nes",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "run: NES test ROM",
+      "detail": "Generate the test cartridge and launch it windowed",
+      "type": "shell",
+      "command": "./tools/run-rom.sh nes roms/nes/retropi-test.nes --log /tmp/retroarch.log",
+      "dependsOn": "generate NES test ROM",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "run: print launch command",
+      "detail": "Show what the frontend will execute, run nothing",
+      "type": "shell",
+      "command": "./tools/run-rom.sh ${input:systemId} --print",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "clean",
+      "type": "shell",
+      "command": "./bin/retropi clean",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+    }
+  ],
+  "inputs": [
+    {
+      "id": "systemId",
+      "type": "pickString",
+      "description": "Which system?",
+      "default": "nes",
+      "options": [
+        "nes", "snes", "n64", "gb", "gbc", "gba", "nds",
+        "megadrive", "mastersystem", "gamegear", "segacd", "sega32x",
+        "saturn", "dreamcast", "psx", "psp",
+        "atari2600", "atari7800", "pcengine", "neogeo", "arcade", "dos", "c64"
+      ]
+    }
+  ]
+}

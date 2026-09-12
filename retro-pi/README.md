@@ -119,6 +119,20 @@ make test-linux    # run the suite in a Linux/arm64 container (the Pi path)
 
 CI runs the suite on macOS (bash 3.2) and Ubuntu (bash 5.x), again with the built-in YAML parser forced, and once more on `linux/arm64` under QEMU — the real Raspberry Pi target.
 
+To launch a game without needing one, generate an original test cartridge:
+
+```sh
+python3 tests/fixtures/make_test_rom.py roms/nes/retropi-test.nes
+./tools/run-rom.sh nes                  # launches it windowed
+./tools/run-rom.sh nes --print          # just show the command
+```
+
+### VSCode
+
+`.vscode/` ships run and debug configuration: **F5** for the debug configurations in `launch.json`, and **Cmd/Ctrl+Shift+B** for `check` (lint + validate + tests). The task list also has `run: NES test ROM`, which generates the cartridge above and launches it.
+
+The Python configurations work as soon as the Python extension is installed. Step-debugging the shell scripts needs the Bash Debug extension and bash 4+, so on macOS `brew install bash` — Apple's bash 3.2 is too old to drive the debugger. Note that retro-pi is written to *run* on 3.2, so confirm any fix with `./tests/run.sh` under `/bin/bash` and `make test-linux` for the Pi.
+
 ## Documentation
 
 - [Getting started](docs/getting-started.md)
