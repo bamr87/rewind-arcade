@@ -45,6 +45,14 @@ Cores are `dlopen()`ed into RetroArch, so they must match the **RetroArch binary
 
 Tests that assert on `buildbot_path()` must pin `RETROPI_RETROARCH_BIN=/nonexistent/retroarch` or `RETROPI_CORE_ARCH`, or they pick up whatever RetroArch the host happens to have and stop being hermetic.
 
+## EmulationStation layout is derived from the version, not probed
+
+`lib/frontend.sh` owns every fact about the frontend. ES-DE 3.0 moved its data directory from `~/.emulationstation` to `~/ES-DE` and its settings to `<home>/settings/`. An installed frontend therefore decides its own paths from its version; probing for an existing directory is wrong, because retro-pi itself used to create `~/.emulationstation` and that stale directory would win.
+
+Explicit overrides (`RETROPI_ES_CONFIG_HOME`, `RETROPI_FRONTEND_BIN`) are authoritative and must never fall back to a probe: pointing at a binary that is missing means "not installed", not "go find another one".
+
+`frontend_detect` is re-entrancy guarded. It resolves the home via `frontend_version` -> `frontend_installed` -> `_fe_ensure`, which would otherwise call detection again; that recursion once turned a path lookup into 25 seconds of work. Any subprocess whose output is captured also needs `</dev/null` — a GUI binary that blocks on stdin holds the pipe open forever and hangs the suite.
+
 ## Layout
 
 ```

@@ -29,6 +29,8 @@ export RETROPI_ROOT RETROPI_VERSION
 . "$RETROPI_ROOT/lib/config.sh"
 # shellcheck source=../lib/systems.sh
 . "$RETROPI_ROOT/lib/systems.sh"
+# shellcheck source=../lib/frontend.sh
+. "$RETROPI_ROOT/lib/frontend.sh"
 
 usage() {
   cat >&2 <<'__USAGE__'
@@ -41,6 +43,7 @@ SETUP
   doctor            Check this machine and report what is missing
   install           Install the emulator stack (RetroArch, cores, frontend)
   build             Generate frontend + emulator config from the manifests
+  frontend          Install and manage EmulationStation
   config            Read, write and initialize configuration
 
 CONTENT

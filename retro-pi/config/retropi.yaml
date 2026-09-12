@@ -33,9 +33,21 @@ frontend:
   # emulationstation  RetroPie's EmulationStation               Raspberry Pi
   # none              generate config only, launch nothing
   kind: es-de
-  # Collections/UI niceties written into the generated config.
   theme: slate-es-de
   show_hidden_games: false
+
+  # Write gamelist.xml during `retropi build` so the frontend shows real
+  # titles ("The Legend of Zelda") instead of raw filenames. Existing
+  # gamelists are merged: scraped descriptions and images are never touched.
+  generate_gamelists: true
+
+  # Keys merged into the frontend's es_settings.xml by
+  # `retropi frontend settings --apply`. Nothing is written unless you ask.
+  # {roms}, {media} and {themes} expand to the resolved paths.
+  # Add any key your frontend version supports - none of these are hardcoded.
+  settings:
+    ROMDirectory: "{roms}"
+    MediaDirectory: "{media}"
 
 # -------------------------------------------------------------- emulation ----
 emulation:

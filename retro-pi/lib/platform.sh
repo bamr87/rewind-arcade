@@ -226,27 +226,3 @@ core_download_url() {
   path="$(buildbot_path)" || return 1
   printf '%s/%s/latest/%s.%s.zip' "$(buildbot_base)" "$path" "$1" "$(core_ext)"
 }
-
-# --- frontend discovery -------------------------------------------------------
-
-# es_config_dir - where the frontend reads es_systems.xml from.
-es_config_dir() {
-  if [[ -n "${RETROPI_ES_CONFIG:-}" ]]; then printf '%s' "$RETROPI_ES_CONFIG"; return; fi
-  case "$RETROPI_OS" in
-    macos) printf '%s' "$HOME/.emulationstation/custom_systems" ;;
-    *)
-      if [[ -d /opt/retropie/configs/all/emulationstation ]]; then
-        printf '%s' "/opt/retropie/configs/all/emulationstation"
-      else
-        printf '%s' "$HOME/.emulationstation/custom_systems"
-      fi
-      ;;
-  esac
-}
-
-es_installed() {
-  have emulationstation && return 0
-  [[ "$RETROPI_OS" == "macos" && -d "/Applications/ES-DE.app" ]] && return 0
-  [[ -x /opt/retropie/supplementary/emulationstation/emulationstation ]] && return 0
-  return 1
-}

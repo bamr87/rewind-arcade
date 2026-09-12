@@ -5,12 +5,13 @@
 # hand-edit the output.
 
 cmd_build() {
-  local install=1 do_ra=1 do_dirs=1 only="" apply_ra=0
+  local install=1 do_ra=1 do_dirs=1 only="" apply_ra=0 do_gamelists=1
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --no-install)   install=0 ;;
       --no-retroarch) do_ra=0 ;;
       --no-dirs)      do_dirs=0 ;;
+      --no-gamelists) do_gamelists=0 ;;
       --apply-retroarch) apply_ra=1 ;;
       --systems)      only="${2:-}"; shift ;;
       -h|--help)
@@ -20,6 +21,7 @@ retropi build - generate frontend and emulator configuration
   --no-install      write to build/ only, do not install into the frontend
   --no-retroarch    skip RetroArch path configuration
   --no-dirs         do not create the ROM directory tree
+  --no-gamelists    do not write gamelist.xml for the frontend
   --systems <ids>   build only these systems (comma separated)
   --apply-retroarch merge the generated keys into your real retroarch.cfg
                     (the original is backed up first)
@@ -46,6 +48,9 @@ __H__
 
   [[ "$do_dirs" == "1" ]] && _build_rom_dirs "$ids"
   _build_es_systems "$ids" "$out"
+  if [[ "$do_gamelists" == "1" && "$(cfg frontend.generate_gamelists true)" == "true" ]]; then
+    _build_gamelists "$ids"
+  fi
   [[ "$do_ra" == "1" ]] && _build_retroarch "$out"
   [[ "$install" == "1" ]] && _install_generated "$out"
   [[ "$apply_ra" == "1" ]] && _apply_retroarch "$out"
@@ -163,6 +168,17 @@ _es_system_entry() {
   printf '    <platform>%s</platform>\n' "$(xml_escape "$plat")"
   printf '    <theme>%s</theme>\n' "$(xml_escape "$theme")"
   printf '  </system>\n'
+}
+
+# --- gamelists ----------------------------------------------------------------
+# Without these the frontend lists raw filenames. Delegated to cmd/frontend.sh
+# so `retropi build` and `retropi frontend gamelist` cannot drift apart.
+
+_build_gamelists() {
+  local ids="$1"
+  declare -f _fe_gamelist >/dev/null 2>&1 || . "$RETROPI_ROOT/cmd/frontend.sh"
+  frontend_detect
+  _fe_gamelist --systems "$(printf '%s' "$ids" | tr '\n' ',')"
 }
 
 # --- RetroArch ----------------------------------------------------------------

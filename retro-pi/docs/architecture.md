@@ -18,6 +18,9 @@ lib/
   platform.sh        the ONLY file that branches on macOS vs Linux vs Pi
   config.sh          layered config, flat-file cache
   systems.sh         manifest access, emulator resolution, launch commands
+  frontend.sh        EmulationStation: detection, layout, install, gamelists
+  gamelist.py        gamelist.xml generation (title cleaning, metadata merge)
+  es_settings.py     es_settings.xml merge
   yamlite.py         dependency-free YAML reader
 cmd/<name>.sh        one file per subcommand, defines cmd_<name>()
 config/
@@ -31,7 +34,9 @@ docker/              Linux/arm64 container for testing the Pi path
 
 ## Design rules
 
-**One place per concern.** Only `lib/platform.sh` knows that macOS uses `.dylib` and Linux uses `.so`, or that the libretro buildbot calls 64-bit ARM `aarch64`. Everything else asks it.
+**One place per concern.** Only `lib/platform.sh` knows that macOS uses `.dylib` and Linux uses `.so`, or that the libretro buildbot calls 64-bit ARM `aarch64`. Only `lib/frontend.sh` knows where EmulationStation keeps its files or how to install it. Everything else asks them.
+
+**Layout is derived, not probed.** An installed frontend decides its own paths from its version: ES-DE 3.x reads `~/ES-DE` and will never look at a `~/.emulationstation` left behind by something else. Picking whichever directory happens to exist would write configuration where the frontend cannot see it.
 
 **Generated files are disposable.** Anything in `build/` or installed into the frontend can be deleted and recreated with `retropi build`. Configuration is the source of truth; generated output is never hand-edited.
 

@@ -68,6 +68,19 @@ config/systems/*.yaml  ──►  lib/systems.sh  ──►  cmd/build.sh  ─�
 
 `es_systems.xml` is the format both ES-DE (macOS/Linux) and RetroPie's EmulationStation read, which is what lets one configuration serve both targets. Alternate emulators become extra `<command>` entries — ES-DE shows a picker, RetroPie uses the first.
 
+## EmulationStation is part of the framework
+
+The frontend is installed and managed, not left to you:
+
+```sh
+./bin/retropi frontend install    # ES-DE for this platform, resolved from upstream
+./bin/retropi frontend status     # installed? where does it read from? is it wired up?
+./bin/retropi frontend gamelist   # real titles instead of filenames
+./bin/retropi frontend launch
+```
+
+retro-pi derives the frontend's layout from the version installed (ES-DE 3.x moved its data directory), writes `es_systems.xml` and per-system gamelists where that version actually reads them, and merges rather than overwrites anything you have scraped. See [docs/emulationstation.md](docs/emulationstation.md).
+
 ## Adding a console
 
 ```sh
@@ -146,6 +159,7 @@ The Python configurations work as soon as the Python extension is installed. Ste
 
 - [Getting started](docs/getting-started.md)
 - [macOS](docs/macos.md) · [Raspberry Pi](docs/raspberry-pi.md)
+- [EmulationStation](docs/emulationstation.md)
 - [Configuration](docs/configuration.md)
 - [Adding systems](docs/adding-systems.md)
 - [Troubleshooting](docs/troubleshooting.md)

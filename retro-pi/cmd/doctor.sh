@@ -169,19 +169,48 @@ __H__
   fi
 
   hr "frontend"
-  if es_installed; then
-    _pass "frontend installed ($(cfg frontend.kind es-de))"
+  frontend_detect
+  if frontend_installed; then
+    _pass "EmulationStation: $(frontend_flavor) $(frontend_version)"
+    _pass "binary: $(frontend_bin)"
   else
     _warn "no EmulationStation frontend detected"
-    _hint "  install a frontend: ./bin/retropi install --frontend"
+    if frontend_asset_pattern >/dev/null 2>&1; then
+      _hint "  install it: ./bin/retropi frontend install"
+    else
+      _hint "  no ES-DE build for $RETROPI_OS/$RETROPI_ARCH; install a frontend manually (https://es-de.org/)"
+    fi
   fi
+  _pass "frontend home: $(frontend_home)"
+
   local escfg
   escfg="$(es_config_dir)"
   if [[ -f "$escfg/es_systems.xml" ]]; then
-    _pass "generated frontend config present: $escfg/es_systems.xml"
+    _pass "es_systems.xml installed: $escfg/es_systems.xml"
   else
-    _warn "frontend config not generated yet"
+    _warn "es_systems.xml not generated yet"
     _hint "  generate it: ./bin/retropi build"
+  fi
+
+  # Gamelists are what make the frontend show titles instead of filenames.
+  local gl_dir gl=0 want=0 sid
+  gl_dir="$(frontend_gamelists_dir)"
+  while IFS= read -r sid; do
+    [[ -n "$sid" ]] || continue
+    local rd
+    rd="$(system_rom_dir "$sid")"
+    [[ -d "$rd" ]] || continue
+    [[ "$(_count_roms "$sid" "$rd")" -gt 0 ]] || continue
+    want=$((want+1))
+    [[ -f "$gl_dir/$sid/gamelist.xml" ]] && gl=$((gl+1))
+  done < <(systems_enabled)
+  if [[ "$want" -eq 0 ]]; then
+    :
+  elif [[ "$gl" -eq "$want" ]]; then
+    _pass "gamelists written for all $want systems with games"
+  else
+    _warn "gamelists missing for $((want - gl)) of $want systems with games"
+    _hint "  write them: ./bin/retropi frontend gamelist"
   fi
 
   hr "systems"

@@ -9,6 +9,7 @@ cmd_install() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --all)          all=1; do_frontend=1 ;;
+      --no-frontend)  do_frontend=0 ;;
       --frontend)     do_frontend=1; do_ra=0; do_cores=0; do_build=0 ;;
       --cores)        do_cores=1; do_ra=0; do_build=0 ;;
       --retroarch)    do_ra=1; do_cores=0; do_build=0 ;;
@@ -20,6 +21,7 @@ retropi install - install the emulator stack
 
   (no options)      RetroArch + cores for enabled systems + build
   --all             also install an EmulationStation frontend
+  --no-frontend     skip the frontend
   --retroarch       install RetroArch only
   --cores           install libretro cores only
   --frontend        install the frontend only
@@ -72,46 +74,23 @@ _install_retroarch() {
 }
 
 _install_frontend() {
-  local kind
-  kind="$(cfg frontend.kind es-de)"
-  if es_installed; then
-    ok "frontend already installed"
+  frontend_detect
+  if frontend_installed; then
+    ok "frontend already installed: $(frontend_bin)"
     return 0
   fi
-  info "installing frontend ($kind)"
-  case "$RETROPI_OS:$kind" in
-    macos:es-de)
-      # ES-DE is not in Homebrew; it ships as a signed DMG.
-      warn "ES-DE is distributed as a DMG and cannot be installed unattended."
-      log ""
-      log "  1. Download the macOS build:  https://es-de.org/#Downloads"
-      log "  2. Drag ES-DE.app into /Applications"
-      log "  3. Re-run: ./bin/retropi build"
-      log ""
-      log "ES-DE reads the config retro-pi generates at:"
-      log "  $(es_config_dir)/es_systems.xml"
-      if confirm "open the ES-DE download page now?"; then
-        run open "https://es-de.org/#Downloads"
-      fi
-      ;;
-    linux:*)
-      if [[ -x /opt/retropie/supplementary/emulationstation/emulationstation ]]; then
-        ok "RetroPie EmulationStation detected"
-        return 0
-      fi
-      warn "no EmulationStation found."
-      log ""
-      log "On Raspberry Pi OS the supported paths are:"
-      log "  * RetroPie-Setup (full stack):  https://retropie.org.uk/docs/Manual-Installation/"
-      log "  * ES-DE AppImage for aarch64:   https://es-de.org/#Downloads"
-      log ""
-      log "retro-pi works with either - it writes es_systems.xml to:"
-      log "  $(es_config_dir)/es_systems.xml"
-      ;;
-    *)
-      warn "no automatic frontend install for $RETROPI_OS/$kind"
-      ;;
-  esac
+  info "installing EmulationStation"
+  if frontend_install; then
+    return 0
+  fi
+  warn "automatic frontend install was not possible on this platform"
+  log ""
+  log "Install one by hand, then run ./bin/retropi build:"
+  log "  ES-DE:    https://es-de.org/"
+  log "  RetroPie: https://retropie.org.uk/docs/Manual-Installation/"
+  log ""
+  log "retro-pi writes its configuration to:"
+  log "  $(es_config_dir)/es_systems.xml"
   return 0
 }
 
