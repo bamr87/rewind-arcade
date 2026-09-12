@@ -131,6 +131,15 @@ python3 tests/fixtures/make_test_rom.py roms/nes/retropi-test.nes
 
 `.vscode/` ships run and debug configuration: **F5** for the debug configurations in `launch.json`, and **Cmd/Ctrl+Shift+B** for `check` (lint + validate + tests). The task list also has `run: NES test ROM`, which generates the cartridge above and launches it.
 
+Validate that configuration (and optionally execute every debug configuration) with:
+
+```sh
+make validate-vscode          # static checks
+make validate-vscode-run      # also run each configuration
+```
+
+It catches the things VSCode only reports at F5 time: a stale program path, a picker option naming a system or test file that no longer exists, or a `pathBash` that resolves to a bash too old for the debugger. `make check` runs the static half.
+
 The Python configurations work as soon as the Python extension is installed. Step-debugging the shell scripts needs the Bash Debug extension and bash 4+, so on macOS `brew install bash` — Apple's bash 3.2 is too old to drive the debugger. Note that retro-pi is written to *run* on 3.2, so confirm any fix with `./tests/run.sh` under `/bin/bash` and `make test-linux` for the Pi.
 
 ## Documentation

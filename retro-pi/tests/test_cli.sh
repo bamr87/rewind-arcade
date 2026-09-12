@@ -73,3 +73,45 @@ test_config_get_reads_defaults() {
 test_dry_run_is_accepted_globally() {
   assert_ok "$RP" --dry-run clean
 }
+
+# --- global flags must work on BOTH sides of the subcommand -------------------
+# Regression: routing everything after the subcommand to that subcommand (so
+# `retropi doctor --help` worked) broke the documented `retropi doctor -v`.
+# doctor rejected it outright and `roms scan --verbose` silently ignored it.
+
+test_global_verbose_accepted_after_subcommand() {
+  local out
+  out="$("$RP" cores list -v 2>&1)" || true
+  assert_not_contains "$out" "unknown option"
+}
+
+test_global_flags_identical_in_either_position() {
+  local before after
+  before="$("$RP" -v cores list 2>&1)"
+  after="$("$RP" cores list -v 2>&1)"
+  assert_eq "$before" "$after" "leading and trailing -v differ"
+}
+
+test_trailing_dry_run_is_honored() {
+  local out
+  out="$("$RP" build -n --systems nes 2>&1)" || true
+  assert_contains "$out" "dry"
+}
+
+test_help_still_reaches_the_subcommand() {
+  # The global parser must not swallow --help: that was the original fix.
+  local out
+  out="$("$RP" doctor --help 2>&1)"
+  assert_contains "$out" "retropi doctor"
+  assert_not_contains "$out" "SETUP"
+}
+
+test_double_dash_stops_flag_interpretation() {
+  local out
+  out="$("$RP" roms find -- "-v" 2>&1)" || true
+  assert_contains "$out" "matches"
+}
+
+test_unknown_option_is_still_rejected() {
+  assert_fails "$RP" doctor --definitely-not-a-flag
+}

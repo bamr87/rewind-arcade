@@ -14,6 +14,10 @@ themes/**
 downloads/
 media/
 
+# ---- Python bytecode ----
+__pycache__/
+*.py[cod]
+
 # ---- Generated / local state ----
 .retropi/
 build/

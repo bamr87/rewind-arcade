@@ -28,6 +28,9 @@ jobs:
       - name: Validate every manifest
         run: ./bin/retropi config validate
 
+      - name: Validate the .vscode run/debug configuration
+        run: python3 tools/validate-vscode.py
+
       - name: Run the test suite
         run: ./tests/run.sh
 
@@ -73,7 +76,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y shellcheck
       - name: Lint
         run: |
-          shellcheck -S warning -x -e SC2034 bin/retropi lib/*.sh cmd/*.sh platforms/*/*.sh
+          shellcheck -S warning -x -e SC2034 bin/retropi lib/*.sh cmd/*.sh platforms/*/*.sh tools/*.sh
           shellcheck -S warning -x tests/run.sh tests/lib/*.sh tests/test_*.sh
 
   # The real deployment target: 64-bit ARM Debian, no PyYAML.

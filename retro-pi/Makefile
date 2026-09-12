@@ -60,7 +60,7 @@ test: ## Run the test suite
 lint: ## Shellcheck every script
 	@command -v shellcheck >/dev/null 2>&1 || { \
 	  echo "shellcheck not installed (brew install shellcheck / apt install shellcheck)"; exit 1; }
-	@shellcheck -S warning -x -e SC2034 bin/retropi lib/*.sh cmd/*.sh platforms/*/*.sh \
+	@shellcheck -S warning -x -e SC2034 bin/retropi lib/*.sh cmd/*.sh platforms/*/*.sh tools/*.sh \
 	  && shellcheck -S warning -x tests/run.sh tests/lib/*.sh \
 	  && echo "shellcheck: clean"
 
@@ -68,8 +68,16 @@ lint: ## Shellcheck every script
 validate: ## Parse every config and manifest
 	@$(RETROPI) config validate
 
+.PHONY: validate-vscode
+validate-vscode: ## Check the .vscode run/debug configuration
+	@python3 tools/validate-vscode.py
+
+.PHONY: validate-vscode-run
+validate-vscode-run: ## Check .vscode AND execute every launch configuration
+	@python3 tools/validate-vscode.py --run
+
 .PHONY: check
-check: lint validate test ## Everything CI runs
+check: lint validate validate-vscode test ## Everything CI runs
 
 .PHONY: test-linux
 test-linux: ## Run the suite in a Linux container (the Raspberry Pi code path)

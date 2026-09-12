@@ -98,8 +98,33 @@ fi
 [[ ${#ARGS[@]} -eq 0 ]] && { usage; exit 1; }
 
 cmd="${ARGS[0]}"
+
+# Global flags are accepted AFTER the subcommand too, so `retropi doctor -v`
+# behaves like `retropi -v doctor`. Everything else -- including -h/--help,
+# which must reach the subcommand -- is passed through untouched. A literal
+# `--` stops the scan so trailing operands are never reinterpreted.
 rest=()
-[[ ${#ARGS[@]} -gt 1 ]] && rest=("${ARGS[@]:1}")
+if [[ ${#ARGS[@]} -gt 1 ]]; then
+  _passthrough=0
+  for _arg in "${ARGS[@]:1}"; do
+    if [[ "$_passthrough" == "1" ]]; then
+      rest[${#rest[@]}]="$_arg"
+      continue
+    fi
+    case "$_arg" in
+      --)           _passthrough=1; rest[${#rest[@]}]="$_arg" ;;
+      -v|--verbose) RETROPI_VERBOSE=1 ;;
+      -n|--dry-run) RETROPI_DRY_RUN=1 ;;
+      -y|--yes)     RETROPI_ASSUME_YES=1 ;;
+      --no-color)   NO_COLOR=1 ;;
+      *)            rest[${#rest[@]}]="$_arg" ;;
+    esac
+  done
+  export RETROPI_VERBOSE RETROPI_DRY_RUN RETROPI_ASSUME_YES
+  if [[ -n "${NO_COLOR:-}" ]]; then
+    C_RESET=''; C_DIM=''; C_BOLD=''; C_RED=''; C_GREEN=''; C_YELLOW=''; C_BLUE=''; C_CYAN=''
+  fi
+fi
 
 # --- bootstrap ----------------------------------------------------------------
 config_init

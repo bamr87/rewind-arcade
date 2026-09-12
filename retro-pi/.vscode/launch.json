@@ -6,7 +6,13 @@
   // The bash entries need the "Bash Debug" extension (rogalmic.bash-debug)
   // AND bash 4+. macOS ships bash 3.2 (2007), which the debugger cannot
   // drive, so on a Mac:      brew install bash
-  // and keep "pathBash" below pointing at it.
+  //
+  // "pathBash": "bash" resolves through PATH deliberately, rather than
+  // hardcoding a path: Homebrew installs to /opt/homebrew/bin on Apple
+  // Silicon but /usr/local/bin on Intel, and Linux/Raspberry Pi already has
+  // a modern bash at /bin/bash. Check what you will get with:
+  //     bash -c 'echo $BASH_VERSION'
+  // If that still prints 3.2, put the absolute path to a newer bash here.
   //
   // IMPORTANT: retro-pi is written to RUN on bash 3.2, but you will be
   // DEBUGGING under bash 5. Behaviour differs between them (empty arrays
@@ -68,7 +74,7 @@
       "program": "${workspaceFolder}/bin/retropi",
       "args": ["doctor", "--verbose"],
       "cwd": "${workspaceFolder}",
-      "pathBash": "/opt/homebrew/bin/bash",
+      "pathBash": "bash",
       "terminalKind": "integrated",
       "showDebugOutput": true
     },
@@ -80,7 +86,7 @@
       // --no-install keeps the debugger from touching your real frontend config.
       "args": ["build", "--no-install", "--systems", "${input:systemId}"],
       "cwd": "${workspaceFolder}",
-      "pathBash": "/opt/homebrew/bin/bash",
+      "pathBash": "bash",
       "terminalKind": "integrated",
       "showDebugOutput": true
     },
@@ -91,7 +97,7 @@
       "program": "${workspaceFolder}/bin/retropi",
       "args": ["systems", "show", "${input:systemId}"],
       "cwd": "${workspaceFolder}",
-      "pathBash": "/opt/homebrew/bin/bash",
+      "pathBash": "bash",
       "terminalKind": "integrated"
     },
     {
@@ -101,7 +107,7 @@
       "program": "${workspaceFolder}/bin/retropi",
       "args": ["cores", "list"],
       "cwd": "${workspaceFolder}",
-      "pathBash": "/opt/homebrew/bin/bash",
+      "pathBash": "bash",
       "terminalKind": "integrated"
     },
     {
@@ -111,7 +117,7 @@
       "program": "${workspaceFolder}/bin/retropi",
       "args": ["roms", "scan"],
       "cwd": "${workspaceFolder}",
-      "pathBash": "/opt/homebrew/bin/bash",
+      "pathBash": "bash",
       "terminalKind": "integrated"
     },
     {
@@ -121,7 +127,7 @@
       "program": "${workspaceFolder}/tools/run-rom.sh",
       "args": ["${input:systemId}"],
       "cwd": "${workspaceFolder}",
-      "pathBash": "/opt/homebrew/bin/bash",
+      "pathBash": "bash",
       "terminalKind": "integrated"
     },
     {
@@ -131,7 +137,7 @@
       "program": "${workspaceFolder}/tests/run.sh",
       "args": ["${input:testFile}", "-v"],
       "cwd": "${workspaceFolder}",
-      "pathBash": "/opt/homebrew/bin/bash",
+      "pathBash": "bash",
       "terminalKind": "integrated"
     },
     {
@@ -141,7 +147,7 @@
       "program": "${workspaceFolder}/tests/run.sh",
       "args": ["-v"],
       "cwd": "${workspaceFolder}",
-      "pathBash": "/opt/homebrew/bin/bash",
+      "pathBash": "bash",
       "terminalKind": "integrated"
     }
   ],
