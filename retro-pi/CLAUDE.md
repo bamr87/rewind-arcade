@@ -49,6 +49,14 @@ Tests that assert on `buildbot_path()` must pin `RETROPI_RETROARCH_BIN=/nonexist
 
 The Homebrew cask is an x86_64 OpenGL build. On Apple Silicon it runs under Rosetta and cannot create a video context, so every hardware-rendered core (n64, dreamcast, psp, saturn) loads its ROM and then exits with "Cannot open video driver" — while 2D cores work, which makes it look like a content problem. `retroarch_macos_url()` resolves the upstream universal Metal build; `retroarch_translated()` detects the broken combination and `doctor` fails on it.
 
+## RetroArch settings ride along with the launch command
+
+Do not try to write retro-pi's paths into "the" retroarch.cfg. macOS builds disagree about where that is — Homebrew reads `~/Library/Application Support/RetroArch`, the upstream build `~/Documents/RetroArch` — and writing to the wrong one fails silently: BIOS and save paths simply never apply, which surfaces as a core hunting for a BIOS in a directory you never configured.
+
+`launch_command()` appends `--appendconfig <build>/retroarch-retropi.cfg`, which overlays on top of whatever config that build reads and overwrites nothing of the user's. `retroarch_config_dir()` still probes (existing cfg first, then a directory RetroArch has demonstrably used) for `build --apply-retroarch`, but that path is now optional.
+
+Probe loops there must read line by line: `for c in $(_ra_config_candidates)` word-splits "Application Support" into two bogus candidates.
+
 ## EmulationStation layout is derived from the version, not probed
 
 `lib/frontend.sh` owns every fact about the frontend. ES-DE 3.0 moved its data directory from `~/.emulationstation` to `~/ES-DE` and its settings to `<home>/settings/`. An installed frontend therefore decides its own paths from its version; probing for an existing directory is wrong, because retro-pi itself used to create `~/.emulationstation` and that stale directory would win.

@@ -215,3 +215,49 @@ test_macos_retroarch_url_is_the_universal_metal_build() {
   assert_contains "$url" "1.22.2"
   unset RETROPI_RETROARCH_VERSION
 }
+
+# --- RetroArch settings travel with the launch command ------------------------
+# macOS builds keep retroarch.cfg in different places (Homebrew under
+# ~/Library/Application Support, upstream under ~/Documents/RetroArch), so
+# writing settings into "the" config silently failed. --appendconfig hands
+# them over at launch instead.
+
+test_launch_command_appends_our_config() {
+  RETROPI_OS="macos"; RETROPI_ARCH="arm64"
+  export RETROPI_RETROARCH_BIN="/nonexistent/retroarch"
+  local cmd
+  cmd="$(launch_command nes nestopia)"
+  assert_contains "$cmd" "--appendconfig"
+  assert_contains "$cmd" "retroarch-retropi.cfg"
+  unset RETROPI_RETROARCH_BIN
+}
+
+test_append_config_can_be_disabled() {
+  printf 'emulation:\n  append_config: false\n' > "$RETROPI_CONFIG_LOCAL"
+  config_load --force
+  export RETROPI_RETROARCH_BIN="/nonexistent/retroarch"
+  assert_not_contains "$(launch_command nes nestopia)" "--appendconfig"
+  unset RETROPI_RETROARCH_BIN
+  rm -f "$RETROPI_CONFIG_LOCAL"
+  config_load --force
+}
+
+test_retroarch_config_dir_prefers_an_existing_config() {
+  RETROPI_OS="macos"
+  local fake="$SB/home"
+  HOME_SAVE="$HOME"; HOME="$fake"
+  mkdir -p "$HOME/Documents/RetroArch" "$HOME/Library/Application Support/RetroArch"
+  : > "$HOME/Library/Application Support/RetroArch/retroarch.cfg"
+  assert_eq "$HOME/Library/Application Support/RetroArch" "$(retroarch_config_dir)"
+  HOME="$HOME_SAVE"
+}
+
+test_retroarch_config_dir_falls_back_to_a_used_directory() {
+  RETROPI_OS="macos"
+  local fake="$SB/home2"
+  HOME_SAVE="$HOME"; HOME="$fake"
+  # No cfg anywhere, but RetroArch demonstrably used ~/Documents/RetroArch.
+  mkdir -p "$HOME/Documents/RetroArch/system"
+  assert_eq "$HOME/Documents/RetroArch" "$(retroarch_config_dir)"
+  HOME="$HOME_SAVE"
+}

@@ -59,6 +59,10 @@ emulation:
   # Applied to generated retroarch launch commands.
   fullscreen: true
   verbose_logging: false
+  # Pass retro-pi's paths to RetroArch at launch with --appendconfig instead of
+  # editing its own retroarch.cfg. Deterministic across builds that keep their
+  # config in different places, and it never overwrites your settings.
+  append_config: true
 
 # ---------------------------------------------------------------- systems ----
 # The systems `retropi build` generates frontend entries for. Every id must

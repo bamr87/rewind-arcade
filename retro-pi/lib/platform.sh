@@ -98,13 +98,48 @@ pkg_installed() {
 # RetroArch stores cores and config in different places per platform. These are
 # the only functions that know that.
 
+# retroarch_config_dir - where RetroArch reads retroarch.cfg from.
+#
+# Probed, not hardcoded: macOS builds disagree. The Homebrew cask uses
+# ~/Library/Application Support/RetroArch, while the upstream build (the one
+# retro-pi installs) keeps user data under ~/Documents/RetroArch. Writing to
+# the wrong one is silent - settings simply never take effect, which showed up
+# as a PSX core hunting for a BIOS in a directory we had never configured.
 retroarch_config_dir() {
   if [[ -n "${RETROPI_RETROARCH_CONFIG:-}" ]]; then
     printf '%s' "$RETROPI_RETROARCH_CONFIG"; return
   fi
+  local c
+  # Read line by line: "Application Support" contains a space, and
+  # `for c in $(...)` would split it into two bogus candidates.
+  # 1. A directory that already holds a retroarch.cfg is authoritative.
+  while IFS= read -r c; do
+    [[ -n "$c" ]] || continue
+    [[ -f "$c/retroarch.cfg" ]] && { printf '%s' "$c"; return; }
+  done < <(_ra_config_candidates)
+  # 2. Otherwise the one RetroArch has demonstrably used (it creates these).
+  while IFS= read -r c; do
+    [[ -n "$c" ]] || continue
+    [[ -d "$c/system" || -d "$c/states" || -d "$c/playlists" ]] && { printf '%s' "$c"; return; }
+  done < <(_ra_config_candidates)
+  # 3. Fall back to the platform default. head -1 rather than positional
+  # parameters: the macOS fallback contains spaces and would word-split.
+  _ra_config_candidates | head -1 | tr -d '\n'
+}
+
+# _ra_config_candidates - possible config homes, most likely first.
+# Paths contain no spaces on Linux; the macOS one does, so it is emitted last
+# and callers use the single-value accessor above rather than splitting.
+_ra_config_candidates() {
   case "$RETROPI_OS" in
-    macos) printf '%s' "$HOME/Library/Application Support/RetroArch" ;;
-    *)     printf '%s' "${XDG_CONFIG_HOME:-$HOME/.config}/retroarch" ;;
+    macos)
+      printf '%s\n' "$HOME/Documents/RetroArch"
+      printf '%s\n' "$HOME/Library/Application Support/RetroArch"
+      ;;
+    *)
+      printf '%s\n' "${XDG_CONFIG_HOME:-$HOME/.config}/retroarch"
+      printf '%s\n' "/opt/retropie/configs/all/retroarch"
+      ;;
   esac
 }
 

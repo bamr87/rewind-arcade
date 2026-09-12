@@ -74,6 +74,17 @@ On Apple Silicon the usual cause is an x86_64 RetroArch (the Homebrew cask) runn
   `.bin`.
 - Multi-disc games want an `.m3u` playlist listing each disc.
 
+## BIOS is present in bios/ but the core says it cannot find one
+
+The core is reading a different system directory. retro-pi passes its paths to RetroArch with `--appendconfig` at launch, so this should not happen — but it will if you launch RetroArch by hand without that flag, since RetroArch then uses its own defaults:
+
+```sh
+./bin/retropi systems show psx | tail -2   # the command that includes --appendconfig
+./tools/run-rom.sh psx                     # or just use this
+```
+
+Editing `retroarch.cfg` directly is unreliable on macOS: the Homebrew build reads `~/Library/Application Support/RetroArch` while the upstream build reads `~/Documents/RetroArch`, so settings written to the wrong one apply silently to nothing.
+
 ## BIOS is present but the game still fails
 
 ```sh

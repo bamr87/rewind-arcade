@@ -188,6 +188,16 @@ launch_command() {
       bin="$(retroarch_bin)"
       [[ "$(cfg emulation.fullscreen true)" == "true" ]] && extra=" --fullscreen"
       [[ "$(cfg emulation.verbose_logging false)" == "true" ]] && extra="$extra --verbose"
+      # Hand RetroArch our settings at launch rather than trying to write into
+      # whichever retroarch.cfg this build happens to read. macOS builds
+      # disagree about that location (Homebrew uses ~/Library/Application
+      # Support, the upstream build ~/Documents/RetroArch), and writing to the
+      # wrong one fails silently: the BIOS/save paths simply never apply.
+      # --appendconfig overlays on top of the user's own config, so nothing of
+      # theirs is overwritten.
+      if [[ "$(cfg emulation.append_config true)" == "true" ]]; then
+        extra="$extra --appendconfig \"$(build_dir)/retroarch-retropi.cfg\""
+      fi
       printf '"%s" -L "%s"%s %%ROM%%' "$bin" "$(core_path "$core")" "$extra"
       ;;
     standalone)
