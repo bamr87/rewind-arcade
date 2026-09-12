@@ -24,6 +24,8 @@
   },
 
   // Generated output and game content: noise in search results.
+  // search only: these still appear in the Explorer, they just do not
+  // clutter search results with binaries.
   "search.exclude": {
     "**/build/**": true,
     "**/dist/**": true,
@@ -31,9 +33,11 @@
     "**/roms/**": true,
     "**/bios/**": true
   },
+  // roms/ is deliberately NOT excluded here: excluding it stops VSCode
+  // watching the directory, so folders and games added outside the editor
+  // never show up in the Explorer. Only generated output is excluded.
   "files.watcherExclude": {
     "**/build/**": true,
-    "**/.retropi/**": true,
-    "**/roms/**": true
+    "**/.retropi/**": true
   }
 }
