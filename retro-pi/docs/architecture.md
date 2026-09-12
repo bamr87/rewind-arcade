@@ -28,6 +28,7 @@ config/
   retropi.yaml       committed defaults
   local.yaml         machine-local overrides (gitignored)
   systems/*.yaml     one manifest per console
+  controllers/       RetroArch controller profiles, one directory per joypad driver
 platforms/           per-OS bootstrap scripts
 tools/               launch and development helpers (run-rom.sh, validate-vscode.py)
 tests/               self-contained test suite

@@ -225,7 +225,11 @@ launch_command() {
     libretro)
       core="$(emulator_field "$id" "$idx" core)"
       bin="$(retroarch_bin)"
-      [[ "$(cfg emulation.fullscreen true)" == "true" ]] && extra=" --fullscreen"
+      # A display region (e.g. the top half of a rotated monitor) means a
+      # borderless window of that size, never fullscreen.
+      if [[ "$(cfg display.region full)" == "full" && "$(cfg emulation.fullscreen true)" == "true" ]]; then
+        extra=" --fullscreen"
+      fi
       [[ "$(cfg emulation.verbose_logging false)" == "true" ]] && extra="$extra --verbose"
       # Hand RetroArch our settings at launch rather than trying to write into
       # whichever retroarch.cfg this build happens to read. macOS builds
@@ -235,7 +239,12 @@ launch_command() {
       # --appendconfig overlays on top of the user's own config, so nothing of
       # theirs is overwritten.
       if [[ "$(cfg emulation.append_config true)" == "true" ]]; then
-        extra="$extra --appendconfig \"$(build_dir)/retroarch-retropi.cfg\""
+        # RetroArch takes several overlays joined with "|". The display one is
+        # rewritten by `frontend session` once it knows the real screen size.
+        local overlays
+        overlays="$(build_dir)/retroarch-retropi.cfg"
+        [[ "$(cfg display.region full)" == "full" ]] || overlays="$overlays|$(build_dir)/retroarch-display.cfg"
+        extra="$extra --appendconfig \"$overlays\""
       fi
       printf '"%s" -L "%s"%s %%ROM%%' "$bin" "$(core_path "$core")" "$extra"
       ;;

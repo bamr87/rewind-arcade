@@ -141,3 +141,44 @@ test_run_rom_rejects_a_bad_frame_count() {
     "$REPO_ROOT/tools/run-rom.sh" nes "$tmp/game.nes" --emulator nestopia --print --frames soon
   rm -rf "$tmp"
 }
+
+test_frontend_session_is_documented_and_validates_subcommands() {
+  assert_contains "$("$RP" frontend --help 2>&1)" "frontend session start"
+  assert_fails "$RP" frontend session sideways
+}
+
+# The session client runs under bin/retropi's errexit + pipefail. Its window
+# search fails until the frontend maps a window; that failure once killed the
+# client, and xinit shut X down with it. Stubs stand in for X and ES-DE.
+test_session_client_survives_the_window_search_and_places_the_frontend() {
+  local tmp out
+  tmp="$(mktemp -d "${TMPDIR:-/tmp}/retropi-session.XXXXXX")"
+  mkdir -p "$tmp/bin"
+  cat > "$tmp/bin/xrandr" <<'__S__'
+#!/bin/sh
+printf 'Screen 0: minimum 320 x 200, current 1200 x 1920, maximum 16384 x 16384\n'
+printf 'HDMI-1 connected 1200x1920+0+0 left\n'
+__S__
+  printf '#!/bin/sh\nexit 0\n' > "$tmp/bin/xset"
+  cat > "$tmp/bin/xdotool" <<__S__
+#!/bin/sh
+case "\$1" in
+  search)
+    n=\$(cat "$tmp/searches" 2>/dev/null || echo 0); n=\$((n+1)); echo \$n > "$tmp/searches"
+    [ "\$n" -ge 5 ] && { echo 4242; exit 0; }
+    exit 1 ;;
+  windowmove) echo "\$*" > "$tmp/moved" ;;
+esac
+__S__
+  printf '#!/bin/sh\nsleep 3\nexit 0\n' > "$tmp/bin/ES-DE"
+  chmod +x "$tmp/bin/"*
+  out="$(PATH="$tmp/bin:$PATH" DISPLAY=:99 RETROPI_FRONTEND_BIN="$tmp/bin/ES-DE" \
+    "$RP" frontend session client 2>&1)"
+  local rc=$?
+  local moved
+  moved="$(cat "$tmp/moved" 2>/dev/null)"
+  rm -rf "$tmp"
+  assert_eq 0 "$rc" "session client exited early: $out"
+  assert_contains "$out" "screen 1200x1920"
+  assert_eq "windowmove 4242 0 0" "$moved"
+}

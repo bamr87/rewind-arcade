@@ -43,10 +43,14 @@ gives you exactly two systems, not the defaults plus two.
 | `paths.bios` | `bios` | Where BIOS files are looked up |
 | `frontend.kind` | `es-de` | `es-de`, `emulationstation`, or `none` |
 | `emulation.fullscreen` | `true` | Adds `--fullscreen` to generated commands |
+| `display.rotate` | `normal` | `normal`, `left`, `right`, `inverted` — applied by `frontend session` |
+| `display.region` | `full` | `full`, `top-half`, `bottom-half`, `left-half`, `right-half`; anything but `full` runs games in a borderless window of that size |
+| `controls.joypad_driver` | `auto` | RetroArch joypad driver; `linuxraw` for sessions started over SSH |
 | `systems.enabled` | every system | What the frontend shows |
 | `emulators.<system>` | — | Override the default emulator for one system |
 | `saves.centralize` | `true` | Keep saves out of the ROM tree |
 | `controls.hotkeys.*` | see file | Hotkey combos written to RetroArch |
+| `controls.manage_autoconfig` | `true` | Install the controller profiles in `config/controllers/` into RetroArch |
 | `sync.targets.*` | `pi` | rsync destinations |
 
 ## Per-system emulator overrides

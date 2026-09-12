@@ -359,6 +359,25 @@ headless_wrapper() {
   printf "xvfb-run -a -s '-screen 0 1280x720x24'"
 }
 
+# session_supported - true when `retropi frontend session` can take over a
+# local monitor here: Linux with X11's xinit, xrandr and xdotool.
+session_supported() {
+  [[ "$RETROPI_OS" == "linux" ]] || return 1
+  have xinit && have xrandr && have xdotool
+}
+
+# controller_profile_drivers - RetroArch joypad drivers whose autoconfig
+# profiles retro-pi ships for this OS (config/controllers/<driver>/).
+# RETROPI_CONTROLLER_DRIVERS overrides, for tests.
+controller_profile_drivers() {
+  if [[ -n "${RETROPI_CONTROLLER_DRIVERS+set}" ]]; then
+    printf '%s\n' $RETROPI_CONTROLLER_DRIVERS
+    return 0
+  fi
+  [[ "$RETROPI_OS" == "linux" ]] && printf '%s\n' udev linuxraw
+  return 0
+}
+
 # appimage_fuse_package - the package that lets an AppImage mount itself.
 # Debian 13 and Ubuntu 24.04 renamed libfuse2 to libfuse2t64.
 appimage_fuse_package() {

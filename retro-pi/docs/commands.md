@@ -139,6 +139,9 @@ Cores must match the **RetroArch binary**, not the CPU — they are `dlopen()`ed
 frontend status            what is installed, where, and what is wired up
 frontend install [--force] download and install ES-DE for this platform
 frontend launch            start the frontend
+frontend session start     run the frontend on this machine's own monitor (Linux/X11),
+                           applying display.rotate and display.region; works over SSH
+frontend session stop|status
 frontend gamelist          write gamelist.xml so games show real titles
     --systems <ids>        limit to these systems
     --dry-run              report what would change

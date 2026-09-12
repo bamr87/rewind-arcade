@@ -11,6 +11,7 @@ setup_sandbox() {
   rm -f "$SB/config/local.yaml"
   export RETROPI_CORE_DIR="$SB/cores"
   export RETROPI_SYSTEM_CORE_DIRS=""
+  export RETROPI_CONTROLLER_DRIVERS="udev linuxraw"
   export RETROPI_ES_CONFIG="$SB/es"
   export RETROPI_RETROARCH_CONFIG="$SB/ra"
   export RETROPI_RETROARCH_BIN="/usr/bin/true"
@@ -18,7 +19,7 @@ setup_sandbox() {
   RP="$SB/bin/retropi"
 }
 teardown_sandbox() {
-  unset RETROPI_CORE_DIR RETROPI_SYSTEM_CORE_DIRS RETROPI_ES_CONFIG RETROPI_RETROARCH_CONFIG RETROPI_RETROARCH_BIN
+  unset RETROPI_CORE_DIR RETROPI_SYSTEM_CORE_DIRS RETROPI_CONTROLLER_DRIVERS RETROPI_ES_CONFIG RETROPI_RETROARCH_CONFIG RETROPI_RETROARCH_BIN
   [[ -n "${SB:-}" ]] && rm -rf "$SB"
 }
 
@@ -148,6 +149,23 @@ test_build_generates_retroarch_paths() {
   assert_file "$cfg"
   assert_contains "$(cat "$cfg")" "savefile_directory"
   assert_contains "$(cat "$cfg")" "system_directory = \"$SB/bios\""
+}
+
+test_build_installs_controller_profiles() {
+  "$RP" build --systems nes >/dev/null 2>&1
+  assert_file "$SB/ra/autoconfig/udev/retropi-xbox360.cfg"
+  assert_file "$SB/ra/autoconfig/linuxraw/retropi-xbox360.cfg"
+  assert_contains "$(cat "$SB/ra/autoconfig/linuxraw/retropi-xbox360.cfg")" 'input_up_axis = "-7"'
+}
+
+test_joypad_driver_and_display_region_reach_retroarch() {
+  assert_not_contains "$("$RP" build --systems nes >/dev/null 2>&1; cat "$SB/build/retroarch-retropi.cfg")" "input_joypad_driver"
+  assert_fails test -f "$SB/build/retroarch-display.cfg"
+  printf 'controls:\n  joypad_driver: linuxraw\ndisplay:\n  region: top-half\n' > "$SB/config/local.yaml"
+  "$RP" build --systems nes >/dev/null 2>&1
+  assert_contains "$(cat "$SB/build/retroarch-retropi.cfg")" 'input_joypad_driver = "linuxraw"'
+  assert_file "$SB/build/retroarch-display.cfg"
+  assert_contains "$(cat "$SB/es/es_systems.xml")" "retroarch-display.cfg"
 }
 
 test_apply_retroarch_preserves_unrelated_keys() {

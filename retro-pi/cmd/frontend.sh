@@ -9,6 +9,7 @@ cmd_frontend() {
     status)   _fe_status "$@" ;;
     install)  _fe_install_cmd "$@" ;;
     launch|start) frontend_launch "$@" ;;
+    session)  _fe_session "$@" ;;
     gamelist|gamelists) _fe_gamelist "$@" ;;
     themes)   _fe_themes "$@" ;;
     settings) _fe_settings "$@" ;;
@@ -21,6 +22,10 @@ retropi frontend - manage EmulationStation
   frontend install           download and install ES-DE for this platform
       --force                reinstall even if a frontend is present
   frontend launch            start the frontend
+  frontend session start     run it on this machine's own monitor (Linux/X11),
+                             applying display.rotate and display.region;
+                             works over SSH
+  frontend session stop|status
   frontend gamelist          write gamelist.xml so games show real titles
       --systems <ids>        limit to these systems
       --dry-run              report what would change
@@ -111,6 +116,20 @@ _fe_install_cmd() {
     step "next: ./bin/retropi build   (writes es_systems.xml where it will be read)"
   fi
   return 0
+}
+
+_fe_session() {
+  local sub="${1:-status}"
+  [[ $# -gt 0 ]] && shift
+  case "$sub" in
+    start)  frontend_session_start ;;
+    stop)   frontend_session_stop ;;
+    client) frontend_session_client ;;
+    status)
+      if frontend_session_running; then ok "session running on $(cfg display.x_display :1)"
+      else step "no session running"; fi ;;
+    *) die "frontend session: unknown subcommand '$sub' (start, stop, status)" ;;
+  esac
 }
 
 _fe_dirs() {

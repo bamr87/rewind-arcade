@@ -94,10 +94,28 @@ systems:
     - dos
     - c64
 
+# ---------------------------------------------------------------- display ----
+display:
+  # How the screen is mounted, for `retropi frontend session` (Linux/X11).
+  # normal | left | right | inverted  (xrandr names; "left" = 90 deg ccw)
+  rotate: normal
+  # Part of the (rotated) screen the frontend and games draw in:
+  # full | top-half | bottom-half | left-half | right-half
+  # Anything but full runs RetroArch in a borderless window of that size
+  # instead of fullscreen.
+  region: full
+  # X display and virtual terminal the session takes over.
+  x_display: ":1"
+  vt: 7
+
 # --------------------------------------------------------------- controls ----
 controls:
   # Write a shared RetroArch autoconfig + hotkeys so both machines behave alike.
   manage_autoconfig: true
+  # RetroArch joypad driver: auto (RetroArch's default) | udev | linuxraw | sdl2
+  # linuxraw reads /dev/input/js*, which stays readable when the session was
+  # not started from a local login (udev needs /dev/input/event* access).
+  joypad_driver: auto
   # Hotkey combos (RetroArch names). "nul" disables a binding.
   hotkey_enable: "select"
   hotkeys:

@@ -205,6 +205,9 @@ _build_retroarch() {
     printf 'savestate_auto_save = "%s"\n' "$(cfg saves.auto_save_state false)"
     printf 'savestate_auto_load = "%s"\n' "$(cfg saves.auto_save_state false)"
     printf 'rewind_enable = "%s"\n' "$(cfg saves.rewind_enabled true)"
+    local jd
+    jd="$(cfg controls.joypad_driver auto)"
+    [[ "$jd" == "auto" ]] || printf 'input_joypad_driver = "%s"\n' "$jd"
     if [[ "$(cfg controls.manage_autoconfig true)" == "true" ]]; then
       printf '\n# hotkeys (hold %s)\n' "$(cfg controls.hotkey_enable select)"
       printf 'input_enable_hotkey_btn = "%s"\n' "$(_ra_btn "$(cfg controls.hotkey_enable select)")"
@@ -216,6 +219,37 @@ _build_retroarch() {
     fi
   } > "$cfg"
   ok "wrote $cfg"
+  _build_display_cfg "$out"
+}
+
+# _build_display_cfg <build_dir> - RetroArch window geometry for a display
+# region. Written here with the unrotated guess so a launch never references a
+# missing file; `frontend session` rewrites it with the measured screen.
+_build_display_cfg() {
+  local out="$1"
+  [[ "$(cfg display.region full)" == "full" ]] && { rm -f "$out/retroarch-display.cfg"; return 0; }
+  display_write_retroarch_cfg "$out/retroarch-display.cfg" "$(display_region 1920 1080 "$(cfg display.region full)")"
+}
+
+# _install_controller_profiles - copy config/controllers/<driver>/*.cfg into
+# RetroArch's autoconfig directory, for the drivers this OS uses.
+_install_controller_profiles() {
+  [[ "$(cfg controls.manage_autoconfig true)" == "true" ]] || return 0
+  local drv src dest f n=0
+  while IFS= read -r drv; do
+    [[ -n "$drv" ]] || continue
+    src="$RETROPI_ROOT/config/controllers/$drv"
+    [[ -d "$src" ]] || continue
+    dest="$(retroarch_config_dir)/autoconfig/$drv"
+    ensure_dir "$dest"
+    for f in "$src"/*.cfg; do
+      [[ -f "$f" ]] || continue
+      run cp "$f" "$dest/retropi-$(basename "$f")"
+      n=$((n+1))
+    done
+  done < <(controller_profile_drivers)
+  [[ "$n" -gt 0 ]] && ok "installed $n controller profiles into $(retroarch_config_dir)/autoconfig"
+  return 0
 }
 
 # RetroArch names hotkey actions differently from our friendly config keys.
@@ -321,4 +355,5 @@ _install_generated() {
   else
     debug "RetroArch config dir not present yet: $radir"
   fi
+  _install_controller_profiles
 }

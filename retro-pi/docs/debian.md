@@ -53,7 +53,36 @@ tools/run-rom.sh nes --headless --frames 120 --screenshot /tmp/shot.png
 
 The test cartridge changes the backdrop colour every 16 frames, so screenshots at different frame counts should differ. A screenshot that is a single colour is not by itself a failure — one of the colours it cycles through is black.
 
-To play on the machine's own monitor, log in to its desktop session and start the frontend there: `./bin/retropi frontend launch`.
+## Playing on the machine's own monitor
+
+A machine with no desktop — a server, or a box booted to a text console — can still put the frontend on its monitor. `frontend session start` starts an X server on a virtual terminal with ES-DE as its only client, and works over SSH:
+
+```sh
+sudo apt-get install -y --no-install-recommends xserver-xorg xinit x11-xserver-utils xdotool
+./bin/retropi frontend session start
+./bin/retropi frontend session stop
+```
+
+A rotated monitor, or only part of the screen, is machine-local configuration:
+
+```yaml
+# config/local.yaml
+display:
+  rotate: left          # normal | left | right | inverted
+  region: top-half      # full | top-half | bottom-half | left-half | right-half
+controls:
+  joypad_driver: linuxraw
+```
+
+The session rotates the output, measures the rotated screen, sizes ES-DE to the region, and writes `build/retroarch-display.cfg` so every game opens as a borderless window in the same place. With `rotate` in xrandr's terms, `left` turns the picture 90° counter-clockwise; if the result is upside down, use the other one.
+
+### Controllers in a session started over SSH
+
+The X server inherits the SSH login, not a local seat, so it gets no access to `/dev/input/event*` — RetroArch's `udev` driver and ES-DE both see no gamepad. The classic joystick nodes (`/dev/input/js*`) stay readable, so set `controls.joypad_driver: linuxraw`: RetroArch uses them, and the session tells ES-DE's SDL to as well.
+
+`retropi build` installs the controller profiles from `config/controllers/` into `~/.config/retroarch/autoconfig/`. Debian's RetroArch ships none, so without them a pad is detected but its buttons are unmapped. The bundled profile covers XInput pads: Xbox 360 controllers and 8BitDo pads in X-input mode, which identify as "Microsoft X-Box 360 pad". Add another by dropping its `.cfg` into `config/controllers/<driver>/`.
+
+On a desktop machine, just log in to the desktop and run `./bin/retropi frontend launch`.
 
 ## Checking your changes against Debian
 

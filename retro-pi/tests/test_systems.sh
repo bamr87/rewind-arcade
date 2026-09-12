@@ -186,6 +186,20 @@ test_display_detection() {
   DISPLAY="" WAYLAND_DISPLAY="wayland-0" assert_ok platform_has_display
 }
 
+test_display_region_turns_fullscreen_into_a_window_overlay() {
+  local cmd
+  cmd="$(launch_command nes nestopia)"
+  assert_contains "$cmd" "--fullscreen"
+  assert_not_contains "$cmd" "retroarch-display.cfg"
+  printf 'display:\n  region: top-half\n' > "$RETROPI_CONFIG_LOCAL"
+  config_load --force
+  cmd="$(launch_command nes nestopia)"
+  rm -f "$RETROPI_CONFIG_LOCAL"; config_load --force
+  assert_not_contains "$cmd" "--fullscreen"
+  assert_contains "$cmd" "retroarch-retropi.cfg|"
+  assert_contains "$cmd" "retroarch-display.cfg"
+}
+
 test_buildbot_paths_match_known_targets() {
   # Pin to the host arch: buildbot_path() consults the installed RetroArch
   # binary, and this test is about the arch -> path mapping alone.

@@ -117,3 +117,25 @@ test_not_installed_is_reported_not_guessed() {
   assert_fails frontend_installed
   assert_eq "none" "$(frontend_flavor)"
 }
+
+# --- session: rotated monitors and screen regions ------------------------------
+
+test_display_region_geometry() {
+  # A 1920x1200 monitor rotated to portrait measures 1200x1920.
+  assert_eq "0 0 1200 1920"   "$(display_region 1200 1920 full)"
+  assert_eq "0 0 1200 960"    "$(display_region 1200 1920 top-half)"
+  assert_eq "0 960 1200 960"  "$(display_region 1200 1920 bottom-half)"
+  assert_eq "0 0 960 1200"    "$(display_region 1920 1200 left-half)"
+  assert_eq "960 0 960 1200"  "$(display_region 1920 1200 right-half)"
+  assert_fails display_region 1920 1200 middle
+}
+
+test_display_cfg_positions_a_borderless_window() {
+  display_write_retroarch_cfg "$SB/display.cfg" "0 960 1200 960"
+  local out
+  out="$(cat "$SB/display.cfg")"
+  assert_contains "$out" 'video_fullscreen = "false"'
+  assert_contains "$out" 'video_window_show_decorations = "false"'
+  assert_contains "$out" 'video_windowed_position_y = "960"'
+  assert_contains "$out" 'video_windowed_position_width = "1200"'
+}

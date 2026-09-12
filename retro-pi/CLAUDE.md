@@ -55,6 +55,12 @@ Tests that touch core resolution must set `RETROPI_SYSTEM_CORE_DIRS=""` (or a sa
 
 Over SSH or on a server, `DISPLAY`/`WAYLAND_DISPLAY` are unset. `platform_has_display()` reports it; `tools/run-rom.sh --headless --frames N --screenshot F` runs RetroArch in Xvfb and is how to verify rendering on such a machine. The NES test cartridge cycles its backdrop through the palette, black included, so compare screenshots at several frame counts before concluding video is broken.
 
+## A frontend session started over SSH cannot read evdev
+
+`frontend session start` launches X from whatever shell runs it. Over SSH that process has no logind seat, so `/dev/input/event*` (root:input 0660, ACL granted only to the active local session) is unreadable: RetroArch's `udev` joypad driver and SDL in ES-DE silently find no gamepad. `/dev/input/js*` stays world-readable, hence `controls.joypad_driver: linuxraw` plus `SDL_LINUX_JOYSTICK_CLASSIC=1`. Controller profiles live in `config/controllers/<driver>/`; linuxraw's D-pad is axes 6/7, udev's is hat `h0`.
+
+RetroArch 1.20 ignores `video_window_width/height` for placement; the keys that size and position a window are `video_window_save_positions` with `video_windowed_position_{x,y,width,height}`. With no window manager SDL centres ES-DE, so the session moves it with xdotool.
+
 ## macOS: install RetroArch from upstream, not Homebrew
 
 The Homebrew cask is an x86_64 OpenGL build. On Apple Silicon it runs under Rosetta and cannot create a video context, so every hardware-rendered core (n64, dreamcast, psp, saturn) loads its ROM and then exits with "Cannot open video driver" — while 2D cores work, which makes it look like a content problem. `retroarch_macos_url()` resolves the upstream universal Metal build; `retroarch_translated()` detects the broken combination and `doctor` fails on it.
@@ -90,6 +96,7 @@ lib/es_settings.py  es_settings.xml merge
 lib/romimport.py bulk import from folder-per-console archives
 cmd/<name>.sh    one subcommand per file, defining cmd_<name>()
 config/systems/  one YAML manifest per console
+config/controllers/<driver>/  RetroArch autoconfig profiles `build` installs
 tools/           run-rom.sh (launch a game), validate-vscode.py
 docs/            user documentation; commands.md is the CLI reference
 ```
