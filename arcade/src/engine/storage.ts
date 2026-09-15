@@ -79,6 +79,19 @@ class Storage {
       /* ignore */
     }
   }
+
+  getJson<T>(key: string, fallback: T): T {
+    const raw = this.read(key);
+    if (!raw) return fallback;
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return fallback;
+    }
+  }
+  setJson(key: string, value: unknown) {
+    this.write(key, JSON.stringify(value));
+  }
 }
 
 export const storage = new Storage();

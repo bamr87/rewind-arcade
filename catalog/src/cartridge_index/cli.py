@@ -158,7 +158,7 @@ def cmd_fetch(cfg, a):
     want = a.system if a.system else (list(cfg.systems) if cfg.systems else None)
     if want is not None:
         want = [s for s in want if s in REGISTRY]
-    fetch.fetch(cfg, what, want, keep_zip=a.keep_zip)
+    fetch.fetch(cfg, what, want, keep_zip=a.keep_zip, reuse_zip=a.reuse_zip)
     print(f"\nreference data in {cfg.reference}")
     return 0
 
@@ -224,15 +224,32 @@ def cmd_scan(cfg, a):
     return 0
 
 
+def _reachable(cfg) -> bool:
+    return any(d.is_dir() for lib in cfg.libraries for sid in lib.systems
+               for d in lib.folders(sid))
+
+
+def _system_rows(cfg, games) -> list[dict]:
+    from . import sources
+    from .stages import catalog
+    return catalog.systems(read_json(sources.launchbox_platforms_path(cfg), {}), games)
+
+
 def cmd_build(cfg, a):
     from .stages import catalog, enrich, export, physical, scan, tiers
     systems = cfg.filter_systems(a.system)
-    if cfg.libraries:
+    previous = read_csv(cfg.catalog) if cfg.libraries else []
+    if cfg.libraries and previous and not _reachable(cfg):
+        # An unplugged drive scans to nothing; that is not a library with no dumps.
+        rows = previous
+        print(f"no library folder is reachable (drives unmounted?); keeping the {len(rows)} "
+              "file reference(s) from the last build instead of scanning to nothing")
+    elif cfg.libraries:
         rows, st = scan.scan(cfg, systems, use_cache=not a.no_cache, progress=_progress)
         print(f"scanned {st['files']} files: {st['read']} read "
               f"({st['bytes'] / 2**30:.2f} GB), {st['cached']} cached, {st['seconds']}s")
         if a.system:
-            rows += [r for r in read_csv(cfg.catalog) if r["system"] not in a.system]
+            rows += [r for r in previous if r["system"] not in a.system]
         tiers.mark_duplicates(rows)
         tiers.plan(rows)
     else:
@@ -250,7 +267,7 @@ def cmd_build(cfg, a):
         if need:
             _stats, extra = enrich.enrich(cfg, need, prices)
             warnings += extra
-    out = export.write_all(cfg, games, rows, items, prices)
+    out = export.write_all(cfg, games, rows, items, prices, _system_rows(cfg, games))
     print()
     _scan_report(rows)
     _catalog_report(games)
@@ -271,7 +288,8 @@ def cmd_export(cfg, a):
     if not games and not rows:
         print("no catalog yet; run cartidx build", file=sys.stderr)
         return 1
-    for k, p in export.write_all(cfg, games, rows, items, prices).items():
+    for k, p in export.write_all(cfg, games, rows, items, prices,
+                                 _system_rows(cfg, games)).items():
         print(f"wrote {k:<9} {p}")
     return 0
 
@@ -410,6 +428,9 @@ def parser():
     p.add_argument("what", nargs="*", help="nointro metadat launchbox vgchartz (default all)")
     p.add_argument("--system", **systems)
     p.add_argument("--keep-zip", action="store_true", help="keep LaunchBox Metadata.zip")
+    p.add_argument("--reuse-zip", action="store_true",
+                   help="read a LaunchBox Metadata.zip already in the reference folder "
+                        "instead of downloading it again")
 
     for name, text in (("scan", "identify file references, report only"),
                        ("build", "scan file refs, enrich and export the catalog")):

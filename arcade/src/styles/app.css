@@ -1,0 +1,200 @@
+/*
+ * Stylesheet entry. Tailwind v4 owns the base reset and utilities; the original
+ * hand-written sheets live in the `legacy` layer, which sits *below* utilities so
+ * a Tailwind class always wins over a legacy rule on the same element.
+ */
+@layer theme, base, legacy, components, utilities;
+
+@import "tailwindcss";
+@import "./global.css" layer(legacy);
+@import "./esde.css" layer(legacy);
+@import "./catalog.css" layer(legacy);
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-panel: var(--panel);
+  --color-fg: var(--text);
+  --color-dim: var(--dim);
+  --color-faint: var(--faint);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
+  --color-good: var(--good);
+  --color-gold: var(--gold);
+  --color-bad: var(--bad);
+  --font-sans: var(--font);
+  --font-display: var(--display);
+  --font-mono: var(--mono);
+  --font-pixel: var(--pixel);
+}
+
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: color-mix(in srgb, var(--accent) 40%, transparent);
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.25) transparent;
+  }
+}
+
+/* Preflight strips a few UA defaults the legacy sheets quietly relied on. */
+@layer legacy {
+  h1, h2, h3, h4 { font-weight: 700; }
+  .emu-legal a, .page-filter a, .cat-wiki a, .atlas-lead a {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+}
+
+@layer components {
+  :root {
+    --display: "Space Grotesk Variable", var(--font);
+    --mono: "JetBrains Mono Variable", ui-monospace, SFMono-Regular, Menlo, monospace;
+    --pixel: "Press Start 2P", var(--mono);
+    --accent-2: #818cf8;
+    --bad: #fb7185;
+    --anim-state: running;
+  }
+
+  /* Phosphor themes recolor the chrome. A game page still sets its own --accent inline. */
+  :root[data-phosphor="cyan"] { --accent: #38bdf8; --accent-2: #818cf8; }
+  :root[data-phosphor="magenta"] { --accent: #f472b6; --accent-2: #a78bfa; }
+  :root[data-phosphor="amber"] { --accent: #fbbf24; --accent-2: #fb7185; }
+  :root[data-phosphor="green"] { --accent: #4ade80; --accent-2: #2dd4bf; }
+  :root[data-phosphor="violet"] { --accent: #a78bfa; --accent-2: #f472b6; }
+
+  :root[data-motion="reduced"] { --anim-state: paused; }
+  @media (prefers-reduced-motion: reduce) {
+    :root:not([data-motion="full"]) { --anim-state: paused; }
+  }
+
+  h1, h2, h3 { font-family: var(--display); }
+  .panel-title--brand { font-family: var(--pixel); font-size: 24px; line-height: 1.5; letter-spacing: 0.04em; }
+
+  /* ---------------------------- Ambient backdrop ---------------------------- */
+  .ambient {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+    background:
+      radial-gradient(1100px 620px at 50% -12%, color-mix(in srgb, var(--accent) 17%, transparent), transparent 62%),
+      radial-gradient(900px 620px at 104% 112%, color-mix(in srgb, var(--accent-2) 15%, transparent), transparent 60%),
+      var(--bg);
+    transition: background 0.6s ease;
+  }
+  .ambient-grid {
+    position: absolute;
+    left: -40%;
+    right: -40%;
+    bottom: -18%;
+    height: 58%;
+    background-image:
+      linear-gradient(color-mix(in srgb, var(--accent) 42%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--accent) 42%, transparent) 1px, transparent 1px);
+    background-size: 72px 72px;
+    transform: perspective(380px) rotateX(64deg);
+    transform-origin: 50% 0;
+    -webkit-mask-image: linear-gradient(to top, #000 0%, transparent 78%);
+    mask-image: linear-gradient(to top, #000 0%, transparent 78%);
+    opacity: 0.22;
+    animation: grid-scroll 4s linear infinite;
+    animation-play-state: var(--anim-state);
+  }
+  .ambient-noise {
+    position: absolute;
+    inset: 0;
+    opacity: 0.05;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.9) 0.5px, transparent 0.6px);
+    background-size: 3px 3px;
+  }
+  :root[data-ambient="off"] .ambient-grid,
+  :root[data-ambient="off"] .ambient-noise { display: none; }
+  @keyframes grid-scroll { to { background-position: 0 72px, 0 0; } }
+
+  /* ------------------------------- CRT filter ------------------------------- */
+  .crt-layer {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+    z-index: 3;
+    pointer-events: none;
+    border-radius: 12px;
+    overflow: hidden;
+    background:
+      repeating-linear-gradient(to bottom, transparent 0 2px, rgba(0, 0, 0, 0.26) 2px 3px),
+      radial-gradient(115% 95% at 50% 50%, transparent 58%, rgba(0, 0, 0, 0.6) 100%);
+  }
+  .crt-layer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.05) 50%, transparent);
+    background-size: 100% 220px;
+    background-repeat: no-repeat;
+    animation: crt-roll 7s linear infinite;
+    animation-play-state: var(--anim-state);
+  }
+  .game-canvas.is-crt { filter: saturate(1.18) contrast(1.06) brightness(1.04); }
+
+  /* Real box art comes in every aspect ratio (SNES boxes are landscape): show it whole. */
+  .esde-cover--hero img { object-fit: contain; }
+  /* The per-title placeholder hue is for missing art; behind a real cover it reads as a frame. */
+  .esde-cover--hero:has(img) { background: #0b1020 !important; }
+  @keyframes crt-roll { from { background-position: 0 -220px; } to { background-position: 0 120vh; } }
+
+  /* --------------------------------- Bits ---------------------------------- */
+  .kbd {
+    display: inline-grid;
+    place-items: center;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    padding: 0 0.4rem;
+    border-radius: 6px;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text);
+    background: rgba(148, 163, 184, 0.12);
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    border-bottom-width: 2px;
+  }
+  .text-glow { text-shadow: 0 0 18px color-mix(in srgb, var(--accent) 65%, transparent); }
+  .glass {
+    background: color-mix(in srgb, #0b1224 72%, transparent);
+    -webkit-backdrop-filter: blur(16px) saturate(1.3);
+    backdrop-filter: blur(16px) saturate(1.3);
+    border: 1px solid var(--line);
+  }
+  .card-sheen {
+    position: relative;
+    isolation: isolate;
+  }
+  .card-sheen::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(140deg, color-mix(in srgb, var(--accent) 70%, transparent), transparent 40%, transparent 60%, color-mix(in srgb, var(--accent-2) 55%, transparent));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    opacity: 0.45;
+    transition: opacity 0.2s ease;
+  }
+  .card-sheen:hover::before { opacity: 1; }
+}

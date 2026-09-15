@@ -2,7 +2,8 @@
 
 All three read their columns from schema.py, so none of them can quietly drop a
 field the others carry. The SQLite file is the consolidated library: `games` is
-the catalog, `roms` are file references, `inventory` and `prices` are yours.
+the catalog, `roms` are file references, `inventory` and `prices` are yours, and
+`systems` describes the hardware each title runs on.
 """
 
 from __future__ import annotations
@@ -16,7 +17,8 @@ from pathlib import Path
 from ..io import write_csv, write_text
 from ..schema import (GAME_COLUMNS, GAME_FIELDS, INVENTORY_EXPORT_COLUMNS,
                       INVENTORY_EXPORT_FIELDS, PRICE_COLUMNS, PRICE_FIELDS,
-                      ROM_COLUMNS, ROM_FIELDS, cast, web_rows)
+                      ROM_COLUMNS, ROM_FIELDS, SYSTEM_COLUMNS, SYSTEM_FIELDS, cast,
+                      web_rows)
 
 SQL_TYPE = {"s": "TEXT", "n": "REAL", "i": "INTEGER", "b": "INTEGER"}
 
@@ -44,7 +46,7 @@ VIEWS = {
 }
 
 
-def write_sqlite(path: Path, games, rows, items, prices) -> None:
+def write_sqlite(path: Path, games, rows, items, prices, systems=()) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_name(f".{path.name}.tmp")
     tmp.unlink(missing_ok=True)
@@ -53,7 +55,8 @@ def write_sqlite(path: Path, games, rows, items, prices) -> None:
         for name, fields, data in (("games", GAME_FIELDS, games),
                                    ("roms", ROM_FIELDS, rows),
                                    ("inventory", INVENTORY_EXPORT_FIELDS, items),
-                                   ("prices", PRICE_FIELDS, prices)):
+                                   ("prices", PRICE_FIELDS, prices),
+                                   ("systems", SYSTEM_FIELDS, systems)):
             cols = ", ".join(f'"{c}" {SQL_TYPE[k]}' for c, _key, k in fields)
             con.execute(f'CREATE TABLE "{name}" ({cols})')
             marks = ", ".join("?" for _ in fields)
@@ -70,7 +73,7 @@ def write_sqlite(path: Path, games, rows, items, prices) -> None:
     os.replace(tmp, path)
 
 
-def write_web(out: Path, games, rows, items, prices) -> None:
+def write_web(out: Path, games, rows, items, prices, systems=()) -> None:
     import json
     out.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(files("cartridge_index").joinpath("web/index.html"), out / "index.html")
@@ -79,20 +82,23 @@ def write_web(out: Path, games, rows, items, prices) -> None:
                "window.GAMES=" + dump(web_rows(games, GAME_FIELDS)) + ";\n"
                "window.ROMS=" + dump(web_rows(rows, ROM_FIELDS)) + ";\n"
                "window.INVENTORY=" + dump(web_rows(items, INVENTORY_EXPORT_FIELDS)) + ";\n"
-               "window.PRICES=" + dump(web_rows(prices, PRICE_FIELDS)) + ";\n")
+               "window.PRICES=" + dump(web_rows(prices, PRICE_FIELDS)) + ";\n"
+               "window.SYSTEMS=" + dump(web_rows(systems, SYSTEM_FIELDS)) + ";\n")
 
 
-def write_all(cfg, games, rows, items, prices) -> dict[str, Path]:
+def write_all(cfg, games, rows, items, prices, systems=()) -> dict[str, Path]:
     ws = cfg.workspace
     ordered = sorted(rows, key=lambda r: (r.get("system") or "", r.get("slug") or "",
                                           r.get("path") or ""))
     out = {"games": cfg.games, "catalog": cfg.catalog, "inventory": ws / "inventory.csv",
-           "sqlite": ws / "cartridge.sqlite", "web": ws / "web" / "index.html"}
+           "systems": ws / "systems.csv", "sqlite": ws / "cartridge.sqlite",
+           "web": ws / "web" / "index.html"}
     write_csv(out["games"], games, GAME_COLUMNS)
     write_csv(out["catalog"], ordered, ROM_COLUMNS)
     write_csv(out["inventory"], items, INVENTORY_EXPORT_COLUMNS)
-    write_sqlite(out["sqlite"], games, ordered, items, prices)
-    write_web(ws / "web", games, ordered, items, prices)
+    write_csv(out["systems"], systems, SYSTEM_COLUMNS)
+    write_sqlite(out["sqlite"], games, ordered, items, prices, systems)
+    write_web(ws / "web", games, ordered, items, prices, systems)
     return out
 
 

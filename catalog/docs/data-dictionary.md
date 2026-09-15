@@ -22,6 +22,20 @@ One row per system and title. This is the library.
 | `franchise` | text | series, from libretro metadata |
 | `max_players` | integer | maximum simultaneous players |
 | `wikipedia_url` | text | Wikipedia article |
+| `nointro_name` | text | full No-Intro name of the best file reference; libretro's thumbnails are named after it |
+| `release_date` | text | first release: `YYYY-MM-DD` from LaunchBox, else `YYYY-MM` from libretro's year and month |
+| `release_type` | text | LaunchBox release type: Released, Unreleased, Homebrew, and so on |
+| `origin` | text | country of origin, from libretro metadata |
+| `esrb` | text | ESRB rating |
+| `overview` | text | description, from LaunchBox |
+| `video_url` | text | a gameplay video, from LaunchBox |
+| `launchbox_id` | integer | LaunchBox Games Database id |
+| `edge_rating` | number | Edge magazine review score, 0-10, from libretro metadata |
+| `famitsu_rating` | number | Famitsu review score, 0-40, from libretro metadata |
+| `box_art` | text | LaunchBox front-box image file name, best region first (North America, World, Europe, Japan); the image stays at `https://images.launchbox-app.com/<name>` and is never downloaded |
+| `logo_art` | text | LaunchBox clear-logo image file name |
+| `title_art` | text | LaunchBox title-screen image file name |
+| `cart_art` | text | LaunchBox cartridge-front image file name |
 | `community_rating` | number | LaunchBox community rating, 0-5 |
 | `rating_votes` | integer | votes behind it |
 | `rating_bayesian` | number | rating shrunk toward the system mean by vote count; sort and group on this |
@@ -95,6 +109,19 @@ Optional. Paths, hashes and identification for dumps that still sit on your driv
 | `cooperative` | text | LaunchBox co-op flag |
 | `wikipedia_url` | text | Wikipedia article |
 | `meta_source` | text | `libretro` when libretro metadata supplied fields |
+| `release_date` | text | first release: `YYYY-MM-DD` from LaunchBox, else `YYYY-MM` from libretro's year and month |
+| `release_month` | integer | release month, from libretro metadata |
+| `release_type` | text | LaunchBox release type: Released, Unreleased, Homebrew, and so on |
+| `origin` | text | country of origin, from libretro metadata |
+| `overview` | text | description, from LaunchBox |
+| `video_url` | text | a gameplay video, from LaunchBox |
+| `launchbox_id` | integer | LaunchBox Games Database id |
+| `edge_rating` | number | Edge magazine review score, 0-10, from libretro metadata |
+| `famitsu_rating` | number | Famitsu review score, 0-40, from libretro metadata |
+| `box_art` | text | LaunchBox front-box image file name, best region first; served from `https://images.launchbox-app.com/<name>`, never downloaded |
+| `logo_art` | text | LaunchBox clear-logo image file name |
+| `title_art` | text | LaunchBox title-screen image file name |
+| `cart_art` | text | LaunchBox cartridge-front image file name |
 | `community_rating` | number | LaunchBox community rating, 0-5 |
 | `rating_votes` | integer | votes behind it |
 | `rating_bayesian` | number | rating shrunk toward the system mean by vote count; sort and group on this |
@@ -175,6 +202,30 @@ Every inventory column above, plus:
 | `release_date` | text | as the price guide gives it |
 | `notes` | text | notes column from the price guide |
 | `source_sheet` | text | spreadsheet sheet |
+
+## Systems: `workspace/systems.csv`, table `systems`
+
+One row per system in the catalog. Hardware facts come from LaunchBox's platform records, kept by `cartidx fetch launchbox`; the counts come from `games`.
+
+| Column | Type | Meaning |
+|---|---|---|
+| `system` | text | platform id |
+| `system_label` | text | display name of the system |
+| `launchbox_platform` | text | LaunchBox platform name matched |
+| `manufacturer` | text | manufacturer |
+| `developer` | text | hardware developer |
+| `release_date` | text | first release, `YYYY-MM-DD` |
+| `media` | text | what the console takes, as LaunchBox describes it; else the platform's media type |
+| `cpu` | text | processor |
+| `memory` | text | memory |
+| `graphics` | text | graphics hardware |
+| `sound` | text | sound hardware |
+| `display` | text | display modes |
+| `max_controllers` | text | controllers, as LaunchBox gives it |
+| `overview` | text | description |
+| `titles` | integer | games in the catalog for this system |
+| `owned_titles` | integer | of those, titles with a physical copy |
+| `titles_with_rom` | integer | of those, titles with a file reference |
 
 ## SQLite views
 

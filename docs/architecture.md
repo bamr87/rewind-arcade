@@ -15,7 +15,7 @@ Rewind Arcade is three programs that agree on names, not a single process.
 
 ## Why they stay separate
 
-They have incompatible runtimes and constraints. Arcade is TypeScript in a browser. Emulate is bash 3.2 so it runs on stock macOS. Catalog is Python stdlib so a Pi does not need pip. Merging them would drag each stack's constraints onto the others.
+They have incompatible runtimes and constraints. Arcade is TypeScript in a browser. Emulate is bash 3.2 so it runs on stock macOS. Catalog is Python stdlib so a Pi does not need pip. Merging them would drag each stack's constraints onto the others. The arcade UI is allowed to *display* catalog rows and registry ids; it must not import catalog or emulate code. Collection JSON is loaded from a cartidx `data.js` export, never from Python.
 
 What they share is the **system id**: `nes`, `snes`, `megadrive`, `psx`. A dump in `roms/nes` is playable and identifiable without a translation table.
 

@@ -41,6 +41,14 @@ ROM_FIELDS = [
     ("year", "y", "i"), ("franchise", "fr", "s"), ("max_players", "mp", "i"),
     ("esrb", None, "s"), ("cooperative", None, "s"), ("wikipedia_url", "w", "s"),
     ("meta_source", None, "s"),
+    ("release_date", None, "s"), ("release_month", None, "i"), ("release_type", None, "s"),
+    ("origin", None, "s"), ("overview", None, "s"), ("video_url", None, "s"),
+    ("launchbox_id", None, "i"),
+    # magazine reviews (libretro metadata)
+    ("edge_rating", None, "n"), ("famitsu_rating", None, "n"),
+    # artwork: LaunchBox image file names. The images stay on LaunchBox's server.
+    ("box_art", None, "s"), ("logo_art", None, "s"), ("title_art", None, "s"),
+    ("cart_art", None, "s"),
     # community rating (LaunchBox), shrunk per system
     ("community_rating", "cr", "n"), ("rating_votes", "rv", "i"),
     ("rating_bayesian", "rb", "n"), ("rating_tier", "rt", "s"),
@@ -64,7 +72,12 @@ GAME_FIELDS = [
     ("region", "rg", "s"), ("serial", "sr", "s"),
     ("genre", "g", "s"), ("developer", "dv", "s"), ("publisher", "pub", "s"),
     ("year", "y", "i"), ("franchise", "fr", "s"), ("max_players", "mp", "i"),
-    ("wikipedia_url", "w", "s"),
+    ("wikipedia_url", "w", "s"), ("nointro_name", "n", "s"),
+    ("release_date", "rd", "s"), ("release_type", "ry", "s"), ("origin", "or", "s"),
+    ("esrb", "es", "s"), ("overview", "ov", "s"), ("video_url", "vu", "s"),
+    ("launchbox_id", "lbid", "i"), ("edge_rating", "ed", "n"), ("famitsu_rating", "fm", "n"),
+    ("box_art", "bx", "s"), ("logo_art", "lg", "s"), ("title_art", "ts", "s"),
+    ("cart_art", "ct", "s"),
     ("community_rating", "cr", "n"), ("rating_votes", "rv", "i"),
     ("rating_bayesian", "rb", "n"), ("rating_tier", "rt", "s"),
     ("loose_price", "l", "n"), ("cib_price", "cb", "n"), ("new_price", "nw", "n"),
@@ -105,6 +118,17 @@ PRICE_FIELDS = [
     ("notes", "nt", "s"), ("source_sheet", None, "s"),
 ]
 PRICE_COLUMNS = [c for c, _k, _t in PRICE_FIELDS]
+
+# One row per system in the catalog: LaunchBox's platform facts beside the catalog's counts.
+SYSTEM_FIELDS = [
+    ("system", "c", "s"), ("system_label", "cl", "s"), ("launchbox_platform", None, "s"),
+    ("manufacturer", "mf", "s"), ("developer", "dv", "s"), ("release_date", "rd", "s"),
+    ("media", "me", "s"), ("cpu", "cpu", "s"), ("memory", "mem", "s"),
+    ("graphics", "gfx", "s"), ("sound", "snd", "s"), ("display", "dsp", "s"),
+    ("max_controllers", "mc", "s"), ("overview", "ov", "s"),
+    ("titles", "tn", "i"), ("owned_titles", "ot", "i"), ("titles_with_rom", "tr", "i"),
+]
+SYSTEM_COLUMNS = [c for c, _k, _t in SYSTEM_FIELDS]
 
 
 def cast(value, kind):

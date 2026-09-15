@@ -1,0 +1,114 @@
+export function PlayCover({ id, title, accent }: { id: string; title: string; accent: string }) {
+  return (
+    <svg className="esde-cover-svg" viewBox="0 0 240 320" aria-hidden>
+      <rect width="240" height="320" rx="8" fill="#0b1020" />
+      {id === 'pong' && <Pong />}
+      {id === 'jezzball' && <Jezz accent={accent} />}
+      {id === 'breakout' && <Bricks />}
+      {id === 'snake' && <Snake />}
+      {id === 'asteroids' && <Rocks />}
+      {id === 'minesweeper' && <Mines />}
+      {!['pong', 'jezzball', 'breakout', 'snake', 'asteroids', 'minesweeper'].includes(id) && (
+        <rect width="240" height="320" fill={accent} />
+      )}
+      <rect x="0" y="248" width="240" height="72" fill="#000" opacity="0.55" />
+      <text x="16" y="280" fill="#fff" fontSize="18" fontWeight="800">{title}</text>
+      <text x="16" y="300" fill={accent} fontSize="11" letterSpacing="1.4">REWIND ARCADE</text>
+    </svg>
+  );
+}
+
+function Pong() {
+  return (
+    <g>
+      <rect width="240" height="320" fill="#050505" />
+      {Array.from({ length: 12 }, (_, i) => (
+        <rect key={i} x="118" y={16 + i * 22} width="4" height="12" fill="#e2e8f0" opacity="0.7" />
+      ))}
+      <rect x="24" y="130" width="10" height="52" fill="#e2e8f0" />
+      <rect x="206" y="88" width="10" height="52" fill="#e2e8f0" />
+      <rect x="150" y="150" width="12" height="12" fill="#e2e8f0" />
+    </g>
+  );
+}
+
+function Jezz({ accent }: { accent: string }) {
+  return (
+    <g>
+      <rect width="240" height="320" fill="#0a1628" />
+      <rect x="20" y="24" width="200" height="210" fill="none" stroke={accent} strokeWidth="3" />
+      <line x1="20" y1="120" x2="140" y2="120" stroke={accent} strokeWidth="4" />
+      <line x1="140" y1="24" x2="140" y2="120" stroke={accent} strokeWidth="4" />
+      <circle cx="70" cy="70" r="10" fill="#7dd3fc" />
+      <circle cx="176" cy="168" r="10" fill="#38bdf8" />
+      <circle cx="92" cy="188" r="10" fill="#bae6fd" />
+    </g>
+  );
+}
+
+function Bricks() {
+  const colors = ['#fb7185', '#fbbf24', '#34d399', '#38bdf8', '#a78bfa'];
+  return (
+    <g>
+      <rect width="240" height="320" fill="#140a12" />
+      {colors.flatMap((c, row) =>
+        Array.from({ length: 6 }, (_, col) => (
+          <rect key={`${row}-${col}`} x={16 + col * 36} y={28 + row * 22} width="32" height="18" rx="2" fill={c} />
+        )),
+      )}
+      <rect x="88" y="210" width="64" height="10" rx="2" fill="#e2e8f0" />
+      <circle cx="120" cy="190" r="7" fill="#fff" />
+    </g>
+  );
+}
+
+function Snake() {
+  return (
+    <g>
+      <rect width="240" height="320" fill="#052e16" />
+      {Array.from({ length: 8 }, (_, i) => (
+        <rect key={i} x={48 + i * 16} y={120} width="14" height="14" fill="#4ade80" />
+      ))}
+      <rect x="176" y="120" width="14" height="14" fill="#86efac" />
+      <circle cx="72" cy="72" r="9" fill="#ef4444" />
+    </g>
+  );
+}
+
+function Rocks() {
+  return (
+    <g>
+      <rect width="240" height="320" fill="#020617" />
+      <polygon points="120,70 132,92 118,108 96,96 102,74" fill="none" stroke="#cbd5e1" strokeWidth="2" />
+      <polygon points="60,150 88,140 110,168 78,190 50,172" fill="none" stroke="#94a3b8" strokeWidth="2" />
+      <polygon points="160,160 198,148 210,186 176,210 150,188" fill="none" stroke="#e2e8f0" strokeWidth="2" />
+      <polygon points="118,200 128,214 112,226 104,210" fill="none" stroke="#38bdf8" strokeWidth="2" />
+    </g>
+  );
+}
+
+function Mines() {
+  return (
+    <g>
+      <rect width="240" height="320" fill="#1c1917" />
+      {Array.from({ length: 6 }, (_, r) =>
+        Array.from({ length: 6 }, (_, c) => {
+          const mine = (r + c) % 4 === 0;
+          return (
+            <rect
+              key={`${r}-${c}`}
+              x={36 + c * 28}
+              y={36 + r * 28}
+              width="24"
+              height="24"
+              fill={mine ? '#44403c' : '#d6d3d1'}
+              stroke="#0c0a09"
+            />
+          );
+        }),
+      )}
+      <text x="92" y="92" fontSize="16" fontWeight="800" fill="#1d4ed8">2</text>
+      <text x="148" y="148" fontSize="16" fontWeight="800" fill="#b91c1c">3</text>
+    </g>
+  );
+}

@@ -28,6 +28,91 @@ body {
 }
 
 button { font-family: inherit; }
+a { color: inherit; }
+
+.app { min-height: 100%; display: flex; flex-direction: column; }
+.app--immersive { height: 100%; }
+
+.shell {
+  position: sticky; top: 0; z-index: 40;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap;
+  padding: 12px 24px;
+  background: rgba(6, 9, 18, 0.82);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--line);
+}
+.shell-brand {
+  font-size: 15px; font-weight: 800; letter-spacing: .18em; text-decoration: none;
+  color: var(--text);
+}
+.shell-brand span {
+  margin-left: .35em;
+  background: linear-gradient(90deg, #38bdf8, #818cf8);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.shell-nav { display: flex; gap: 4px; flex-wrap: wrap; }
+.shell-link {
+  padding: 7px 12px; border-radius: 999px; text-decoration: none;
+  font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--faint);
+}
+.shell-link:hover { color: var(--text); background: rgba(148, 163, 184, 0.1); }
+.shell-link.is-on { color: var(--text); background: rgba(148, 163, 184, 0.14); }
+.shell-link--play.is-on { color: #7dd3fc; }
+.shell-link--emulate.is-on { color: #c7d2fe; }
+.shell-link--catalog.is-on { color: #6ee7b7; }
+.shell-link--systems.is-on { color: #fcd34d; }
+.shell-link--arcade.is-on { color: #38bdf8; }
+.shell-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.shell-count { font-size: 11px; color: var(--faint); letter-spacing: .04em; }
+.shell .esde-clock { font-size: 14px; }
+
+.page-hero {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 20px; flex-wrap: wrap; margin-bottom: 22px;
+}
+.page-hero h1 { font-size: 28px; font-weight: 800; letter-spacing: .06em; }
+.page-hero p { color: var(--dim); font-size: 14px; margin-top: 6px; max-width: 62ch; }
+.page-hero code, .arcade-section-head code, .atlas-lead code, .sys-meta code {
+  font-family: var(--mono); font-size: 12px; color: var(--accent);
+}
+.page-filter { font-size: 13px !important; color: var(--faint) !important; }
+.page-filter a { color: var(--accent); }
+
+.pillar-grid {
+  display: grid; gap: 14px; margin-bottom: 42px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+.pillar {
+  --accent: #38bdf8;
+  text-align: left; cursor: pointer; color: var(--text);
+  background: linear-gradient(180deg, rgba(20, 30, 52, 0.9), rgba(12, 18, 33, 0.9));
+  border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 20px 20px 16px; display: flex; flex-direction: column; gap: 8px;
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+.pillar:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+}
+.pillar-kicker {
+  font-size: 11px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--accent);
+}
+.pillar h2 { font-size: 22px; font-weight: 800; }
+.pillar p { color: var(--dim); font-size: 13.5px; line-height: 1.45; flex: 1; }
+.pillar-foot { font-size: 13px; font-weight: 700; color: var(--accent); letter-spacing: .04em; }
+
+.arcade-kicker {
+  font-size: 11px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 8px;
+}
+.arcade-hero h1 { font-size: 34px; font-weight: 800; letter-spacing: .02em; line-height: 1.1; }
+.arcade-hero > div > p { color: var(--dim); font-size: 14px; margin-top: 8px; max-width: 52ch; }
+
+.emu-chip--cat:hover { border-color: #34d399; color: #a7f3d0; }
 
 /* ============================ Buttons ============================ */
 .btn {
@@ -64,7 +149,7 @@ button { font-family: inherit; }
 /* ============================ Arcade home ============================ */
 .arcade {
   max-width: 1160px; margin: 0 auto; padding: 40px 24px 60px;
-  min-height: 100%; display: flex; flex-direction: column;
+  width: 100%; flex: 1; display: flex; flex-direction: column;
 }
 .arcade-hero {
   display: flex; align-items: flex-end; justify-content: space-between;
@@ -162,7 +247,7 @@ button { font-family: inherit; }
 .emu-chip:hover { border-color: #818cf8; color: #c7d2fe; }
 .emu-chip--more { color: #818cf8; }
 
-.emu { max-width: 1100px; margin: 0 auto; padding: 28px 20px 48px; min-height: 100%; display: flex; flex-direction: column; gap: 20px; }
+.emu { max-width: 1100px; margin: 0 auto; padding: 28px 20px 48px; width: 100%; flex: 1; display: flex; flex-direction: column; gap: 20px; }
 .emu-hero { display: flex; align-items: center; gap: 14px; }
 .emu-hero h1 { font-size: 28px; font-weight: 800; letter-spacing: .08em; }
 .emu-hero p { color: var(--dim); font-size: 14px; margin-top: 4px; max-width: 52ch; }

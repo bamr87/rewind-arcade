@@ -7,6 +7,7 @@ import { storage } from './storage';
  */
 class AudioBusImpl implements AudioBus {
   private ctx: AudioContext | null = null;
+  private listeners = new Set<() => void>();
   muted: boolean;
 
   constructor() {
@@ -24,7 +25,16 @@ class AudioBusImpl implements AudioBus {
   setMuted(muted: boolean) {
     this.muted = muted;
     storage.setBool('muted', muted);
+    this.listeners.forEach((l) => l());
   }
+
+  /** Host UI keeps mute buttons in sync through this; games only read `muted`. */
+  subscribe = (fn: () => void) => {
+    this.listeners.add(fn);
+    return () => {
+      this.listeners.delete(fn);
+    };
+  };
 
   tone(freq: number, opts: ToneOptions = {}) {
     const { dur = 0.1, type = 'sine', vol = 0.08, slideTo = 0, delay = 0 } = opts;

@@ -107,11 +107,18 @@ def enrich(cfg, rows, prices=(), log=print):
                 for col, key in (("genre", "Genres"), ("developer", "Developer"),
                                  ("publisher", "Publisher"), ("max_players", "MaxPlayers"),
                                  ("esrb", "ESRB"), ("cooperative", "Cooperative"),
-                                 ("wikipedia_url", "WikipediaURL")):
+                                 ("wikipedia_url", "WikipediaURL"), ("overview", "Overview"),
+                                 ("release_type", "ReleaseType"), ("video_url", "VideoURL"),
+                                 ("launchbox_id", "DatabaseID"), ("box_art", "BoxFront"),
+                                 ("logo_art", "ClearLogo"), ("title_art", "TitleShot"),
+                                 ("cart_art", "CartFront")):
                     _fill(r, col, g.get(key))
                 rd = g.get("ReleaseDate") or ""
                 if re.match(r"^\d{4}", rd):
                     _fill(r, "year", rd[:4])
+                if re.match(r"^\d{4}-\d{2}-\d{2}", rd):
+                    _fill(r, "release_date", rd[:10])
+                _fill(r, "year", g.get("ReleaseYear"))
                 raw = _num(g.get("CommunityRating"))
                 if raw is not None:
                     v = int(_num(g.get("CommunityRatingCount")) or 0)
@@ -144,6 +151,12 @@ def enrich(cfg, rows, prices=(), log=print):
                 if r.get("sales_total") not in (None, ""):
                     st["sales"] += 1
                 st["vgchartz"] += 1
+
+        # A year and month from libretro still date a title LaunchBox had no day for.
+        for r in group:
+            y, mo = _num(r.get("year")), _num(r.get("release_month"))
+            if y and mo and 1 <= mo <= 12:
+                _fill(r, "release_date", f"{int(y):04d}-{int(mo):02d}")
 
         pool = [p for pid in s.price_platforms for p in priced.get(pid, [])]
         if pool:

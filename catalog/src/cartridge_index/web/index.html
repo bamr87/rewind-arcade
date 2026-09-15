@@ -214,6 +214,9 @@ tbody tr:hover td{background:var(--surface-2)}
 .dslug{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);margin-top:3px;
   word-break:break-all}
 .dsec{margin-top:18px}
+.dart{display:block;max-width:170px;max-height:230px;margin-top:14px;border-radius:7px;
+  box-shadow:var(--shadow)}
+.dov{margin-top:11px;font-size:12.5px;line-height:1.55;color:var(--ink-2)}
 .dsec>b{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;
   color:var(--ink-3);font-weight:600;display:block;margin-bottom:7px}
 .kv{display:grid;grid-template-columns:104px 1fr;gap:4px 10px;font-size:12.5px}
@@ -806,9 +809,12 @@ function openDrawer(r){
       '<span class="tag">'+esc(r.cl)+'</span>'+(r.me?'<span class="tag">'+esc(r.me)+'</span>':"")+
       (r.rg?'<span class="tag">'+esc(r.rg)+'</span>':"")+
     '</div>'+
+    (r.bx?'<img class="dart" alt="" loading="lazy" src="https://images.launchbox-app.com/'+
+      encodeURIComponent(r.bx)+'" onerror="this.remove()">':"")+
+    (r.ov?'<p class="dov">'+esc(r.ov)+'</p>':"")+
     '<div class="dsec"><b>Release</b>'+kv([["Publisher",r.pub],["Developer",r.dv],
-      ["Year",r.y],["Genre",r.g],["Series",r.fr],
-      ["Players",r.mp?r.mp:""],["Serial",r.sr]])+'</div>'+
+      ["Released",r.rd||r.y],["Type",r.ry],["Genre",r.g],["Series",r.fr],
+      ["Players",r.mp?r.mp:""],["Serial",r.sr],["Origin",r.or],["ESRB",r.es]])+'</div>'+
     '<div class="dsec"><b>Rating</b>'+kv([
       ["Community",r.cr!=null?r.cr+" / 5":""],["Votes",r.rv],
       ["Weighted",r.rb!=null?r.rb+"  ("+r.rt+")":""]])+
@@ -817,8 +823,9 @@ function openDrawer(r){
     (r.l!=null?'<div class="dsec"><b>Market value</b>'+kv([["Loose",usd(r.l)],
       ["Complete",r.cb!=null?usd(r.cb):""],["Sealed",r.nw!=null?usd(r.nw):""],
       ["Listed as",r.pt&&r.pt!==r.t?r.pt:""]])+'</div>':"")+
-    (r.cs!=null||r.sl!=null?'<div class="dsec"><b>Critics and sales</b>'+kv([
+    (r.cs!=null||r.sl!=null||r.ed!=null||r.fm!=null?'<div class="dsec"><b>Critics and sales</b>'+kv([
       ["Critic score",r.cs!=null?r.cs+" / 10":""],
+      ["Edge",r.ed!=null?r.ed+" / 10":""],["Famitsu",r.fm!=null?r.fm+" / 40":""],
       ["Known sales",r.sl!=null?"at least "+r.sl+"M units":""],
       ["NA / JP / PAL",(r.sna||r.sjp||r.spal)?[r.sna,r.sjp,r.spal].map(x=>x==null?"\u2014":x).join(" / "):""]])+'</div>':"")+
     '<div class="dsec"><b>File references</b>'+(refs.length?refs.map(ref=>
@@ -828,8 +835,11 @@ function openDrawer(r){
       '<div>'+(ref.st?'<span class="tag">'+esc(ref.st)+'</span>':"")+
       (ref.vd?' <span class="pill '+esc(ref.vd)+'">'+esc(ref.vd)+'</span>':"")+'</div></div>'
     ).join(""):'<div class="issue">No dump on file. Identification data is kept when a library folder is configured.</div>')+
-      (r.w?'<div style="margin-top:7px"><a href="'+esc(r.w)+
-        '" target="_blank" rel="noopener">Wikipedia \u2197</a></div>':"")+'</div>'+
+      (r.w||r.vu?'<div style="margin-top:7px">'+
+        (r.w?'<a href="'+esc(r.w)+'" target="_blank" rel="noopener">Wikipedia \u2197</a>':"")+
+        (r.w&&r.vu?" \u00b7 ":"")+
+        (r.vu?'<a href="'+esc(r.vu)+'" target="_blank" rel="noopener">Video \u2197</a>':"")+
+        '</div>':"")+'</div>'+
     '<div class="dsec"><b>Your note</b><div class="marks">'+
       '<button data-star="1" class="'+(note.star?"on":"")+'">star</button>'+
       '<button data-star="" class="'+(!note.star?"on":"")+'">none</button></div>'+

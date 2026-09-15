@@ -11,7 +11,7 @@ npm install --prefix arcade
 npm run dev --prefix arcade
 ```
 
-Open the printed URL. Hash routes: `#/` for the grid, `#/play/jezzball` (or `minesweeper`, `snake`) for a game.
+Open the printed URL. Hash routes: `#/` for the hub, `#/play/jezzball` for a game, `#/emulate` for the console loader, `#/catalog` for the collection browser, `#/systems` for the shared id map.
 
 Production build is static files in `arcade/dist/` and is what GitHub Pages serves.
 

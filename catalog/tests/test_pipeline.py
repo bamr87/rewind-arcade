@@ -71,11 +71,27 @@ class Pipeline(unittest.TestCase):
         (genre / "Nintendo - Nintendo Entertainment System.dat").write_text(
             'game (\n\tcomment "Legend of Zelda, The (USA)"\n\tgenre "Action-Adventure"\n'
             '\trom ( crc 00000000 )\n)\n')
+        for folder, line in (("releaseyear", 'releaseyear "1988"'),
+                             ("releasemonth", 'releasemonth "11"')):
+            (ref / "metadat" / folder).mkdir(parents=True)
+            (ref / "metadat" / folder / "Nintendo - Nintendo Entertainment System.dat").write_text(
+                f'game (\n\tcomment "Anticipation (USA)"\n\t{line}\n\trom ( crc 00000000 )\n)\n')
+        edge = ref / "metadat" / "magazine" / "edge"
+        edge.mkdir(parents=True)
+        (edge / "Nintendo - Nintendo Entertainment System.dat").write_text(
+            'game (\n\tcomment "Legend of Zelda, The (USA)"\n   edge_rating 8\n'
+            '\trom ( crc 00000000 )\n)\n')
         (ref / "launchbox").mkdir(parents=True)
+        (ref / "launchbox" / "platforms.json").write_text(json.dumps({
+            "nes": {"Name": "Nintendo Entertainment System", "Manufacturer": "Nintendo",
+                    "Cpu": "Ricoh 2A03", "ReleaseDate": "1983-07-15T00:00:00+00:00",
+                    "Notes": "An 8-bit home console."}}))
         (ref / "launchbox" / "nes.json").write_text(json.dumps([
             {"Name": "The Legend of Zelda", "CommunityRating": "4.5",
              "CommunityRatingCount": "900", "Genres": "Adventure", "Publisher": "Nintendo",
-             "ReleaseDate": "1987-08-22"},
+             "ReleaseDate": "1987-08-22", "Overview": "Link's first quest.",
+             "ReleaseType": "Released", "DatabaseID": "140", "BoxFront": "zelda-box.png",
+             "ClearLogo": "zelda-logo.png"},
             {"Name": "Anticipation", "CommunityRating": "2.9", "CommunityRatingCount": "40"},
             {"Name": "Adventure Island", "CommunityRating": "3.6",
              "CommunityRatingCount": "300"}]))
@@ -156,6 +172,16 @@ class Pipeline(unittest.TestCase):
         self.assertEqual(z["owned_count"], "1")
         self.assertIn("WARNING", self.build_out)
 
+    def test_descriptions_art_and_release_dates(self):
+        z = self.games[("nes", "Legend of Zelda, The")]
+        self.assertEqual((z["overview"], z["box_art"], z["logo_art"], z["launchbox_id"]),
+                         ("Link's first quest.", "zelda-box.png", "zelda-logo.png", "140"))
+        self.assertEqual((z["release_date"], z["release_type"], z["edge_rating"]),
+                         ("1987-08-22", "Released", "8"))
+        self.assertEqual(z["nointro_name"], "Legend of Zelda, The (USA)")
+        a = self.games[("nes", "Anticipation")]
+        self.assertEqual((a["year"], a["release_date"]), ("1988", "1988-11"))
+
     def test_games_catalog_collapses_copies(self):
         g = self.games[("nes", "Legend of Zelda, The")]
         self.assertEqual(g["rom_count"], "1")
@@ -175,9 +201,12 @@ class Pipeline(unittest.TestCase):
         self.assertEqual(con.execute("select value from collection_value").fetchone()[0], 20)
         self.assertEqual(con.execute(
             "select owned from coverage where system = 'nes'").fetchone()[0], 1)
+        self.assertEqual(con.execute(
+            "select cpu, manufacturer, release_date, titles from systems where system = 'nes'"
+        ).fetchone(), ("Ricoh 2A03", "Nintendo", "1983-07-15", 3))
         web = (ws / "web" / "data.js").read_text()
         for key in ("window.GAMES=", "window.ROMS=", "window.INVENTORY=", "window.PRICES=",
-                    '"cs":8.8'):
+                    "window.SYSTEMS=", '"cs":8.8', '"bx":"zelda-box.png"'):
             self.assertIn(key, web)
         inv = read_csv(ws / "inventory.csv")[0]
         self.assertEqual((inv["rom_count"], inv["value"]), ("1", "20"))
@@ -195,6 +224,19 @@ class Pipeline(unittest.TestCase):
     def test_files_are_left_in_place(self):
         self.assertTrue((self.lib / "nintendo" / "nes" / "zelda.nes").exists())
         self.assertTrue((self.lib / "nintendo" / "nes" / "_duplicates" / "zelda-copy.nes").exists())
+
+    def test_unreachable_library_keeps_file_references(self):
+        away = self.root / "lib-unplugged"
+        self.lib.rename(away)
+        try:
+            code, text, err = run(*self.c, "build")
+        finally:
+            away.rename(self.lib)
+        self.assertEqual(code, 0, err)
+        self.assertIn("no library folder is reachable", text)
+        ws = self.root / "workspace"
+        self.assertEqual(len(read_csv(ws / "roms.csv")), 7)
+        self.assertEqual(len(read_csv(ws / "games.csv")), 6)
 
 
 class MetadataOnly(unittest.TestCase):

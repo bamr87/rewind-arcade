@@ -112,6 +112,10 @@ META_FIELDS = {
     "maxusers": ("users", "max_players"),
     "esrb": ("esrb_rating", "esrb"),
     "serial": ("serial", "serial"),
+    "releasemonth": ("releasemonth", "release_month"),
+    "origin": ("origin", "origin"),
+    "magazine/edge": ("edge_rating", "edge_rating"),
+    "magazine/famitsu": ("famitsu_rating", "famitsu_rating"),
 }
 
 

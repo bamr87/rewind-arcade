@@ -17,6 +17,10 @@ def launchbox_path(cfg, system) -> Path:
     return cfg.reference / "launchbox" / f"{system.id}.json"
 
 
+def launchbox_platforms_path(cfg) -> Path:
+    return cfg.reference / "launchbox" / "platforms.json"
+
+
 def vgchartz_path(cfg) -> Path:
     return cfg.reference / "vgchartz" / "vgchartz.csv"
 

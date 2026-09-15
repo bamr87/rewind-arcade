@@ -7,7 +7,7 @@ the reference sources know about them.
 
 from __future__ import annotations
 
-from collections import defaultdict
+from collections import Counter, defaultdict
 
 from ..matching import norm, slugify
 from ..platforms import label, media as platform_media
@@ -18,6 +18,9 @@ COPY = (
     "franchise", "max_players", "wikipedia_url", "community_rating", "rating_votes",
     "rating_bayesian", "rating_tier", "loose_price", "cib_price", "new_price",
     "price_title", "critic_score", "sales_total", "sales_na", "sales_jp", "sales_pal",
+    "nointro_name", "release_date", "release_type", "origin", "esrb", "overview",
+    "video_url", "launchbox_id", "edge_rating", "famitsu_rating",
+    "box_art", "logo_art", "title_art", "cart_art",
 )
 VERDICT_RANK = {"pass": 0, "warn": 1, "risky": 2, "fail": 3}
 
@@ -116,3 +119,32 @@ def build(rows, items, systems=None, media=None) -> list[dict]:
         games = [g for g in games if (g.get("media") or "") in want]
     games.sort(key=lambda g: (g.get("system") or "", (g.get("title") or "").lower()))
     return games
+
+
+def systems(platforms: dict, games) -> list[dict]:
+    """One row per system in the catalog: LaunchBox's platform facts beside its counts."""
+    counts = defaultdict(Counter)
+    labels = {}
+    for g in games:
+        sid = g.get("system") or ""
+        if not sid:
+            continue
+        c = counts[sid]
+        c["titles"] += 1
+        c["owned"] += bool(_num(g.get("owned_count")))
+        c["rom"] += bool(_num(g.get("rom_count")))
+        labels.setdefault(sid, g.get("system_label"))
+    rows = []
+    for sid in sorted(counts):
+        p, c = platforms.get(sid, {}), counts[sid]
+        rows.append({
+            "system": sid, "system_label": labels.get(sid) or label(sid),
+            "launchbox_platform": p.get("Name"), "manufacturer": p.get("Manufacturer"),
+            "developer": p.get("Developer"),
+            "release_date": (p.get("ReleaseDate") or "")[:10] or None,
+            "media": p.get("Media") or platform_media(sid), "cpu": p.get("Cpu"),
+            "memory": p.get("Memory"), "graphics": p.get("Graphics"), "sound": p.get("Sound"),
+            "display": p.get("Display"), "max_controllers": p.get("MaxControllers"),
+            "overview": p.get("Notes"), "titles": c["titles"], "owned_titles": c["owned"],
+            "titles_with_rom": c["rom"]})
+    return rows

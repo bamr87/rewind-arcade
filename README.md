@@ -6,7 +6,7 @@ Three pillars, one set of system ids.
 
 | Pillar | What it is | Entry |
 |---|---|---|
-| **Play** | Client-side arcade (Pong, JezzBall, Breakout, Snake, Asteroids, Minesweeper) plus an in-browser console loader | [`arcade/`](arcade/README.md) · [play it](https://bamr87.github.io/rewind-arcade/) |
+| **Play** | Client-side portal: recreations, in-browser console loader, catalog browser, systems atlas | [`arcade/`](arcade/README.md) · [play it](https://bamr87.github.io/rewind-arcade/) |
 | **Emulate** | RetroArch + EmulationStation on macOS, Raspberry Pi, and Debian | [`emulate/`](emulate/README.md) · `./bin/retropi` |
 | **Catalog** | Physical inventory, dump identification, prices, SQLite analytics | [`catalog/`](catalog/README.md) · `./bin/cartidx` |
 
@@ -49,13 +49,14 @@ Cartridges, discs, floppies, tapes, arcade PCBs, and original PC software. Ninte
 |---|---|
 | Play Pong / JezzBall / Breakout / Snake / Asteroids / Minesweeper | `arcade/` |
 | Load a dump in the browser | `arcade/` → `#/emulate` |
+| Browse a cartidx export | `arcade/` → `#/catalog` |
 | Boot a NES, PS1, or Dreamcast ROM on a Mac or Pi | `./bin/retropi install` then `build` |
 | Know whether a dump is a real No-Intro image | `./bin/cartidx scan` |
 | Track loose / CIB value and a wishlist | `./bin/cartidx inventory` + `serve` |
 | Add a console | one YAML in `emulate/config/systems/` — [guide](emulate/docs/adding-systems.md) |
 | See every platform this repo knows | [docs/systems](docs/systems/README.md) |
 
-Emulate ships **38** console manifests (24 enabled in a fresh frontend). Catalog identifies **8** cartridge families from dump bytes and accepts a wider shelf of platforms for inventory and prices. Arcade ships **6** original recreations plus an in-browser console loader (`#/emulate`).
+Emulate ships **38** console manifests (24 enabled in a fresh frontend). Catalog identifies **8** cartridge families from dump bytes and accepts a wider shelf of platforms for inventory and prices. Arcade ships **6** original recreations, an in-browser console loader (`#/emulate`), a catalog browser (`#/catalog`), and a systems atlas (`#/systems`).
 
 ## Documentation
 

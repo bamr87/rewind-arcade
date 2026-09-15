@@ -13,6 +13,8 @@ Python 3.11 or later and nothing else: no pip, no virtualenv, no database server
 
 ROM folders are optional. `cartidx init --root /path/to/roms` still detects system folders and records dumps in place; files are never moved, renamed, copied or zipped.
 
+If no library folder is reachable when you build (a drive is unplugged), `build` keeps the file references from the last build instead of scanning to an empty catalog, and says so.
+
 ## What it answers
 
 | Question | How |
@@ -43,7 +45,7 @@ They join on system and title. A game row learns how many copies are on the shel
 | `cartidx init [--root DIR]` | write `cartridge.toml`, optionally detecting system folders; `--systems` and `--media` select what to index |
 | `cartidx status` | libraries, file counts, what reference data is present |
 | `cartidx systems` | supported systems and their sources |
-| `cartidx fetch [nointro metadat launchbox vgchartz]` | download reference data |
+| `cartidx fetch [nointro metadat launchbox vgchartz]` | download reference data; `--keep-zip` keeps LaunchBox's Metadata.zip and `--reuse-zip` re-reads it without downloading |
 | `cartidx prices import [FILE]` | read a price-guide spreadsheet (`.ods`) or CSV export |
 | `cartidx inventory import \| add \| list` | manage the physical collection |
 | `cartidx scan` | identify dump files and validate; report only |
@@ -64,7 +66,8 @@ Everything generated lands in `workspace/`:
 | `games.csv` | the library, one row per title ([columns](docs/data-dictionary.md)) |
 | `roms.csv` | dump file references, one row per file |
 | `inventory.csv` | your inventory plus value, rating and dump link |
-| `cartridge.sqlite` | tables `games`, `roms`, `inventory`, `prices`; views `coverage`, `collection_value`, `wishlist` |
+| `systems.csv` | one row per system: hardware facts and catalog counts |
+| `cartridge.sqlite` | tables `games`, `roms`, `inventory`, `prices`, `systems`; views `coverage`, `collection_value`, `wishlist` |
 | `web/` | a self-contained page: Library, Physical, Analyze, Price guide |
 
 ```sh
@@ -101,11 +104,13 @@ media   = ["cartridge"]
 | Source | Provides | Fetched from |
 |---|---|---|
 | No-Intro DATs | what a dump is | libretro-database |
-| libretro metadata | developer, publisher, genre, year, franchise, players, ESRB, serial | libretro-database |
-| LaunchBox Games Database | community ratings, release data | gamesdb.launchbox-app.com |
+| libretro metadata | developer, publisher, genre, year and month, franchise, players, ESRB, serial, origin, Edge and Famitsu scores | libretro-database |
+| LaunchBox Games Database | community ratings, release dates and types, descriptions, video links, box / logo / title / cart art file names, console hardware facts | gamesdb.launchbox-app.com |
 | VGChartz (via Kaggle) | critic scores, sales | kaggle.com, anonymously |
 
 Each is third-party data under its own terms. It is downloaded to your machine and never redistributed; `data/reference/SOURCES.json` records the URL, time and SHA-1 of every file.
+
+**Art is referenced, not downloaded.** The art columns hold LaunchBox image file names; the images stay on `images.launchbox-app.com`, and the web page loads a cover only when you open a title.
 
 **VGChartz sales are a floor, not a ranking.** The dataset lost the figures for most of the biggest sellers: most of the cartridges it scores 9 or better have no sales number at all. `build` warns about this every run. See [docs/matching.md](docs/matching.md).
 

@@ -1,10 +1,10 @@
 # Play — Rewind Arcade
 
-The **play** pillar of [Rewind Arcade](../README.md): a **client-side portal of recreated classic computer games**, built on a small pluggable game engine. Ships with **JezzBall**, **Minesweeper** and **Snake**; adding a new game is one file plus one line in a registry. No backend — it builds to static files and plays fully offline.
+The **play** pillar of [Rewind Arcade](../README.md): an **ES-DE-style frontend** in the browser — system carousel, gamelist, then launch. Recreations, dumps you own, and a cartidx catalog share the same ids. No backend. Collection data and dumps stay on your machine; the production build never ships them.
 
 **▶ Play it: <https://bamr87.github.io/rewind-arcade/>**
 
-Built with **React + TypeScript + Vite**. Rendering is plain HTML5 canvas; sound is synthesized with the Web Audio API (no asset files).
+Built with **React 19 + TypeScript + Vite**, styled with **Tailwind CSS v4**, animated with **Motion**, with a **cmdk** command palette and **sonner** toasts. Game rendering is plain HTML5 canvas; sound is synthesized with the Web Audio API (no asset files). Fonts are bundled, so the site still works offline from a folder.
 
 ## Quick start
 
@@ -23,23 +23,25 @@ Then open the printed URL. The build uses a relative base, so `dist/` can be dro
 ```
 src/
   engine/                 # framework — knows nothing about any specific game
-    types.ts              #   the plug-in contract (GameManifest / GameInstance / GameContext)
-    useGameEngine.ts      #   canvas + render loop + input + pause + DPI scaling, bridged to React
-    audio.ts              #   shared Web Audio synth (mute is global + persisted)
-    storage.ts            #   crash-proof localStorage: best scores + per-game config
-    router.ts             #   dependency-free hash router
-    util.ts               #   small canvas/color/number helpers
-  games/
-    registry.ts           # the catalog — the ONE place a game is registered
-    jezzball/             #   JezzBall    (game logic + manifest/config schema)
-    minesweeper/          #   Minesweeper (game logic + manifest/config schema)
-    snake/                #   Snake       (game logic + manifest/config schema)
+  games/                  # recreations; registry.ts is the ONE place a game is registered
+  emulate/systems.ts      # EmulatorJS cores (same ids as retro-pi)
+  systems/                # bundled parse of systems/registry.yaml
+  catalog/                # cartidx data.js types, parser, IndexedDB store
+  profile/                # play history: sessions, time, score trends, favorites
+  settings/               # frontend preferences: phosphor theme, CRT, motion
+  styles/app.css          # Tailwind entry; older sheets load in a lower cascade layer
   ui/
-    Arcade.tsx            # home grid, generated from the registry
+    esde/                 # ES-DE system view, gamelist, main menu
+    kit.tsx               # shared buttons, switches, panels, stat tiles
+    Shell.tsx             # top bar
+    CommandPalette.tsx    # ⌘K / Ctrl+K search across games, systems, collection
+    PlayLobby.tsx         # featured cabinet, stats, filterable game grid
+    ProfilePage.tsx       # Hall of Fame: achievements, scoreboard, backup
+    SettingsPage.tsx      # preferences and shortcut reference
+    CatalogPage.tsx       # library, physical, analyze, price guide
+    SystemsPage.tsx       # encyclopedia of shared ids
+    EmulatePage.tsx       # drop a dump you own
     GamePage.tsx          # mounts a game: HUD + overlays + settings
-    Hud.tsx               # progress / lives / stats / actions, driven by the game's HUD model
-    Overlay.tsx           # renders a game's declarative menu / win / lose / pause panels
-    ConfigPanel.tsx       # settings drawer generated from a game's config schema
 legacy/
   jezzball-standalone.html  # the original single-file version, preserved
 ```
@@ -58,7 +60,7 @@ That's it. The arcade card, routing, HUD, the settings drawer, high-score tracki
 
 ### The config schema
 
-Each field a game declares becomes a control in the settings drawer (`⚙`) and a persisted, per-device override. Supported field types: `range` (slider), `toggle`, and `select`. Fields marked `restart: true` rebuild the current game when changed. JezzBall, for example, exposes arena size, capture target, starting balls, ball speed and wall speed.
+Each field a game declares becomes a control in the HUD's game settings drawer and a persisted, per-device override. Supported field types: `range` (slider), `toggle`, and `select`. Fields marked `restart: true` rebuild the current game when changed. JezzBall, for example, exposes arena size, capture target, starting balls, ball speed and wall speed.
 
 ## Games
 
@@ -80,14 +82,35 @@ Steer a snake with the arrow keys / **WASD** (or swipe on touch), eat apples to 
 ### Asteroids (1979)
 Thrust, turn, and shoot the rocks. **F** / **K** fires (Space is pause). Edges wrap; big rocks split.
 
+## Frontend
+
+- **Play lobby** (`#/play`) — a featured cabinet (your last game, or a daily pick), lifetime stats, and a game grid you can filter by favorites, played, or new, search, and sort.
+- **Command palette** — ⌘K / Ctrl+K from any frontend page. Jump to a recreation, a page, a system, or any title in a loaded collection; toggle sound, the CRT filter, or the theme; or insert a coin for a random game.
+- **Hall of Fame** (`#/profile`) — sessions, time played, records, achievements, and a per-game scoreboard with recent-score trends. Export the history to JSON and import it on another browser; imported best scores only ever go up.
+- **Settings** (`#/settings`) — phosphor accent (cyan, magenta, amber, green, violet), ambient backdrop, motion (system, reduced, full), CRT filter, record celebrations, and sound.
+- **In game** — the HUD adds restart, how to play, CRT filter, screenshot (PNG of the canvas), and fullscreen. Beating a personal best raises a toast and confetti.
+
+## Catalog
+
+`#/catalog` is the collection browser. It does not import Python. With a current `cartidx build`, the system carousel shows each console with a fan of box covers from your owned and top-rated titles, and game details carry descriptions, release dates, and cover art. Images load from libretro and LaunchBox when shown; nothing is downloaded or shipped. After `cartidx build`, `make play` will pick up `catalog/workspace/web/data.js` in dev. On a static host, drop that `data.js` onto the page (stored in IndexedDB). Until a collection is loaded, the page shows the platform atlas from `systems/registry.yaml`.
+
+Tabs: Library, Physical, Analyze, Price guide — the same views as `cartidx serve`, restyled into this shell. `#/systems` lists every shared id and links through to play, emulate, or catalog.
+
 ## Emulate
 
-`#/emulate` is a console loader. Pick a system id (the same ids as retro-pi), drop a dump you own, and EmulatorJS runs it in the page. Cores load from a CDN; **no game files are fetched or shipped**. Disc systems may still ask for BIOS you dumped yourself.
+From a system's gamelist, **Load dump** opens `#/emulate/<id>`. Drop a dump you own; EmulatorJS runs it in the page. Cores load from a CDN; **no game files are fetched or shipped**. Disc systems may still ask for BIOS you dumped yourself.
 
-## Controls (shared)
+## Controls (ES-DE)
 
-- **Space / Enter** — confirm the on-screen panel, or pause/resume during play
-- **Esc / P** — pause
-- **⚙** — per-game settings · **🔊** — mute (persisted) · **←** — back to the arcade
+- **Left / Right** — system carousel
+- **Up / Down** — gamelist
+- **Enter / A** — select / launch
+- **Backspace / Esc / B** — back
+- **F1 / Start** — main menu
+- **/** — search the gamelist
+- A–Z — jump to title
+- **⌘K / Ctrl+K** — command palette
 
-Best scores and settings are saved in `localStorage`. Append `?debug=1` to the URL to expose the live game instance on `window.__arcade` for console tinkering.
+During a recreation: **Space / Enter** pause or confirm, **Esc / P** pause. The HUD buttons cover everything else.
+
+Best scores, play history, and settings are saved in `localStorage`. Append `?debug=1` to the URL to expose the live game instance on `window.__arcade` for console tinkering.

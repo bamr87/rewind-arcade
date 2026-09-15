@@ -25,8 +25,7 @@ export function EmulatePage({ systemId }: { systemId?: string }) {
 function SystemPicker({ unknownId }: { unknownId?: string }) {
   return (
     <div className="emu">
-      <header className="emu-hero">
-        <button className="icon-btn" title="Back to arcade" onClick={() => navigate({ name: 'arcade' })}>←</button>
+      <header className="page-hero">
         <div>
           <h1>Emulate</h1>
           <p>Load a dump you own. Cores come from EmulatorJS; nothing in this repo is a game file.</p>
@@ -88,7 +87,7 @@ function RomLoader({ sys }: { sys: EmuSystem }) {
   return (
     <div className="emu emu--play">
       <header className="emu-bar">
-        <button className="icon-btn" title="Systems" onClick={() => navigate({ name: 'emulate' })}>←</button>
+        <button className="icon-btn" title="Gamelist" onClick={() => navigate({ name: 'gamelist', systemId: sys.id })}>←</button>
         <div className="emu-bar-title">
           <span className="hud-name">{sys.name}</span>
           <span className="hud-badge">{sys.short}</span>

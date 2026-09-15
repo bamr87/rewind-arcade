@@ -25,12 +25,19 @@ export interface EngineApi {
   restart: () => void;
 }
 
+export interface EngineOptions {
+  /** Observes every `submitScore` a game makes, after the best score is stored. */
+  onScore?: (score: number, record: boolean) => void;
+}
+
 /**
  * Bridges a `GameManifest` to React and the DOM. Owns exactly one canvas, one
  * requestAnimationFrame loop, and all input plumbing. Games see none of this —
  * they only receive the `GameContext` and get their methods called.
  */
-export function useGameEngine(manifest: GameManifest, config: GameConfig): EngineApi {
+export function useGameEngine(manifest: GameManifest, config: GameConfig, options: EngineOptions = {}): EngineApi {
+  const onScoreRef = useRef(options.onScore);
+  onScoreRef.current = options.onScore;
   const [hud, setHud] = useState<HudModel>({});
   const [overlay, setOverlay] = useState<OverlayModel | null>(null);
   const [status, setStatus] = useState<EngineStatus>('running');
@@ -99,6 +106,7 @@ export function useGameEngine(manifest: GameManifest, config: GameConfig): Engin
       submitScore: (score: number) => {
         const record = storage.recordScore(manifest.id, score);
         if (record) setBest(score);
+        onScoreRef.current?.(score, record);
         return record;
       },
       getBest: () => storage.bestScore(manifest.id),

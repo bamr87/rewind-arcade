@@ -1,60 +1,57 @@
-import { navigate } from '../engine/router';
+import { useCatalog } from '../catalog/store';
 import { EMU_SYSTEMS } from '../emulate/systems';
-import { storage } from '../engine/storage';
+import { navigate } from '../engine/router';
 import { GAMES } from '../games/registry';
-import { fmt } from '../engine/util';
+import { SYSTEMS } from '../systems/registry';
+import { GamesGrid } from './GamesGrid';
 
 export function Arcade() {
+  const catalog = useCatalog();
+  const games = catalog.bundle?.games.length ?? 0;
+  const owned = catalog.bundle?.games.filter((r) => r.oc).length ?? 0;
+
   return (
     <div className="arcade">
       <header className="arcade-hero">
-        <div className="arcade-brand">
-          <span className="arcade-mark">🕹️</span>
-          <div>
-            <h1>
-              REWIND<span>ARCADE</span>
-            </h1>
-            <p>Recreated classics, plus a cabinet for dumps you already own.</p>
-          </div>
+        <div>
+          <p className="arcade-kicker">Three pillars, one set of ids</p>
+          <h1>Play, emulate, catalog.</h1>
+          <p>Original recreations, a cabinet for dumps you own, and the shelf index — same system ids as retro-pi and cartidx.</p>
         </div>
         <div className="arcade-count">
-          {GAMES.length} games · {EMU_SYSTEMS.length} systems · no content shipped
+          {GAMES.length} games · {EMU_SYSTEMS.length} browser cores · {SYSTEMS.length} registry ids
         </div>
       </header>
+
+      <div className="pillar-grid">
+        <button className="pillar" style={{ ['--accent' as string]: '#38bdf8' }} onClick={() => navigate({ name: 'play' })}>
+          <span className="pillar-kicker">Play</span>
+          <h2>Recreations</h2>
+          <p>Original programs. No ROM required.</p>
+          <span className="pillar-foot">{GAMES.length} titles ▸</span>
+        </button>
+        <button className="pillar" style={{ ['--accent' as string]: '#818cf8' }} onClick={() => navigate({ name: 'emulate' })}>
+          <span className="pillar-kicker">Emulate</span>
+          <h2>Console loader</h2>
+          <p>You supply the file. Cores load from EmulatorJS.</p>
+          <span className="pillar-foot">{EMU_SYSTEMS.length} systems ▸</span>
+        </button>
+        <button className="pillar" style={{ ['--accent' as string]: '#34d399' }} onClick={() => navigate({ name: 'catalog', tab: 'library' })}>
+          <span className="pillar-kicker">Catalog</span>
+          <h2>Collection</h2>
+          <p>Library, shelf, prices. Metadata only — never game files.</p>
+          <span className="pillar-foot">
+            {catalog.status === 'ready' ? `${games.toLocaleString()} titles · ${owned} owned ▸` : 'Load data.js ▸'}
+          </span>
+        </button>
+      </div>
 
       <section className="arcade-section">
         <div className="arcade-section-head">
           <h2>Play</h2>
           <p>Original recreations. No ROM required.</p>
         </div>
-        <div className="game-grid">
-          {GAMES.map((game) => {
-            const best = storage.bestScore(game.id);
-            return (
-              <button
-                key={game.id}
-                className="game-card"
-                style={{ ['--accent' as string]: game.accent }}
-                onClick={() => navigate({ name: 'play', gameId: game.id })}
-              >
-                <div className="game-card-art">
-                  <span className="game-card-icon">{game.icon}</span>
-                  <span className="game-card-year">{game.year}</span>
-                </div>
-                <div className="game-card-body">
-                  <h2>{game.title}</h2>
-                  <p>{game.tagline}</p>
-                  <div className="game-card-foot">
-                    <span className="game-card-best">
-                      {best > 0 ? <>Best <b>{fmt(best)}</b></> : 'Not played yet'}
-                    </span>
-                    <span className="game-card-play">Play ▸</span>
-                  </div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
+        <GamesGrid />
       </section>
 
       <section className="arcade-section">
@@ -92,8 +89,29 @@ export function Arcade() {
         </div>
       </section>
 
+      <section className="arcade-section">
+        <div className="arcade-section-head">
+          <h2>Catalog</h2>
+          <p>From <code>systems/registry.yaml</code> plus your cartidx export.</p>
+        </div>
+        <div className="emu-chip-row">
+          {SYSTEMS.filter((s) => s.catalog).slice(0, 16).map((s) => (
+            <button
+              key={s.id}
+              className="emu-chip emu-chip--cat"
+              onClick={() => navigate({ name: 'systems', systemId: s.id })}
+            >
+              {s.short}
+            </button>
+          ))}
+          <button className="emu-chip emu-chip--more" onClick={() => navigate({ name: 'catalog', tab: 'library' })}>
+            Open catalog ▸
+          </button>
+        </div>
+      </section>
+
       <footer className="arcade-foot">
-        Recreations are original programs · dumps stay on your machine · <span>React + TypeScript + Vite</span>
+        Recreations are original programs · dumps stay on your machine · collection data is never shipped
       </footer>
     </div>
   );

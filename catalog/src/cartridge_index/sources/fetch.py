@@ -7,7 +7,7 @@ in SOURCES.json where each file came from, when, and its SHA-1.
 
   no-intro   libretro-database           hash sets: what a dump is
   metadat    libretro-database           developer, publisher, genre, year...
-  launchbox  LaunchBox Games Database    community ratings, release data
+  launchbox  LaunchBox Games Database    ratings, descriptions, art file names, platforms
   vgchartz   Kaggle (a VGChartz scrape)  critic scores and sales
 
 The Kaggle dataset downloads anonymously. Credentials -- KAGGLE_API_TOKEN, or
@@ -34,7 +34,8 @@ from pathlib import Path
 
 from ..dat import META_FIELDS
 from ..io import read_json, write_csv, write_json
-from . import launchbox_path, metadat_root, nointro_path, sources_path, vgchartz_path
+from . import (launchbox_path, launchbox_platforms_path, metadat_root, nointro_path,
+               sources_path, vgchartz_path)
 
 LIBRETRO = "https://raw.githubusercontent.com/libretro/libretro-database/master/metadat"
 LAUNCHBOX = "https://gamesdb.launchbox-app.com/Metadata.zip"
@@ -45,7 +46,16 @@ USER_AGENT = "cartridge-index/0.1"
 
 LAUNCHBOX_FIELDS = ("Name", "CommunityRating", "CommunityRatingCount", "Genres",
                     "Developer", "Publisher", "MaxPlayers", "ReleaseDate", "ESRB",
-                    "Cooperative", "WikipediaURL")
+                    "Cooperative", "WikipediaURL", "Overview", "ReleaseType", "ReleaseYear",
+                    "VideoURL", "DatabaseID")
+# <GameImage> types kept, and the key each is stored under beside the game's fields.
+LAUNCHBOX_IMAGES = {"Box - Front": "BoxFront", "Clear Logo": "ClearLogo",
+                    "Screenshot - Game Title": "TitleShot", "Cart - Front": "CartFront"}
+IMAGE_REGIONS = ("North America", "United States", "World", "", "Europe", "United Kingdom",
+                 "Japan")
+PLATFORM_FIELDS = ("Name", "ReleaseDate", "Developer", "Manufacturer", "Cpu", "Memory",
+                   "Graphics", "Sound", "Display", "Media", "MaxControllers", "Notes",
+                   "Category")
 VGCHARTZ_COLUMNS = ["console", "title", "genre", "publisher", "developer",
                     "critic_score", "total_sales", "na_sales", "jp_sales",
                     "pal_sales", "other_sales", "release_date", "release_year"]
@@ -117,16 +127,31 @@ def fetch_metadat(cfg, systems, log=print) -> int:
     return ok
 
 
-def extract_launchbox(zip_path: Path, systems) -> dict[str, list[dict]]:
-    """Stream Metadata.xml and keep only the platforms and fields we use.
+def _region_rank(region: str | None) -> int:
+    region = region or ""
+    return IMAGE_REGIONS.index(region) if region in IMAGE_REGIONS else len(IMAGE_REGIONS)
+
+
+def extract_launchbox(zip_path: Path, systems) -> tuple[dict[str, list[dict]], dict[str, dict]]:
+    """Stream Metadata.xml and keep only the platforms, fields and images we use.
+
+    Returns the games per system, and LaunchBox's facts about each platform.
 
     Only direct children of the root are cleared, and only once they close: an
     earlier version cleared every element as it ended, which wiped each
     <Platform> child before its parent <Game> was read and silently returned
     nothing for SG-1000.
+
+    Images are separate <GameImage> records joined on DatabaseID, listed after
+    every <Game>. Kept games are indexed by id as they stream past, so an image
+    for any other game is dropped without being held. Per image type the most
+    North American region wins, matching No-Intro's USA-first titles.
     """
     want = {s.launchbox: s.id for s in systems}
     out = {s.id: [] for s in systems}
+    platforms: dict[str, dict] = {}
+    by_id: dict[str, dict] = {}
+    ranks: dict[tuple[str, str], int] = {}
     with zipfile.ZipFile(zip_path) as z, z.open("Metadata.xml") as f:
         depth, root = 0, None
         for event, el in ET.iterparse(f, events=("start", "end")):
@@ -141,24 +166,47 @@ def extract_launchbox(zip_path: Path, systems) -> dict[str, list[dict]]:
             if el.tag == "Game":
                 sid = want.get(el.findtext("Platform") or "")
                 if sid:
-                    out[sid].append({k: el.findtext(k) for k in LAUNCHBOX_FIELDS
-                                     if el.findtext(k)})
+                    game = {k: el.findtext(k) for k in LAUNCHBOX_FIELDS if el.findtext(k)}
+                    out[sid].append(game)
+                    if game.get("DatabaseID"):
+                        by_id[game["DatabaseID"]] = game
+            elif el.tag == "GameImage":
+                gid = el.findtext("DatabaseID") or ""
+                key = LAUNCHBOX_IMAGES.get(el.findtext("Type") or "")
+                name = el.findtext("FileName")
+                if gid in by_id and key and name:
+                    rank = _region_rank(el.findtext("Region"))
+                    if rank < ranks.get((gid, key), len(IMAGE_REGIONS) + 1):
+                        ranks[(gid, key)] = rank
+                        by_id[gid][key] = name
+            elif el.tag == "Platform":
+                sid = want.get(el.findtext("Name") or "")
+                if sid:
+                    platforms[sid] = {k: el.findtext(k) for k in PLATFORM_FIELDS
+                                      if el.findtext(k)}
             root.clear()
     for games in out.values():
         games.sort(key=lambda g: g.get("Name", "").lower())
-    return out
+    return out, platforms
 
 
-def fetch_launchbox(cfg, systems, log=print, keep_zip=False) -> int:
+def fetch_launchbox(cfg, systems, log=print, keep_zip=False, reuse_zip=False) -> int:
     zpath = cfg.reference / "launchbox" / "Metadata.zip"
-    log("  launchbox downloading Metadata.zip (~100 MB)")
-    info = download(LAUNCHBOX, zpath)
-    _record(cfg, "launchbox/Metadata.zip", info)
-    per = extract_launchbox(zpath, systems)
+    if reuse_zip and zpath.exists():
+        log("  launchbox reading the Metadata.zip already in the reference folder")
+    else:
+        log("  launchbox downloading Metadata.zip (~100 MB)")
+        info = download(LAUNCHBOX, zpath)
+        _record(cfg, "launchbox/Metadata.zip", info)
+    per, platforms = extract_launchbox(zpath, systems)
     for s in systems:
         write_json(launchbox_path(cfg, s), per[s.id])
-        log(f"  launchbox {s.label:<14} {len(per[s.id]):>6} games")
-    if not keep_zip:
+        art = sum(1 for g in per[s.id] if g.get("BoxFront"))
+        log(f"  launchbox {s.label:<14} {len(per[s.id]):>6} games, {art:>6} with box art")
+    known = read_json(launchbox_platforms_path(cfg), {})
+    write_json(launchbox_platforms_path(cfg), dict(sorted({**known, **platforms}.items())),
+               indent=1)
+    if not keep_zip and not reuse_zip:
         zpath.unlink(missing_ok=True)
     return sum(1 for g in per.values() if g)
 
@@ -220,7 +268,7 @@ def fetch_vgchartz(cfg, log=print) -> int:
     return 1
 
 
-def fetch(cfg, what=WHAT, systems=None, log=print, keep_zip=False) -> int:
+def fetch(cfg, what=WHAT, systems=None, log=print, keep_zip=False, reuse_zip=False) -> int:
     from ..systems import REGISTRY
     systems = (list(REGISTRY.values()) if systems is None
                else [REGISTRY[s] for s in systems if s in REGISTRY])
@@ -230,7 +278,7 @@ def fetch(cfg, what=WHAT, systems=None, log=print, keep_zip=False) -> int:
     if "metadat" in what:
         done += fetch_metadat(cfg, systems, log)
     if "launchbox" in what:
-        done += fetch_launchbox(cfg, systems, log, keep_zip=keep_zip)
+        done += fetch_launchbox(cfg, systems, log, keep_zip=keep_zip, reuse_zip=reuse_zip)
     if "vgchartz" in what:
         done += fetch_vgchartz(cfg, log)
     return done
