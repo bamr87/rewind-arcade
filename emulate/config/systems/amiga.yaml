@@ -1,0 +1,41 @@
+# Commodore Amiga - retro-pi system manifest
+# Regenerate frontend entries after editing:  ./bin/retropi build
+id: amiga
+name: "Commodore Amiga"
+short_name: "Amiga"
+manufacturer: "Commodore"
+year: 1985
+aliases: [a500, a1200]
+
+frontend:
+  platform: amiga   # scraper/theme id understood by ES-DE and RetroPie
+  theme: amiga
+
+# File types the frontend will show for this system.
+extensions: [".adf", ".ipf", ".lha", ".hdf", ".iso", ".cue", ".chd", ".zip"]
+
+emulators:
+  default: puae
+  list:
+    - id: puae
+      type: libretro
+      core: puae_libretro
+      display: "PUAE"
+    - id: puae2021
+      type: libretro
+      core: puae2021_libretro
+      display: "PUAE 2021"
+
+bios:
+  - file: "kick33180.A500"
+    required: false
+    note: "A500 Kickstart 1.3"
+  - file: "kick34005.A500"
+    required: false
+    note: "A500 Kickstart 1.3 alt"
+  - file: "kick40068.A1200"
+    required: false
+    note: "A1200 Kickstart 3.1"
+
+notes: >-
+  PUAE is the compatible core. Kickstart ROMs are not supplied; dump them from Amiga hardware you own.

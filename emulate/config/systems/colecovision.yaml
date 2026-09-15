@@ -1,0 +1,35 @@
+# ColecoVision - retro-pi system manifest
+# Regenerate frontend entries after editing:  ./bin/retropi build
+id: colecovision
+name: "ColecoVision"
+short_name: "Coleco"
+manufacturer: "Coleco"
+year: 1982
+aliases: [coleco, cv]
+
+frontend:
+  platform: colecovision   # scraper/theme id understood by ES-DE and RetroPie
+  theme: colecovision
+
+# File types the frontend will show for this system.
+extensions: [".col", ".bin", ".rom", ".zip", ".7z"]
+
+emulators:
+  default: gearcoleco
+  list:
+    - id: gearcoleco
+      type: libretro
+      core: gearcoleco_libretro
+      display: "Gearcoleco"
+    - id: bluemsx
+      type: libretro
+      core: bluemsx_libretro
+      display: "blueMSX"
+
+bios:
+  - file: "coleco.rom"
+    required: true
+    note: "ColecoVision BIOS"
+
+notes: >-
+  Gearcoleco is the dedicated core. blueMSX also runs Coleco with the same BIOS.

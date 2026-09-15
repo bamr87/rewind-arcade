@@ -1,0 +1,28 @@
+# Atari Jaguar - retro-pi system manifest
+# Regenerate frontend entries after editing:  ./bin/retropi build
+id: jaguar
+name: "Atari Jaguar"
+short_name: "Jaguar"
+manufacturer: "Atari"
+year: 1993
+aliases: [atarijaguar]
+
+frontend:
+  platform: atarijaguar   # scraper/theme id understood by ES-DE and RetroPie
+  theme: atarijaguar
+
+# File types the frontend will show for this system.
+extensions: [".j64", ".jag", ".zip", ".7z"]
+
+emulators:
+  default: virtualjaguar
+  list:
+    - id: virtualjaguar
+      type: libretro
+      core: virtualjaguar_libretro
+      display: "Virtual Jaguar"
+
+bios: []
+
+notes: >-
+  Compatibility is uneven. Prefer .j64 (headerless) dumps.

@@ -1,0 +1,34 @@
+# cartridge-index configuration.
+# Copy to cartridge.toml (which git ignores), or generate one with:
+#   cartidx init --systems nes,snes,n64
+#   cartidx init --root /path/to/your/library
+# Relative paths resolve against this file.
+
+# Platforms this library indexes. Inventory may still hold other platforms.
+systems = ["nes", "snes", "n64", "megadrive", "sega32x", "mastersystem", "gamegear", "sg1000"]
+# media   = ["cartridge"]          # optional type filter
+
+workspace  = "workspace"       # generated: catalog, SQLite, web data
+reference  = "data/reference"  # fetched: DATs and metadata (cartidx fetch)
+collection = "collection"      # personal: inventory and price guide
+# workbook = "~/Documents/video-games.ods"   # optional price-guide spreadsheet
+
+# Optional. Dump folders are recorded in place and never moved.
+[[libraries]]
+name = "main"
+root = "~/games/retro"
+# Folders skipped wherever they appear. Holding folders (_duplicates,
+# _regional, _superseded) are scanned: a set-aside copy is still a reference.
+exclude = ["_retired", "_bundles"]
+
+[libraries.systems]
+# retro-pi layout: roms/<system id>. A system may span several folders, and
+# several systems may share one -- extensions decide which files belong where.
+nes          = "roms/nes"
+snes         = "roms/snes"
+n64          = "roms/n64"
+megadrive    = "roms/megadrive"
+sega32x      = ["roms/sega32x", "roms/megadrive"]
+mastersystem = "roms/mastersystem"
+gamegear     = "roms/gamegear"
+sg1000       = ["roms/sg1000", "roms/mastersystem"]

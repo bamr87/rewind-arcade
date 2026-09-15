@@ -1,80 +1,84 @@
-# 🕹️ Rewind Arcade
+# Rewind Arcade
 
-A **client-side portal of recreated classic computer games**, built on a small pluggable game engine. Ships with **JezzBall**, **Minesweeper** and **Snake**; adding a new game is one file plus one line in a registry. No backend — it builds to static files and plays fully offline.
+A **retro gaming workspace for every format**: play original recreations in the browser, emulate the consoles, and catalog the cartridges and discs on the shelf.
 
-**▶ Play it: <https://bamr87.github.io/rewind-arcade/>**
+Three pillars, one set of system ids.
 
-Built with **React + TypeScript + Vite**. Rendering is plain HTML5 canvas; sound is synthesized with the Web Audio API (no asset files).
+| Pillar | What it is | Entry |
+|---|---|---|
+| **Play** | Client-side arcade (Pong, JezzBall, Breakout, Snake, Asteroids, Minesweeper) plus an in-browser console loader | [`arcade/`](arcade/README.md) · [play it](https://bamr87.github.io/rewind-arcade/) |
+| **Emulate** | RetroArch + EmulationStation on macOS, Raspberry Pi, and Debian | [`emulate/`](emulate/README.md) · `./bin/retropi` |
+| **Catalog** | Physical inventory, dump identification, prices, SQLite analytics | [`catalog/`](catalog/README.md) · `./bin/cartidx` |
+
+System ids are shared. `roms/nes` that emulate laid out is the same `nes` the catalog hashes, values, and files on a shelf. The full map is [`systems/registry.yaml`](systems/registry.yaml) and the encyclopedia in [`docs/systems/`](docs/systems/README.md).
 
 ## Quick start
 
 ```sh
-npm install
-npm run dev        # dev server with hot reload
-# or
-npm run build      # type-check + production build into dist/
-npm run preview    # serve the production build
+# Play — browser arcade, no backend
+npm install --prefix arcade && npm run dev --prefix arcade
+
+# Emulate — what does this machine need?
+./bin/retropi doctor
+
+# Catalog — index the platforms you collect
+./bin/cartidx init --systems nes,snes,n64
 ```
 
-Then open the printed URL. The build uses a relative base, so `dist/` can be dropped on any static host (GitHub Pages, Netlify, S3, a plain folder) with no configuration.
+`make help` lists the common targets. Each pillar keeps its own CLI, tests, and docs; this root is the map.
 
-## What's inside
+## What's in the tree
 
 ```
-src/
-  engine/                 # framework — knows nothing about any specific game
-    types.ts              #   the plug-in contract (GameManifest / GameInstance / GameContext)
-    useGameEngine.ts      #   canvas + render loop + input + pause + DPI scaling, bridged to React
-    audio.ts              #   shared Web Audio synth (mute is global + persisted)
-    storage.ts            #   crash-proof localStorage: best scores + per-game config
-    router.ts             #   dependency-free hash router
-    util.ts               #   small canvas/color/number helpers
-  games/
-    registry.ts           # the catalog — the ONE place a game is registered
-    jezzball/             #   JezzBall    (game logic + manifest/config schema)
-    minesweeper/          #   Minesweeper (game logic + manifest/config schema)
-    snake/                #   Snake       (game logic + manifest/config schema)
-  ui/
-    Arcade.tsx            # home grid, generated from the registry
-    GamePage.tsx          # mounts a game: HUD + overlays + settings
-    Hud.tsx               # progress / lives / stats / actions, driven by the game's HUD model
-    Overlay.tsx           # renders a game's declarative menu / win / lose / pause panels
-    ConfigPanel.tsx       # settings drawer generated from a game's config schema
-legacy/
-  jezzball-standalone.html  # the original single-file version, preserved
+arcade/                 browser games (React + canvas + Web Audio)
+emulate/                retro-pi: manifests, RetroArch, EmulationStation
+catalog/                cartridge-index: dumps, inventory, prices, SQLite
+systems/registry.yaml   one id per platform, used by every pillar
+docs/                   encyclopedia, getting started, legal
+bin/retropi             wrapper → emulate/bin/retropi
+bin/cartidx             wrapper → catalog/bin/cartidx
 ```
 
-The **engine** owns everything reusable — the render loop, input, pause (and auto-pause on blur), DPI-aware scaling, high scores, config persistence, theming, and all the shared UI. A **game** is a self-contained module that talks to the host only through the `GameContext` it is handed. It never imports React, the router, or another game.
+The **engine** in `arcade/` knows nothing about any specific game. The **emulate** tooling never special-cases a console in code — a system is one YAML file. The **catalog** never moves a dump; it records what a file *is* and what you *own*.
 
-## Adding a game
+## Systems and formats
 
-1. Create `src/games/<your-game>/game.ts` with a class implementing `GameInstance` — it declares
-its own `design` resolution and implements `update(dt)` / `render()` plus whatever input hooks it needs. It receives a `GameContext` for canvas, config, audio, HUD, overlays and scores.
-2. Export a `GameManifest` (title, art, description, and a **config schema**) from
-   `src/games/<your-game>/index.ts`.
-3. Add the manifest to the `GAMES` array in `src/games/registry.ts`.
+Cartridges, discs, floppies, tapes, arcade PCBs, and original PC software. Nintendo, Sega, Sony, Atari, NEC, SNK, Commodore, Bandai, Coleco, Mattel, and microcomputer lines.
 
-That's it. The arcade card, routing, HUD, the settings drawer, high-score tracking and pause are all derived from the manifest automatically — no other file needs to change. Snake and Minesweeper exist mainly to prove this seam: they share zero code with JezzBall — or with each other — yet reuse the entire shell. Minesweeper is turn-based rather than animated, which shows the loop is happy to drive a game where nothing moves on its own.
+| You want to… | Use |
+|---|---|
+| Play Pong / JezzBall / Breakout / Snake / Asteroids / Minesweeper | `arcade/` |
+| Load a dump in the browser | `arcade/` → `#/emulate` |
+| Boot a NES, PS1, or Dreamcast ROM on a Mac or Pi | `./bin/retropi install` then `build` |
+| Know whether a dump is a real No-Intro image | `./bin/cartidx scan` |
+| Track loose / CIB value and a wishlist | `./bin/cartidx inventory` + `serve` |
+| Add a console | one YAML in `emulate/config/systems/` — [guide](emulate/docs/adding-systems.md) |
+| See every platform this repo knows | [docs/systems](docs/systems/README.md) |
 
-### The config schema
+Emulate ships **38** console manifests (24 enabled in a fresh frontend). Catalog identifies **8** cartridge families from dump bytes and accepts a wider shelf of platforms for inventory and prices. Arcade ships **6** original recreations plus an in-browser console loader (`#/emulate`).
 
-Each field a game declares becomes a control in the settings drawer (`⚙`) and a persisted, per-device override. Supported field types: `range` (slider), `toggle`, and `select`. Fields marked `restart: true` rebuild the current game when changed. JezzBall, for example, exposes arena size, capture target, starting balls, ball speed and wall speed.
+## Documentation
 
-## Games
+- [Getting started](docs/getting-started.md)
+- [Architecture](docs/architecture.md)
+- [Formats](docs/formats.md)
+- [Systems encyclopedia](docs/systems/README.md)
+- [Legal](docs/legal.md)
+- Emulate: [commands](emulate/docs/commands.md) · [macOS](emulate/docs/macos.md) · [Pi](emulate/docs/raspberry-pi.md) · [Debian](emulate/docs/debian.md)
+- Catalog: [systems](catalog/docs/systems.md) · [matching](catalog/docs/matching.md) · [data dictionary](catalog/docs/data-dictionary.md)
 
-### JezzBall (1992)
-Grow walls to partition the arena and seal off empty space while balls ricochet. A ball touching a wall **mid-build** shatters it and costs a life. Seal the target % to clear the level; each level adds a ball. Click to build, right-click / scroll / **V** to rotate the wall.
+## Constraints that do not move
 
-### Minesweeper (1990)
-Uncover squares and read the numbers — each one counts the mines in the eight squares around it. Click to dig, right-click / scroll / **F** to flag, and click a fully flagged number to clear its neighbours in one move. The first click is always safe. Field size and mine density are configurable.
+**No game content in git.** Emulators and cores are fair game to download. Games and BIOS images are not. Catalog `fetch` retrieves metadata only. Arcade games are original recreations, not dumps.
 
-### Snake (1976)
-Steer a snake with the arrow keys / **WASD** (or swipe on touch), eat apples to grow longer and faster, and avoid the walls and your own tail. Optional wrap-around mode in settings.
+**bash 3.2 and python3** for emulate. **Python 3.11+ stdlib only** for catalog. **React + TypeScript + Vite** for arcade; the build is static files.
 
-## Controls (shared)
+## Development
 
-- **Space / Enter** — confirm the on-screen panel, or pause/resume during play
-- **Esc / P** — pause
-- **⚙** — per-game settings · **🔊** — mute (persisted) · **←** — back to the arcade
+```sh
+make test          # emulate suite + catalog suite
+make check         # arcade production build + both suites
+make play          # arcade dev server
+```
 
-Best scores and settings are saved in `localStorage`. Append `?debug=1` to the URL to expose the live game instance on `window.__arcade` for console tinkering.
+Pillar-specific notes: [`arcade/CLAUDE.md`](arcade/CLAUDE.md), [`emulate/CLAUDE.md`](emulate/CLAUDE.md), [`catalog/CLAUDE.md`](catalog/CLAUDE.md).

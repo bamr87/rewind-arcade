@@ -1,60 +1,69 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for working in this repository.
+
+## What this is
+
+Rewind Arcade is a monorepo for retro gaming across every format this tree supports: **play** (browser recreations), **emulate** (RetroArch + EmulationStation), and **catalog** (physical + dump index). System ids are shared; see `systems/registry.yaml` and `docs/systems/`.
+
+## Layout
+
+```
+arcade/     browser arcade — React + TypeScript + Vite
+emulate/    retro-pi — bash 3.2 + python3, no pip
+catalog/    cartridge-index — Python 3.11+ stdlib only
+docs/       encyclopedia and getting started
+systems/    unified id registry
+bin/        wrappers that exec emulate/bin/retropi and catalog/bin/cartidx
+```
+
+`RETROPI_ROOT` is `emulate/`, not the monorepo root. `cartidx` inserts `catalog/src` on `sys.path`. Do not move those trees without updating the wrappers and CI working directories.
 
 ## Commands
 
 ```sh
-npm install
-npm run dev        # Vite dev server, hot reload
-npm run build      # tsc -b (type-check, noEmit) + vite build -> dist/
-npm run preview    # serve the production build
+make play                 # arcade dev server
+make arcade-build         # tsc + vite → arcade/dist/
+./bin/retropi doctor      # emulate audit
+./bin/cartidx --help      # catalog CLI
+make test                 # emulate + catalog suites
+make check                # arcade build + both suites
 ```
 
-There is no test suite, no linter, and no CI. `npm run build` is the only automated check — treat a clean `tsc -b` as the gate. `tsconfig.json` has `strict`, `noUnusedLocals`, and `noUnusedParameters` on, so unused imports/params fail the build even though `npm run dev` will happily serve them. `tsc -b` is incremental via `tsconfig.tsbuildinfo`; delete that file if type-check results look stale.
+Arcade has no unit suite; `npm run build --prefix arcade` is the gate (`strict`, unused locals/params fail). Emulate: `make -C emulate check` and `make -C emulate test-linux`. Catalog: `make -C catalog check`.
 
-Verifying gameplay changes means running the app. Append `?debug=1` to the URL to expose `{ manifest, instance }` on `window.__arcade` for console inspection.
+## Hard constraints (all pillars)
 
-## Architecture
+**Never commit game data.** ROM files, BIOS images, `emulate/config/local.yaml`, `catalog/cartridge.toml`, `catalog/collection/`, `catalog/data/reference/`, and `catalog/workspace/` stay out of git.
 
-Rewind Arcade is a static, backend-free React + TypeScript + Vite site: a pluggable retro-game engine hosting JezzBall, Minesweeper and Snake. `vite.config.ts` sets `base: './'` so `dist/` runs from any static host or a bare file path; routing is therefore hash-based (`src/engine/router.ts`, `#/` and `#/play/<id>`) with no server rewrites.
+**Never download games or BIOS.** Cores and emulators, yes. Catalog `fetch` is metadata only. Arcade ships original recreations.
 
-### The engine/game seam
+**Do not mix stacks.** Arcade does not import emulate or catalog. Emulate does not call cartidx. Catalog may assume emulate's folder names (`roms/<id>`) but must not import emulate code. Shared truth is `systems/registry.yaml` plus matching ids in `emulate/config/systems/` and `catalog/src/cartridge_index/platforms.py`.
 
-The central design constraint: **`src/engine/` and `src/ui/` know nothing about any specific game, and a game in `src/games/<id>/` never imports React, the router, the DOM shell, or another game.** The whole contract is `src/engine/types.ts`:
+## Where to work
 
-- A game exports a `GameManifest` (id, art, copy, `config` schema, `create()`).
-- `create(context)` returns a `GameInstance` — a class that declares its own fixed
-  `design` resolution and implements `update(dt)` / `render()` plus optional input hooks.
-- The instance's only channel back to the host is the `GameContext`: a 2D canvas
-context, the resolved config, the audio bus, `setHud`, `setOverlay`, `submitScore`, `getBest`.
+| Change | Live in |
+|---|---|
+| A browser game | `arcade/src/games/<id>/` + `arcade/src/games/registry.ts` |
+| Arcade engine / HUD | `arcade/src/engine/`, `arcade/src/ui/` |
+| A console to play | `emulate/config/systems/<id>.yaml` only |
+| Dump identification | `catalog/src/cartridge_index/systems/` |
+| Shelf / price platforms | `catalog/src/cartridge_index/platforms.py` |
+| Title matching | `catalog/src/cartridge_index/matching.py` only |
+| Encyclopedia | `docs/systems/`, then `systems/registry.yaml` |
 
-Everything user-visible is *derived* from the manifest: the arcade card (`src/ui/Arcade.tsx`), routing (`src/App.tsx`), the HUD (`src/ui/Hud.tsx`, driven by the `HudModel` a game pushes via `setHud`), all menu/win/lose/pause panels (`src/ui/Overlay.tsx`, from the declarative `OverlayModel`), and the settings drawer (`src/ui/ConfigPanel.tsx`, generated from the `ConfigField[]` schema). Adding a game is one directory plus one entry in `GAMES` in `src/games/registry.ts` — no other file changes. Snake and Minesweeper exist mainly to keep this seam honest: they share zero code with JezzBall or each other (tick-based grid, turn-based deduction, continuous physics) yet reuse the entire shell.
+## Pillar notes
 
-### `useGameEngine` owns the lifecycle
+Read the pillar file before editing that tree:
 
-`src/engine/useGameEngine.ts` is the only bridge between the plug-in contract and React/the DOM. A single `useEffect` (deps: `manifest`, `config`, `sessionKey`) is where a `GameInstance` is born and dies; it owns the canvas, the one `requestAnimationFrame` loop, DPI/`ResizeObserver` scaling of the design box, pointer/wheel/key listeners, and auto-pause on blur or tab hide. Consequences to keep in mind:
+- [`arcade/CLAUDE.md`](arcade/CLAUDE.md) — GameManifest / GameInstance seam, hash router, no game imports React
+- [`emulate/CLAUDE.md`](emulate/CLAUDE.md) — bash 3.2, `lib/platform.sh` is the only OS branch, never download content
+- [`catalog/CLAUDE.md`](catalog/CLAUDE.md) — stdlib only, never move dumps, one definition of columns and matching
 
-- **Games read config only in their constructor.** Config reactivity works purely
-because a changed config rebuilds the session. `GamePage` creates a new config object on every change, so *any* setting restarts the running game — the `restart: true` flag on `ConfigField` is currently declarative only and never consulted by the engine.
-- **Keys are split into two classes.** `Space`/`Enter`/`Escape`/`KeyP` are system keys
-handled by the host (pause, and confirming the overlay's primary button) and are *not* forwarded to the game. Everything else goes to `onKey`. Don't bind a system key inside a game.
-- `dt` is clamped to 50 ms, and `render()` runs even while paused.
-- Pointer coordinates are converted to the game's design space before dispatch, so game
-  code never sees CSS pixels or DPR.
+## Markdown
 
-### Shared services
+One line per prose paragraph; do not hard-wrap. Tables, lists, headings and code blocks may wrap.
 
-- `src/engine/storage.ts` — every bit of persistence (best scores, per-game config
-overrides, global mute) funnels through this crash-proof `localStorage` wrapper under the `rewind-arcade:` prefix; private-mode/quota failures degrade silently. Loading a config drops saved keys that no longer exist in the schema or whose type changed.
-- `src/engine/audio.ts` — one shared Web Audio synth, no asset files: games build SFX
-out of `tone()`/`arp()`. `ensure()` is called on first input to satisfy autoplay policies; mute is global and persisted.
-- `src/engine/util.ts` — `cfgInt`/`cfgNum`/`cfgBool`/`cfgStr` are the standard way a
-  game reads `GameConfig` values with a typed fallback; also `clamp`, `fmt`, `shade`.
+## Tests that encode the map
 
-### Notes
-
-- `legacy/jezzball-standalone.html` is the preserved original single-file version. It is
-  not built or imported; don't try to keep it in sync with `src/`.
-- `dist/` and `tsconfig.tsbuildinfo` are gitignored build outputs; a stale `dist/` may
-  sit in the working tree from an earlier build.
+Emulate `tests/test_docs.sh` asserts every command is in `emulate/docs/commands.md` and every internal link in that tree resolves. Catalog `tests/test_docs.py` asserts every CLI command appears as `cartidx <cmd>` in `catalog/README.md` and every schema column is in `catalog/docs/data-dictionary.md`. Do not "clean up" those strings.

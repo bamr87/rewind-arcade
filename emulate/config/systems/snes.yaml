@@ -1,0 +1,39 @@
+# Super Nintendo Entertainment System - retro-pi system manifest
+# Regenerate frontend entries after editing:  ./bin/retropi build
+id: snes
+name: "Super Nintendo Entertainment System"
+short_name: "SNES"
+manufacturer: "Nintendo"
+year: 1990
+aliases: [superfamicom]
+
+frontend:
+  platform: snes   # scraper/theme id understood by ES-DE and RetroPie
+  theme: snes
+
+# File types the frontend will show for this system.
+extensions: [".smc", ".sfc", ".fig", ".swc", ".bs", ".zip", ".7z"]
+
+emulators:
+  default: snes9x
+  list:
+    - id: snes9x
+      type: libretro
+      core: snes9x_libretro
+      display: "Snes9x"
+    - id: snes9x2010
+      type: libretro
+      core: snes9x2010_libretro
+      display: "Snes9x 2010 (fast)"
+      platforms: [linux]
+    - id: bsnes
+      type: libretro
+      core: bsnes_libretro
+      display: "bsnes (accuracy)"
+      platforms: [macos]
+
+bios: []
+
+notes: >-
+  On a Pi 3 or older use snes9x2010 for full speed; Pi 4/5 and macOS run
+  snes9x fine.

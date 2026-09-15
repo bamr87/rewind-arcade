@@ -1,0 +1,33 @@
+# Arcade - retro-pi system manifest
+# Regenerate frontend entries after editing:  ./bin/retropi build
+id: arcade
+name: "Arcade"
+short_name: "Arcade"
+manufacturer: "Various"
+year: 1980
+aliases: [mame, fbneo]
+
+frontend:
+  platform: arcade   # scraper/theme id understood by ES-DE and RetroPie
+  theme: arcade
+
+# File types the frontend will show for this system.
+extensions: [".zip", ".7z", ".chd"]
+
+emulators:
+  default: fbneo
+  list:
+    - id: fbneo
+      type: libretro
+      core: fbneo_libretro
+      display: "FinalBurn Neo"
+    - id: mame2003-plus
+      type: libretro
+      core: mame2003_plus_libretro
+      display: "MAME 2003-Plus"
+
+bios: []
+
+notes: >-
+  Arcade ROMs are romset-version specific. FBNeo and MAME 2003-Plus want
+  different sets - check `retropi doctor --systems arcade`.

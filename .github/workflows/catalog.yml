@@ -1,0 +1,28 @@
+name: catalog
+
+on:
+  push:
+    paths:
+      - "catalog/**"
+      - "bin/cartidx"
+      - ".github/workflows/catalog.yml"
+  pull_request:
+    paths:
+      - "catalog/**"
+      - "bin/cartidx"
+      - ".github/workflows/catalog.yml"
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: catalog
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Tests and byte-compile
+        run: make check

@@ -1,0 +1,28 @@
+# Bandai WonderSwan / Color - retro-pi system manifest
+# Regenerate frontend entries after editing:  ./bin/retropi build
+id: wonderswan
+name: "Bandai WonderSwan / Color"
+short_name: "WS"
+manufacturer: "Bandai"
+year: 1999
+aliases: [wsc, wonderswancolor]
+
+frontend:
+  platform: wonderswan   # scraper/theme id understood by ES-DE and RetroPie
+  theme: wonderswan
+
+# File types the frontend will show for this system.
+extensions: [".ws", ".wsc", ".zip", ".7z"]
+
+emulators:
+  default: mednafen-wswan
+  list:
+    - id: mednafen-wswan
+      type: libretro
+      core: mednafen_wswan_libretro
+      display: "Beetle WonderSwan"
+
+bios: []
+
+notes: >-
+  One core covers WonderSwan and WonderSwan Color.

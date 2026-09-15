@@ -1,0 +1,42 @@
+# Nintendo Entertainment System - retro-pi system manifest
+# Regenerate frontend entries after editing:  ./bin/retropi build
+id: nes
+name: "Nintendo Entertainment System"
+short_name: "NES"
+manufacturer: "Nintendo"
+year: 1983
+aliases: [famicom]
+
+frontend:
+  platform: nes   # scraper/theme id understood by ES-DE and RetroPie
+  theme: nes
+
+# File types the frontend will show for this system.
+extensions: [".nes", ".fds", ".unf", ".unif", ".zip", ".7z"]
+
+emulators:
+  default: nestopia
+  list:
+    - id: nestopia
+      type: libretro
+      core: nestopia_libretro
+      display: "Nestopia UE"
+    - id: mesen
+      type: libretro
+      core: mesen_libretro
+      display: "Mesen"
+    - id: fceumm
+      type: libretro
+      core: fceumm_libretro
+      display: "FCEUmm"
+
+# Checked by `retropi doctor --bios`. retro-pi never downloads BIOS files;
+# you must supply them from hardware you own.
+bios:
+  - file: "disksys.rom"
+    required: false
+    note: "Famicom Disk System BIOS; only needed for .fds games"
+
+notes: >-
+  Nestopia UE is the accuracy/compatibility sweet spot. Mesen is more
+  accurate but heavier on a Pi.

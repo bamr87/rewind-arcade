@@ -1,0 +1,42 @@
+# ---- Content you own: never commit game data ----
+roms/**
+!roms/.gitkeep
+!roms/README.md
+bios/**
+!bios/.gitkeep
+!bios/README.md
+saves/**
+!saves/.gitkeep
+screenshots/**
+!screenshots/.gitkeep
+themes/**
+!themes/.gitkeep
+downloads/
+media/
+
+# ---- Python bytecode ----
+__pycache__/
+*.py[cod]
+
+# ---- Generated / local state ----
+.retropi/
+build/
+dist/
+*.log
+config/local.yaml
+config/*.local.yaml
+.env
+
+# ---- OS / editor cruft ----
+.DS_Store
+._*
+Thumbs.db
+*.swp
+.idea/
+
+# Shared editor config is deliberately tracked; personal state is not.
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/settings.json

@@ -1,0 +1,45 @@
+# ---- Game data: never commit it --------------------------------------------
+# ROMs are referenced in place through cartridge.toml, never copied in here.
+*.nes
+*.fds
+*.unf
+*.smc
+*.sfc
+*.fig
+*.swc
+*.z64
+*.v64
+*.n64
+*.bin
+*.gen
+*.smd
+*.32x
+*.gg
+*.sms
+*.sg
+*.sc
+*.sf7
+*.zip
+*.7z
+*.srm
+*.sav
+
+# ---- Personal and machine-specific data ------------------------------------
+# cartridge.toml holds absolute paths to your drives; collection/ holds what you
+# own and what you paid. Both stay local unless you deliberately opt in.
+/cartridge.toml
+/collection/
+.env
+
+# ---- Generated ---------------------------------------------------------------
+/workspace/
+/data/reference/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# ---- OS / editor cruft -------------------------------------------------------
+.DS_Store
+._*

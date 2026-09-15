@@ -1,0 +1,31 @@
+# Atari Lynx - retro-pi system manifest
+# Regenerate frontend entries after editing:  ./bin/retropi build
+id: lynx
+name: "Atari Lynx"
+short_name: "Lynx"
+manufacturer: "Atari"
+year: 1989
+aliases: [atarilynx]
+
+frontend:
+  platform: lynx   # scraper/theme id understood by ES-DE and RetroPie
+  theme: lynx
+
+# File types the frontend will show for this system.
+extensions: [".lnx", ".zip", ".7z"]
+
+emulators:
+  default: handy
+  list:
+    - id: handy
+      type: libretro
+      core: handy_libretro
+      display: "Handy"
+
+bios:
+  - file: "lynxboot.img"
+    required: false
+    note: "Lynx boot ROM; optional but fixes several titles"
+
+notes: >-
+  Handy is the standard libretro core. Supply lynxboot.img from a Lynx you own.

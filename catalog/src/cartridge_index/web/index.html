@@ -1,0 +1,896 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cartridge Index</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --ground:#F4F5FA; --surface:#FFFFFF; --surface-2:#EDEEF6; --line:#DCDEEA;
+  --line-strong:#C3C6D8;
+  --ink:#141620; --ink-2:#4B4F63; --ink-3:#767B90;
+  --accent:#4740C4; --accent-ink:#3B35A8; --accent-wash:#E9E8F9;
+  --chart:#4F46C9;
+  --good:#2E7D5B; --warn:#A9761C; --bad:#C0392F;
+  --good-wash:#E2F1EA; --warn-wash:#F8EEDC; --bad-wash:#FAE6E4;
+  --shadow:0 1px 2px rgba(20,22,32,.06),0 8px 24px -12px rgba(20,22,32,.18);
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --sans:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#0F111A; --surface:#181B26; --surface-2:#1F2330; --line:#2A2E3D;
+    --line-strong:#3B4055;
+    --ink:#E8EAF2; --ink-2:#A9AEC2; --ink-3:#767C93;
+    --accent:#8B84F0; --accent-ink:#A7A1F6; --accent-wash:#232544;
+    --chart:#8B84F0;
+    --good:#5CBF95; --warn:#D9A445; --bad:#E8776B;
+    --good-wash:#183028; --warn-wash:#332916; --bad-wash:#36201E;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0F111A; --surface:#181B26; --surface-2:#1F2330; --line:#2A2E3D;
+  --line-strong:#3B4055;
+  --ink:#E8EAF2; --ink-2:#A9AEC2; --ink-3:#767C93;
+  --accent:#8B84F0; --accent-ink:#A7A1F6; --accent-wash:#232544;
+  --chart:#8B84F0;
+  --good:#5CBF95; --warn:#D9A445; --bad:#E8776B;
+  --good-wash:#183028; --warn-wash:#332916; --bad-wash:#36201E;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box}
+body{margin:0}
+body{background:var(--ground);color:var(--ink);font-family:var(--sans);
+  font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+h1,h2,h3{margin:0;text-wrap:balance;font-weight:600;letter-spacing:-.01em}
+button{font:inherit;color:inherit;cursor:pointer;background:none;border:none}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+a{color:var(--accent);text-underline-offset:2px}
+
+.app{min-height:100vh;display:flex;flex-direction:column}
+.topbar{position:sticky;top:0;z-index:30;background:var(--surface);
+  border-bottom:1px solid var(--line);padding-block:10px;padding-inline:20px;
+  display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.brand{display:flex;flex-direction:column;gap:1px;margin-right:4px}
+.brand b{font-size:15px;font-weight:700;letter-spacing:-.02em}
+.brand span{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);
+  letter-spacing:.06em;text-transform:uppercase}
+.search{flex:1 1 220px;min-width:170px;position:relative}
+.search input{width:100%;padding:8px 12px 8px 30px;border:1px solid var(--line);
+  border-radius:7px;background:var(--ground);color:var(--ink);font-size:13.5px;
+  font-family:var(--sans)}
+.search svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);
+  width:14px;height:14px;color:var(--ink-3)}
+.tabs{display:flex;gap:2px;background:var(--surface-2);padding:3px;border-radius:8px;
+  flex-wrap:wrap}
+.tabs button{padding:6px 12px;border-radius:6px;font-size:13px;font-weight:500;
+  color:var(--ink-2)}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);
+  box-shadow:0 1px 2px rgba(20,22,32,.10);font-weight:600}
+.icon-btn{padding:7px;border-radius:7px;border:1px solid var(--line);
+  color:var(--ink-2);display:grid;place-items:center}
+.icon-btn:hover{background:var(--surface-2);color:var(--ink)}
+
+.body{flex:1;display:flex;align-items:flex-start}
+.rail{width:250px;flex:none;position:sticky;top:53px;max-height:calc(100vh - 53px);
+  overflow-y:auto;border-right:1px solid var(--line);background:var(--surface);
+  padding-block:14px 28px;padding-inline:16px}
+.main{flex:1;min-width:0;padding-block:16px 40px;padding-inline:20px}
+
+.facet{border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:10px}
+.facet:last-child{border-bottom:none}
+.facet>summary{list-style:none;cursor:pointer;display:flex;align-items:center;
+  justify-content:space-between;padding:4px 0;font-size:11px;font-weight:600;
+  letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3)}
+.facet>summary::-webkit-details-marker{display:none}
+.facet>summary::after{content:"\2212";font-family:var(--mono)}
+.facet:not([open])>summary::after{content:"+"}
+.facet-list{display:flex;flex-direction:column;gap:1px;margin-top:4px;
+  max-height:230px;overflow-y:auto}
+.opt{display:flex;align-items:center;gap:8px;padding:3.5px 6px;border-radius:5px;
+  cursor:pointer;font-size:12.5px;color:var(--ink-2);width:100%}
+.opt:hover{background:var(--surface-2)}
+.opt input{accent-color:var(--accent);margin:0;flex:none}
+.opt .lab{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.opt .cnt{font-family:var(--mono);font-size:11px;color:var(--ink-3);
+  font-variant-numeric:tabular-nums}
+.opt.on{color:var(--ink);font-weight:500}
+.rail-head{display:flex;justify-content:space-between;align-items:baseline;
+  margin-bottom:12px}
+.rail-head b{font-size:12px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--ink-3);font-weight:600}
+.clear{font-size:12px;color:var(--accent);font-weight:500}
+.clear[disabled]{color:var(--ink-3);cursor:default}
+
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));
+  gap:10px;margin-bottom:16px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:9px;
+  padding:11px 13px}
+.tile .k{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--ink-3);font-weight:600}
+.tile .v{font-family:var(--mono);font-size:21px;font-weight:500;margin-top:3px;
+  letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.tile .s{font-size:11.5px;color:var(--ink-3);margin-top:1px}
+
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.toolbar label{font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--ink-3);font-weight:600}
+select,.field input{padding:6px 9px;border:1px solid var(--line);border-radius:6px;
+  background:var(--surface);color:var(--ink);font-family:var(--sans);font-size:13px}
+.spacer{flex:1}
+.count{font-family:var(--mono);font-size:12.5px;color:var(--ink-2)}
+.btn{padding:6.5px 12px;border:1px solid var(--line);border-radius:7px;
+  font-size:13px;font-weight:500;background:var(--surface);color:var(--ink-2)}
+.btn:hover{background:var(--surface-2);color:var(--ink)}
+
+.table-wrap{background:var(--surface);border:1px solid var(--line);
+  border-radius:10px;overflow:auto;max-height:calc(100vh - 215px);min-height:300px}
+table{border-collapse:collapse;width:100%;min-width:960px}
+thead th{position:sticky;top:0;z-index:10;background:var(--surface);
+  border-bottom:1px solid var(--line-strong);padding:9px 10px;text-align:left;
+  font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);
+  font-weight:600;white-space:nowrap;cursor:pointer;-webkit-user-select:none;
+  user-select:none}
+thead th:hover{color:var(--ink)}
+thead th.sorted{color:var(--accent)}
+tbody td{padding:7px 10px;border-bottom:1px solid var(--line);font-size:13px}
+tbody tr{cursor:pointer}
+tbody tr:hover td{background:var(--surface-2)}
+.gt td{background:var(--surface-2);font-size:10.5px;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:600;
+  border-bottom:1px solid var(--line-strong);position:sticky;top:33px;z-index:5}
+.name{font-weight:500;max-width:300px;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap}
+.sub{font-family:var(--mono);font-size:11px;color:var(--ink-3);max-width:300px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.meter{display:inline-flex;align-items:center;gap:6px}
+.meter .bars{display:inline-flex;gap:1.5px}
+.meter i{width:3.5px;height:11px;border-radius:1px;background:var(--line-strong);
+  display:block}
+.meter i.on{background:var(--chart)}
+.meter .lab{font-family:var(--mono);font-size:11.5px;color:var(--ink-2);width:12px}
+.meter.none i{background:var(--line)}
+.meter.none .lab{color:var(--ink-3)}
+
+.pill{display:inline-flex;align-items:center;gap:5px;padding:2px 7px;
+  border-radius:20px;font-size:11px;font-weight:500;white-space:nowrap;
+  border:1px solid transparent}
+.pill::before{content:"";width:5px;height:5px;border-radius:50%;flex:none}
+.pill.pass,.pill.owned{background:var(--good-wash);color:var(--good);border-color:var(--good)}
+.pill.pass::before,.pill.owned::before{background:var(--good)}
+.pill.warn{background:var(--warn-wash);color:var(--warn);border-color:var(--warn)}
+.pill.warn::before{background:var(--warn)}
+.pill.risky,.pill.fail{background:var(--bad-wash);color:var(--bad);border-color:var(--bad)}
+.pill.risky::before,.pill.fail::before{background:var(--bad)}
+.tag{display:inline-block;padding:1.5px 6px;border-radius:4px;font-size:10.5px;
+  font-family:var(--mono);background:var(--surface-2);color:var(--ink-2);
+  border:1px solid var(--line);white-space:nowrap}
+.mark{font-family:var(--mono);font-size:10.5px;padding:1.5px 5px;border-radius:4px;
+  border:1px solid var(--line)}
+.mark.keep{background:var(--good-wash);color:var(--good);border-color:var(--good)}
+.mark.review{background:var(--warn-wash);color:var(--warn);border-color:var(--warn)}
+.mark.star{background:var(--accent-wash);color:var(--accent);border-color:var(--accent)}
+.sentinel{padding:14px;text-align:center;color:var(--ink-3);font-size:12.5px}
+.empty{padding:48px 20px;text-align:center;color:var(--ink-3)}
+.empty b{display:block;color:var(--ink-2);font-size:15px;margin-bottom:4px}
+
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;
+  padding:15px 16px 12px}
+.card h3{font-size:13.5px;margin-bottom:2px}
+.card .cap{font-size:11.5px;color:var(--ink-3);margin-bottom:12px}
+.bars-h{display:flex;flex-direction:column;gap:5px}
+.row-h{display:grid;grid-template-columns:132px 1fr 62px;gap:9px;align-items:center;
+  font-size:12px}
+.row-h .l{color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row-h .track{height:12px;background:var(--surface-2);border-radius:3px;overflow:hidden}
+.row-h .fill{height:100%;background:var(--chart);border-radius:0 3px 3px 0;min-width:2px}
+.row-h .v{font-family:var(--mono);font-size:11.5px;color:var(--ink-2);text-align:right}
+.cols{display:flex;align-items:flex-end;gap:3px;height:132px;
+  border-bottom:1px solid var(--line-strong);padding-top:6px}
+.col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;
+  align-items:center;height:100%;position:relative}
+.col .b{width:100%;background:var(--chart);border-radius:3px 3px 0 0;min-height:2px}
+.col .t{position:absolute;top:-2px;font-family:var(--mono);font-size:10px;
+  color:var(--ink-3)}
+.xlabels{display:flex;gap:3px;margin-top:5px}
+.xlabels span{flex:1;text-align:center;font-family:var(--mono);font-size:10px;
+  color:var(--ink-3)}
+.legend-note{font-size:11.5px;color:var(--ink-3);margin-top:10px;padding-top:9px;
+  border-top:1px solid var(--line)}
+
+.scrim{position:fixed;inset:0;background:rgba(16,18,28,.42);z-index:40}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(430px,100%);z-index:50;
+  background:var(--surface);border-left:1px solid var(--line);box-shadow:var(--shadow);
+  overflow-y:auto;padding-block:18px 40px;padding-inline:20px}
+.drawer h2{font-size:17px;line-height:1.25}
+.dslug{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);margin-top:3px;
+  word-break:break-all}
+.dsec{margin-top:18px}
+.dsec>b{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--ink-3);font-weight:600;display:block;margin-bottom:7px}
+.kv{display:grid;grid-template-columns:104px 1fr;gap:4px 10px;font-size:12.5px}
+.kv dt{color:var(--ink-3)}
+.kv dd{margin:0;font-family:var(--mono);font-size:12px;word-break:break-word}
+.marks{display:flex;gap:6px;flex-wrap:wrap}
+.marks button{padding:6px 11px;border:1px solid var(--line);border-radius:7px;
+  font-size:12.5px;color:var(--ink-2)}
+.marks button.on{border-color:var(--accent);background:var(--accent-wash);
+  color:var(--accent);font-weight:600}
+.drawer textarea{width:100%;padding:8px;border:1px solid var(--line);border-radius:7px;
+  background:var(--ground);color:var(--ink);font-family:var(--sans);font-size:13px;
+  min-height:60px;resize:vertical}
+.close{position:absolute;top:14px;right:16px}
+.issue{font-size:12px;color:var(--ink-2);background:var(--surface-2);
+  border-left:2px solid var(--line-strong);padding:7px 9px;border-radius:0 5px 5px 0;
+  margin-bottom:5px}
+.mrow{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;
+  padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
+.mrow:last-child{border-bottom:none}
+.mrow .mn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mrow .mp{font-family:var(--mono);font-size:11px;color:var(--ink-3)}
+
+@media (max-width:880px){
+  .body{flex-direction:column}
+  .rail{width:100%;position:static;max-height:none;border-right:none;
+    border-bottom:1px solid var(--line)}
+  .main{padding-inline:16px}
+  .topbar{padding-inline:16px}
+  .table-wrap{max-height:calc(100vh - 150px)}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand"><b>Cartridge Index</b><span id="brandsub">loading</span></div>
+    <div class="search">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 14 14"/></svg>
+      <input id="q" type="search" placeholder="Search title, publisher, franchise..." autocomplete="off">
+    </div>
+    <div class="tabs" role="tablist">
+      <button role="tab" id="tab-library" aria-selected="true">Library</button>
+      <button role="tab" id="tab-physical" aria-selected="false">Physical</button>
+      <button role="tab" id="tab-analyze" aria-selected="false">Analyze</button>
+      <button role="tab" id="tab-guide" aria-selected="false">Price guide</button>
+    </div>
+    <button class="icon-btn" id="theme" title="Toggle theme" aria-label="Toggle theme">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 9.5A5.5 5.5 0 0 1 6.5 3a5.5 5.5 0 1 0 6.5 6.5Z"/></svg>
+    </button>
+  </header>
+  <div class="body">
+    <aside class="rail">
+      <div class="rail-head"><b>Filters</b><button class="clear" id="clearall" disabled>Reset</button></div>
+      <div id="facets"></div>
+    </aside>
+    <main class="main">
+      <section id="view-library">
+        <div class="tiles" id="tiles"></div>
+        <div class="toolbar">
+          <label for="groupby">Group</label>
+          <select id="groupby">
+            <option value="">None</option>
+            <option value="cl">Platform</option>
+            <option value="rt">Rating tier</option>
+            <option value="g">Genre</option>
+            <option value="y">Year</option>
+            <option value="pub">Publisher</option>
+            <option value="me">Type</option>
+          </select>
+          <span class="spacer"></span>
+          <span class="count" id="count"></span>
+          <button class="btn" id="exportcsv">Export CSV</button>
+        </div>
+        <div class="table-wrap">
+          <table><thead><tr id="head"></tr></thead><tbody id="rows"></tbody></table>
+          <div class="sentinel" id="sentinel" hidden></div>
+        </div>
+      </section>
+      <section id="view-physical" hidden></section>
+      <section id="view-analyze" hidden></section>
+      <section id="view-guide" hidden></section>
+    </main>
+  </div>
+</div>
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" hidden aria-label="Game detail"></aside>
+
+<script src="data.js"></script>
+<script>
+(function(){
+"use strict";
+const ALL=(window.GAMES||[]).slice();
+const REFS=(window.ROMS||[]).slice();
+const WORK=(window.PRICES||[]);
+const INV=(window.INVENTORY||[]);
+const RANK={"S - classic":5,"A - great":4,"B - good":3,"C - average":2,"D - weak":1};
+const norm=s=>(s==null?"":String(s));
+const esc=s=>norm(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",
+  '"':"&quot;","'":"&#39;"}[c]));
+const usd=v=>v==null||v===""?"\u2014":"$"+Number(v).toLocaleString(undefined,
+  {minimumFractionDigits:2,maximumFractionDigits:2});
+const usd0=v=>"$"+Math.round(Number(v)||0).toLocaleString();
+const mb=b=>!b?"\u2014":b>=1048576?(b/1048576).toFixed(1)+" MB":Math.round(b/1024)+" KB";
+ALL.forEach(r=>{r._h=[r.t,r.s,r.pub,r.dv,r.sr,r.g,r.fr].join(" ").toLowerCase();});
+
+const FACETS=[
+ {k:"cl",label:"Platform",val:r=>r.cl},
+ {k:"me",label:"Type",val:r=>r.me||"\u2014"},
+ {k:"rt",label:"Rating",val:r=>r.rt||"Unrated",order:a=>-(RANK[a]||0)},
+ {k:"_own",label:"Owned",val:r=>r.oc?"Owned":"Not owned"},
+ {k:"_ref",label:"File reference",val:r=>r.rc?"Has dump ref":"No dump ref"},
+ {k:"_val",label:"Value",order:a=>["Unpriced","Under $10","$10\u2013$25","$25\u2013$50",
+   "$50\u2013$100","$100+"].indexOf(a),
+  val:r=>r.l==null?"Unpriced":r.l<10?"Under $10":r.l<25?"$10\u2013$25":
+    r.l<50?"$25\u2013$50":r.l<100?"$50\u2013$100":"$100+"},
+ {k:"g",label:"Genre",val:r=>r.g||"\u2014"},
+ {k:"rg",label:"Region",val:r=>r.rg||"\u2014"},
+ {k:"y",label:"Year",val:r=>r.y?String(r.y):"\u2014"},
+ {k:"pub",label:"Publisher",val:r=>r.pub||"\u2014"},
+ {k:"_cs",label:"Critic",order:a=>["Unscored","Under 7","7\u20138","8\u20139",
+   "9+"].indexOf(a),
+  val:r=>r.cs==null?"Unscored":r.cs<7?"Under 7":r.cs<8?"7\u20138":
+    r.cs<9?"8\u20139":"9+"},
+];
+const state={q:"",sort:{key:"t",dir:1},group:"",chosen:{},view:"library",
+  limit:150,notes:{}};
+FACETS.forEach(f=>state.chosen[f.k]=new Set());
+const keyOf=r=>(r.c||"")+":"+(r.s||r.t||"");
+const titleKey=r=>norm(r.c).toLowerCase()+"|"+norm(r.t).toLowerCase();
+const refsOf=r=>REFS.filter(ref=>norm(ref.c).toLowerCase()+"|"+norm(ref.t).toLowerCase()===titleKey(r));
+
+function passes(r,skip){
+  if(state.q&&!r._h.includes(state.q))return false;
+  for(const f of FACETS){
+    if(f.k===skip)continue;
+    const c=state.chosen[f.k];
+    if(c.size&&!c.has(f.val(r)))return false;
+  }
+  return true;
+}
+const filtered=()=>ALL.filter(r=>passes(r,null));
+
+function meter(r){
+  if(r.rb==null)return '<span class="meter none"><span class="bars">'+
+    '<i></i><i></i><i></i><i></i><i></i></span><span class="lab">\u2013</span></span>';
+  const n=RANK[r.rt]||1;let b="";
+  for(let i=1;i<=5;i++)b+='<i class="'+(i<=n?"on":"")+'"></i>';
+  return '<span class="meter" title="'+r.rb.toFixed(2)+' \u2014 '+esc(r.rt)+
+    ' ('+(r.cr==null?"?":r.cr)+' from '+(r.rv||0)+' votes)"><span class="bars">'+b+
+    '</span><span class="lab">'+r.rb.toFixed(1)+'</span></span>';
+}
+const COLS=[
+ {k:"t",label:"Title",sort:r=>norm(r.t).toLowerCase(),
+  cell:r=>'<div class="name">'+esc(r.t)+'</div><div class="sub">'+esc(r.s||"")+'</div>'},
+ {k:"cl",label:"Platform",cell:r=>'<span class="tag">'+esc(r.cl)+'</span>'},
+ {k:"rb",label:"Rating",cls:"num",cell:meter,sort:r=>r.rb==null?-1:r.rb},
+ {k:"l",label:"Value",cls:"num",sort:r=>r.l==null?-1:r.l,
+  cell:r=>r.l==null?'<span class="mono" style="color:var(--ink-3)">\u2014</span>'
+   :'<span class="mono">'+usd(r.l)+'</span>'},
+ {k:"cs",label:"Critic",cls:"num",sort:r=>r.cs==null?-1:r.cs,
+  hint:"VGChartz critic score out of 10.",
+  cell:r=>r.cs==null?'<span class="mono" style="color:var(--ink-3)">\u2014</span>'
+   :'<span class="mono">'+r.cs.toFixed(1)+'</span>'},
+ {k:"sl",label:"Sold\u2020",cls:"num",sort:r=>r.sl==null?-1:r.sl,
+  hint:"Millions of units, from VGChartz. A FLOOR, not a ranking: the source lost the figures for most of the big sellers.",
+  cell:r=>r.sl==null?'<span class="mono" style="color:var(--ink-3)">\u2014</span>'
+   :'<span class="mono" title="at least '+r.sl+'M units \u2014 source is incomplete">'+
+    r.sl.toFixed(2)+'M</span>'},
+ {k:"g",label:"Genre",cell:r=>esc(r.g||"\u2014")},
+ {k:"y",label:"Year",cls:"num",cell:r=>'<span class="mono">'+(r.y||"\u2014")+'</span>',
+  sort:r=>r.y||0},
+ {k:"pub",label:"Publisher",cell:r=>esc(r.pub||"\u2014")},
+ {k:"oc",label:"Owned",cls:"num",sort:r=>r.oc||0,
+  cell:r=>r.oc?'<span class="mark keep">'+r.oc+'</span>':"\u2014"},
+ {k:"rc",label:"Refs",cls:"num",sort:r=>r.rc||0,
+  cell:r=>r.rc?'<span class="mono">'+r.rc+'</span>':"\u2014"},
+ {k:"vd",label:"Dump",cell:r=>r.vd?'<span class="pill '+esc(r.vd)+'">'+esc(r.vd)+'</span>':"\u2014"},
+];
+
+function renderFacets(){
+  document.getElementById("facets").innerHTML=FACETS.map(f=>{
+    const counts=new Map();
+    for(const r of ALL)if(passes(r,f.k)){const v=f.val(r);counts.set(v,(counts.get(v)||0)+1);}
+    let opts=[...counts.entries()];
+    if(f.order)opts.sort((a,b)=>f.order(a[0])-f.order(b[0])||String(a[0]).localeCompare(String(b[0])));
+    else if(f.k==="y")opts.sort((a,b)=>String(a[0]).localeCompare(String(b[0])));
+    else opts.sort((a,b)=>b[1]-a[1]||String(a[0]).localeCompare(String(b[0])));
+    const ch=state.chosen[f.k];
+    const open=ch.size>0||["cl","rt","_own"].includes(f.k);
+    return '<details class="facet"'+(open?" open":"")+'><summary>'+f.label+
+      (ch.size?' <span class="cnt">'+ch.size+'</span>':"")+'</summary><div class="facet-list">'+
+      opts.map(o=>'<label class="opt'+(ch.has(o[0])?" on":"")+'"><input type="checkbox" data-f="'+
+        f.k+'" value="'+esc(o[0])+'"'+(ch.has(o[0])?" checked":"")+'><span class="lab">'+
+        esc(o[0])+'</span><span class="cnt">'+o[1]+'</span></label>').join("")+
+      '</div></details>';}).join("");
+  document.getElementById("clearall").disabled=
+    !state.q&&!FACETS.some(f=>state.chosen[f.k].size);
+}
+document.getElementById("facets").addEventListener("change",e=>{
+  const i=e.target.closest("input[data-f]");if(!i)return;
+  const set=state.chosen[i.dataset.f];
+  i.checked?set.add(i.value):set.delete(i.value);
+  state.limit=150;renderAll();
+});
+
+let DISPLAY=[];
+function buildDisplay(){
+  const col=COLS.find(c=>c.k===state.sort.key)||COLS[0];
+  const get=col.sort||(r=>norm(r[col.k]).toLowerCase());
+  const rows=filtered().sort((a,b)=>{
+    const x=get(a),y=get(b);
+    if(x<y)return -state.sort.dir; if(x>y)return state.sort.dir;
+    return norm(a.t).localeCompare(norm(b.t));});
+  if(!state.group){DISPLAY=rows.map(r=>({t:"r",r}));return;}
+  const g=new Map();
+  for(const r of rows){
+    const k=state.group==="y"?(r.y?String(r.y):"Year unknown")
+      :state.group==="rt"?(r.rt||"Unrated"):(norm(r[state.group])||"\u2014");
+    if(!g.has(k))g.set(k,[]);g.get(k).push(r);}
+  let keys=[...g.keys()];
+  if(state.group==="rt")keys.sort((a,b)=>(RANK[b]||0)-(RANK[a]||0));
+  else if(state.group==="y")keys.sort();
+  else keys.sort((a,b)=>g.get(b).length-g.get(a).length||a.localeCompare(b));
+  DISPLAY=[];
+  for(const k of keys){DISPLAY.push({t:"g",k,n:g.get(k).length});
+    for(const r of g.get(k))DISPLAY.push({t:"r",r});}
+}
+function renderHead(){
+  document.getElementById("head").innerHTML=COLS.map(c=>{
+    const on=state.sort.key===c.k;
+    return '<th data-k="'+c.k+'" class="'+(on?"sorted":"")+'"'+
+      (c.hint?' title="'+esc(c.hint)+'"':"")+'>'+c.label+
+      (on?' <span class="mono">'+(state.sort.dir>0?"\u2191":"\u2193")+'</span>':"")+'</th>';
+  }).join("");
+}
+document.getElementById("head").addEventListener("click",e=>{
+  const th=e.target.closest("th[data-k]");if(!th)return;
+  const k=th.dataset.k;
+  if(state.sort.key===k)state.sort.dir*=-1;
+  else state.sort={key:k,dir:["rb","l","y","cs","sl","oc","rc"].includes(k)?-1:1};
+  state.limit=150;renderAll();
+});
+function renderRows(){
+  const tb=document.getElementById("rows");
+  const slice=DISPLAY.slice(0,state.limit);
+  if(!slice.length){
+    tb.innerHTML='<tr><td colspan="'+COLS.length+'"><div class="empty">'+
+      '<b>No games match</b>Loosen a filter or clear the search.</div></td></tr>';
+    document.getElementById("sentinel").hidden=true;return;}
+  tb.innerHTML=slice.map(d=>{
+    if(d.t==="g")return '<tr class="gt"><td colspan="'+COLS.length+'">'+esc(d.k)+
+      ' <span class="cnt">\u00B7 '+d.n+'</span></td></tr>';
+    const r=d.r;
+    return '<tr data-k="'+esc(keyOf(r))+'">'+
+      COLS.map(c=>'<td class="'+(c.cls||"")+'">'+c.cell(r)+'</td>').join("")+'</tr>';
+  }).join("");
+  const more=DISPLAY.length-state.limit;
+  const s=document.getElementById("sentinel");
+  s.hidden=more<=0;
+  s.textContent=more>0?("Showing "+state.limit+" of "+DISPLAY.length+" \u2014 scroll for more"):"";
+}
+document.getElementById("rows").addEventListener("click",e=>{
+  const tr=e.target.closest("tr[data-k]");if(!tr)return;
+  const r=ALL.find(x=>keyOf(x)===tr.dataset.k);if(r)openDrawer(r);
+});
+new IntersectionObserver(es=>{
+  if(es[0].isIntersecting&&state.limit<DISPLAY.length){state.limit+=200;renderRows();}
+},{root:document.querySelector(".table-wrap"),rootMargin:"600px"})
+ .observe(document.getElementById("sentinel"));
+
+function renderTiles(){
+  const f=filtered();
+  const rated=f.filter(r=>r.rb!=null);
+  const avg=rated.length?rated.reduce((a,r)=>a+r.rb,0)/rated.length:null;
+  const owned=f.filter(r=>r.oc);
+  const wish=f.filter(r=>!r.oc&&(RANK[r.rt]||0)>=4);
+  const t=[
+   ["Games",f.length.toLocaleString(),
+    f.length===ALL.length?"whole catalog":"of "+ALL.length.toLocaleString()],
+   ["Platforms",new Set(f.map(r=>r.cl)).size,""],
+   ["Owned",owned.length,f.length?Math.round(owned.length/f.length*100)+"% of catalog":""],
+   ["Shelf value",usd0(owned.reduce((a,r)=>a+(r.l||0),0)),owned.filter(r=>r.l!=null).length+" priced"],
+   ["Mean rating",avg?avg.toFixed(2):"\u2014",rated.length+" rated"],
+   ["File refs",f.filter(r=>r.rc).length,"dump references kept in place"],
+   ["Wishlist",wish.length,"S/A unowned"],
+  ];
+  document.getElementById("tiles").innerHTML=t.map(x=>
+    '<div class="tile"><div class="k">'+x[0]+'</div><div class="v">'+x[1]+
+    '</div><div class="s">'+x[2]+'</div></div>').join("");
+  document.getElementById("count").textContent=f.length.toLocaleString()+" shown";
+}
+
+function tally(rows,fn,top){
+  const m=new Map();
+  for(const r of rows){const v=fn(r);if(v==null||v==="")continue;m.set(v,(m.get(v)||0)+1);}
+  const a=[...m.entries()].sort((x,y)=>y[1]-x[1]);
+  return top?a.slice(0,top):a;
+}
+function hbars(title,cap,pairs,fmt,note){
+  const max=Math.max(1,...pairs.map(p=>p[1]));
+  return '<div class="card"><h3>'+title+'</h3><div class="cap">'+cap+'</div>'+
+    '<div class="bars-h">'+pairs.map(p=>
+      '<div class="row-h" title="'+esc(p[0])+': '+(fmt?fmt(p[1]):p[1])+'">'+
+      '<span class="l">'+esc(p[0])+'</span><span class="track"><span class="fill" style="width:'+
+      (p[1]/max*100).toFixed(1)+'%"></span></span><span class="v">'+
+      (fmt?fmt(p[1]):p[1])+'</span></div>').join("")+'</div>'+
+    (note?'<div class="legend-note">'+note+'</div>':"")+'</div>';
+}
+function cols(title,cap,pairs,note){
+  const max=Math.max(1,...pairs.map(p=>p[1]));
+  return '<div class="card"><h3>'+title+'</h3><div class="cap">'+cap+'</div>'+
+    '<div class="cols">'+pairs.map(p=>'<div class="col" title="'+esc(p[0])+': '+p[1]+'">'+
+      (p[1]>0?'<span class="t">'+p[1]+'</span>':"")+'<span class="b" style="height:'+
+      (p[1]/max*88).toFixed(1)+'%"></span></div>').join("")+'</div>'+
+    '<div class="xlabels">'+pairs.map(p=>'<span>'+esc(p[0])+'</span>').join("")+'</div>'+
+    (note?'<div class="legend-note">'+note+'</div>':"")+'</div>';
+}
+function renderAnalyze(){
+  const f=filtered();
+  const consoles=[...new Set(f.map(r=>r.cl))];
+  const perConsole=consoles.map(c=>{
+    const g=f.filter(r=>r.cl===c);
+    const rated=g.filter(r=>r.rb!=null);
+    const owned=g.filter(r=>r.oc);
+    return {c,n:g.length,owned:owned.length,
+      val:owned.reduce((a,r)=>a+(r.l||0),0),
+      mean:rated.length?rated.reduce((a,r)=>a+r.rb,0)/rated.length:0,
+      refs:g.filter(r=>r.rc).length,cover:g.length?owned.length/g.length*100:0,
+      dumps:g.length?g.filter(r=>r.rc).length/g.length*100:0};
+  }).sort((a,b)=>b.n-a.n);
+  const years=[];
+  for(let y=1983;y<=2002;y++)years.push([String(y).slice(2),f.filter(r=>r.y===y).length]);
+  const rated=f.filter(r=>r.rb!=null);
+  const bins=new Map();
+  for(let b=2.0;b<5.0;b+=0.25)bins.set(b.toFixed(2),0);
+  rated.forEach(r=>{const b=(Math.floor(r.rb*4)/4).toFixed(2);
+    if(bins.has(b))bins.set(b,bins.get(b)+1);});
+  const wish=f.filter(r=>!r.oc&&(RANK[r.rt]||0)>=4).sort((a,b)=>(b.rb||0)-(a.rb||0));
+  const complete=tally(INV,d=>d.cp||"unspecified",8);
+
+  document.getElementById("view-analyze").innerHTML='<div class="grid2">'+
+    hbars("Games by platform","Titles in the current catalog",
+      perConsole.map(p=>[p.c,p.n]))+
+    hbars("Ownership coverage","Share of catalog titles on the shelf",
+      perConsole.map(p=>[p.c,+p.cover.toFixed(0)]),v=>v+"%",
+      "Inventory linked by system and title. Completeness is on the Physical tab.")+
+    hbars("Dump coverage","Titles with a file reference kept in place",
+      perConsole.map(p=>[p.c,+p.dumps.toFixed(0)]),v=>v+"%",
+      "References only: hashes, paths and identification. Files are never moved.")+
+    hbars("Owned value by platform","Loose value of titles you own",
+      perConsole.map(p=>[p.c,Math.round(p.val)]),v=>usd0(v))+
+    hbars("Mean rating by platform","Vote-weighted, shrunk per platform",
+      perConsole.filter(p=>p.mean).map(p=>[p.c,+p.mean.toFixed(2)]),v=>v.toFixed(2))+
+    cols("Rating distribution","Weighted score, 0.25 bins \u00B7 "+rated.length+" rated",
+      [...bins.entries()].map(b=>[(+b[0]).toFixed(2).replace(/0$/,""),b[1]]))+
+    cols("Releases by year","Across the current selection",years)+
+    hbars("Genres","Top 12",tally(f,r=>r.g,12))+
+    hbars("Publishers","Top 12",tally(f,r=>r.pub,12))+
+    hbars("Most valuable owned","Loose value, top 12",
+      f.filter(r=>r.oc&&r.l!=null).sort((a,b)=>b.l-a.l).slice(0,12)
+       .map(r=>[r.t+" \u00B7 "+r.cl,Math.round(r.l)]),v=>usd0(v))+
+    hbars("Wishlist","S- and A-tier titles with no physical copy",
+      wish.slice(0,12).map(r=>[r.t+" \u00B7 "+r.cl,+(r.rb||0).toFixed(2)]),v=>v.toFixed(2),
+      wish.length?wish.length+" titles. cartidx query \"SELECT * FROM wishlist\"":"Nothing in the current filter.")+
+    hbars("Shelf completeness","Physical items by completeness",complete)+
+  '</div>';
+}
+
+const pstate={q:"",sys:"",sort:{k:"v",dir:-1}};
+INV.forEach(d=>{d._h=[d.t,d.cl,d.nt,d.lo,d.cd,d.cp].join(" ").toLowerCase();});
+const PCOLS=[
+ {k:"t",label:"Title",cell:d=>'<div class="name">'+esc(d.t)+'</div>'+
+   (d.nt?'<div class="sub">'+esc(d.nt)+'</div>':"")},
+ {k:"cl",label:"System",cell:d=>'<span class="tag">'+esc(d.cl||d.c)+'</span>'},
+ {k:"cp",label:"Completeness",cell:d=>esc(d.cp||"\u2014")},
+ {k:"cd",label:"Condition",cell:d=>esc(d.cd||"\u2014")},
+ {k:"q",label:"Qty",cls:"num",cell:d=>'<span class="mono">'+(d.q||1)+'</span>',sort:d=>d.q||1},
+ {k:"pd",label:"Paid",cls:"num",cell:d=>'<span class="mono">'+usd(d.pd)+'</span>',
+  sort:d=>d.pd==null?-1:d.pd},
+ {k:"v",label:"Value",cls:"num",cell:d=>'<span class="mono">'+usd(d.v)+'</span>',
+  sort:d=>d.v==null?-1:d.v},
+ {k:"rc",label:"Ref",cls:"num",sort:d=>d.rc||0,
+  cell:d=>d.rc?'<span class="mark keep" title="'+esc(d.rs||"")+'">'+d.rc+'</span>'
+   :'<span class="mark review">none</span>'},
+ {k:"rb",label:"Rating",cls:"num",sort:d=>d.rb==null?-1:d.rb,
+  cell:d=>d.rb!=null?'<span class="mono">'+d.rb.toFixed(1)+'</span>':"\u2014"},
+];
+const physRows=()=>INV.filter(d=>(!pstate.sys||d.c===pstate.sys)&&
+  (!pstate.q||d._h.includes(pstate.q)));
+function renderPhysical(){
+  const f=physRows();
+  const col=PCOLS.find(c=>c.k===pstate.sort.k)||PCOLS[0];
+  const get=col.sort||(d=>norm(d[col.k]).toLowerCase());
+  const rows=f.slice().sort((a,b)=>{const x=get(a),y=get(b);
+    return x<y?-pstate.sort.dir:x>y?pstate.sort.dir:norm(a.t).localeCompare(norm(b.t));});
+  const systems=new Map();INV.forEach(d=>systems.set(d.c,d.cl||d.c));
+  const sum=k=>f.reduce((a,d)=>a+(d[k]||0),0);
+  const noRom=f.filter(d=>!d.rc).length;
+  const vl=document.getElementById("view-physical");
+  if(!INV.length){vl.innerHTML='<div class="empty"><b>No inventory yet</b>'+
+    'Import owned rows with <span class="mono">cartidx inventory import</span>, '+
+    'or add items with <span class="mono">cartidx inventory add</span>.</div>';return;}
+  vl.innerHTML='<div class="tiles">'+[
+      ["Items",f.length.toLocaleString(),f.length===INV.length?"whole inventory":"filtered"],
+      ["Systems",new Set(f.map(d=>d.c)).size,""],
+      ["Market value",usd0(sum("v")),f.filter(d=>d.v!=null).length+" priced"],
+      ["Paid",usd0(sum("pd")),f.filter(d=>d.pd!=null).length+" with a price paid"],
+      ["Have a dump ref",(f.length-noRom).toLocaleString(),noRom+" without one"],
+    ].map(x=>'<div class="tile"><div class="k">'+x[0]+'</div><div class="v">'+x[1]+
+      '</div><div class="s">'+x[2]+'</div></div>').join("")+'</div>'+
+    '<div class="toolbar"><div class="search" style="max-width:260px;flex:0 1 260px">'+
+      '<input type="search" id="pq" placeholder="Search the shelf..." value="'+esc(pstate.q)+'"></div>'+
+      '<select id="psys"><option value="">All systems</option>'+[...systems.entries()]
+        .sort((a,b)=>String(a[1]).localeCompare(String(b[1]))).map(s=>'<option value="'+esc(s[0])+'"'+
+        (pstate.sys===s[0]?" selected":"")+'>'+esc(s[1])+'</option>').join("")+'</select>'+
+      '<span class="spacer"></span><span class="count">'+f.length.toLocaleString()+' shown</span>'+
+      '<button class="btn" id="pexport">Export CSV</button></div>'+
+    '<div class="table-wrap"><table><thead><tr>'+PCOLS.map(c=>'<th data-pk="'+c.k+'" class="'+
+      (pstate.sort.k===c.k?"sorted":"")+'">'+c.label+(pstate.sort.k===c.k?' <span class="mono">'+
+      (pstate.sort.dir>0?"\u2191":"\u2193")+'</span>':"")+'</th>').join("")+'</tr></thead><tbody>'+
+      (rows.length?rows.map(d=>'<tr>'+PCOLS.map(c=>'<td class="'+(c.cls||"")+'">'+c.cell(d)+
+        '</td>').join("")+'</tr>').join("")
+        :'<tr><td colspan="'+PCOLS.length+'"><div class="empty"><b>Nothing matches</b></div></td></tr>')+
+    '</tbody></table></div>';
+  const q=document.getElementById("pq");
+  if(q&&pstate.focus){q.focus();q.setSelectionRange(q.value.length,q.value.length);}
+}
+const VP=document.getElementById("view-physical");
+let pqt;
+VP.addEventListener("input",e=>{if(e.target.id==="pq"){clearTimeout(pqt);
+  pqt=setTimeout(()=>{pstate.q=e.target.value.trim().toLowerCase();pstate.focus=true;
+    renderPhysical();pstate.focus=false;},140);}});
+VP.addEventListener("change",e=>{if(e.target.id==="psys"){pstate.sys=e.target.value;renderPhysical();}});
+VP.addEventListener("click",e=>{
+  const th=e.target.closest("th[data-pk]");
+  if(th){const k=th.dataset.pk;
+    if(pstate.sort.k===k)pstate.sort.dir*=-1;
+    else pstate.sort={k,dir:(k==="t"||k==="cl"||k==="cp"||k==="cd")?1:-1};
+    renderPhysical();return;}
+  if(e.target.id==="pexport"){
+    const cs=["id","system","title","completeness","condition","quantity","paid","value",
+      "loose_price","cib_price","rom_count","rating_bayesian","location","notes"];
+    const mp={id:"id",system:"c",title:"t",completeness:"cp",condition:"cd",quantity:"q",
+      paid:"pd",value:"v",loose_price:"l",cib_price:"cb",rom_count:"rc",
+      rating_bayesian:"rb",location:"lo",notes:"nt"};
+    const q=v=>{const t=norm(v);return /[",\n]/.test(t)?'"'+t.replace(/"/g,'""')+'"':t;};
+    download("inventory.csv",cs.join(",")+"\n"+
+      physRows().map(d=>cs.map(c=>q(d[mp[c]])).join(",")).join("\n"));}
+});
+
+const gstate={q:"",plat:"",owned:false,sort:{k:"l",dir:-1},limit:120};
+WORK.forEach(d=>{d._h=(d.t+" "+d.p+" "+(d.pub||"")).toLowerCase();});
+function guideRows(){
+  return WORK.filter(d=>{
+    if(gstate.plat&&d.p!==gstate.plat)return false;
+    if(gstate.owned&&!d.o)return false;
+    if(gstate.q&&!d._h.includes(gstate.q))return false;
+    return true;});
+}
+const GCOLS=[
+ {k:"t",label:"Title",cell:d=>'<div class="name">'+esc(d.t)+'</div>'+
+   (d.nt?'<div class="sub">'+esc(d.nt)+'</div>':"")},
+ {k:"p",label:"Platform",cell:d=>'<span class="tag">'+esc(d.p)+'</span>'},
+ {k:"l",label:"Loose",cls:"num",cell:d=>'<span class="mono">'+usd(d.l)+'</span>',
+  sort:d=>d.l==null?-1:d.l},
+ {k:"cb",label:"Complete",cls:"num",cell:d=>'<span class="mono">'+usd(d.cb)+'</span>',
+  sort:d=>d.cb==null?-1:d.cb},
+ {k:"nw",label:"Sealed",cls:"num",cell:d=>'<span class="mono">'+usd(d.nw)+'</span>',
+  sort:d=>d.nw==null?-1:d.nw},
+ {k:"pd",label:"Paid",cls:"num",cell:d=>'<span class="mono">'+usd(d.pd)+'</span>',
+  sort:d=>d.pd==null?-1:d.pd},
+ {k:"o",label:"Owned",cell:d=>d.o?'<span class="mark keep">owned</span>':"\u2014"},
+];
+function renderGuide(){
+  const f=guideRows();
+  const plats=new Map();WORK.forEach(d=>plats.set(d.p,(plats.get(d.p)||0)+1));
+  const col=GCOLS.find(c=>c.k===gstate.sort.k)||GCOLS[2];
+  const get=col.sort||(d=>norm(d[col.k]).toLowerCase());
+  const rows=f.slice().sort((a,b)=>{const x=get(a),y=get(b);
+    return x<y?-gstate.sort.dir:x>y?gstate.sort.dir:norm(a.t).localeCompare(norm(b.t));});
+  const sum=k=>f.reduce((a,d)=>a+(d[k]||0),0);
+  document.getElementById("view-guide").innerHTML=
+    '<div class="tiles">'+[
+      ["Listings",f.length.toLocaleString(),f.length===WORK.length?"whole workbook":"filtered"],
+      ["Platforms",gstate.plat?1:plats.size,"incl. consoles with no dump refs here"],
+      ["Loose value",usd0(sum("l")),""],
+      ["Complete value",usd0(sum("cb")),"boxed with manual"],
+      ["Marked owned",f.filter(d=>d.o).length,""],
+      ["Recorded spend",usd0(sum("pd")),f.filter(d=>d.pd!=null).length+" with a paid price"],
+    ].map(x=>'<div class="tile"><div class="k">'+x[0]+'</div><div class="v">'+x[1]+
+      '</div><div class="s">'+x[2]+'</div></div>').join("")+'</div>'+
+    '<div class="toolbar">'+
+      '<div class="search" style="max-width:260px;flex:0 1 260px">'+
+      '<input type="search" id="gq" placeholder="Search the price guide..." value="'+
+      esc(gstate.q)+'"></div>'+
+      '<select id="gplat"><option value="">All platforms</option>'+
+        [...plats.entries()].sort((a,b)=>b[1]-a[1]).map(p=>'<option value="'+esc(p[0])+
+        '"'+(gstate.plat===p[0]?" selected":"")+'>'+esc(p[0])+" ("+p[1]+")</option>").join("")+
+      '</select>'+
+      '<label class="opt" style="width:auto"><input type="checkbox" id="gowned"'+
+        (gstate.owned?" checked":"")+'>owned only</label>'+
+      '<span class="spacer"></span><span class="count">'+f.length.toLocaleString()+
+      ' shown</span><button class="btn" id="gexport">Export CSV</button></div>'+
+    '<div class="table-wrap"><table><thead><tr>'+
+      GCOLS.map(c=>'<th data-gk="'+c.k+'" class="'+(gstate.sort.k===c.k?"sorted":"")+'">'+
+      c.label+(gstate.sort.k===c.k?' <span class="mono">'+
+      (gstate.sort.dir>0?"\u2191":"\u2193")+'</span>':"")+'</th>').join("")+
+    '</tr></thead><tbody>'+(rows.length?rows.slice(0,gstate.limit).map(d=>'<tr>'+
+      GCOLS.map(c=>'<td class="'+(c.cls||"")+'">'+c.cell(d)+'</td>').join("")+'</tr>').join("")
+      :'<tr><td colspan="'+GCOLS.length+'"><div class="empty"><b>Nothing matches</b>'+
+       'Try another platform.</div></td></tr>')+'</tbody></table>'+
+    (rows.length>gstate.limit?'<div class="sentinel" id="gsent">Showing '+gstate.limit+
+      ' of '+rows.length.toLocaleString()+' \u2014 scroll for more</div>':"")+'</div>'+
+    '<div class="legend-note" style="margin-top:12px">Your price guide: '+
+      WORK.length.toLocaleString()+' listings across '+plats.size+' platforms. '+
+      'Prices are market estimates.</div>';
+  const sent=document.getElementById("gsent");
+  if(sent&&!sent._io){
+    sent._io=new IntersectionObserver(es=>{if(es[0].isIntersecting){
+      gstate.limit+=200;renderGuide();}},
+      {root:document.querySelector("#view-guide .table-wrap"),rootMargin:"500px"});
+    sent._io.observe(sent);}
+}
+const VG=document.getElementById("view-guide");
+let gqt;
+VG.addEventListener("input",e=>{if(e.target.id==="gq"){clearTimeout(gqt);
+  gqt=setTimeout(()=>{gstate.q=e.target.value.trim().toLowerCase();
+    gstate.limit=120;renderGuide();},140);}});
+VG.addEventListener("change",e=>{
+  if(e.target.id==="gplat")gstate.plat=e.target.value;
+  else if(e.target.id==="gowned")gstate.owned=e.target.checked;
+  else return;
+  gstate.limit=120;renderGuide();});
+VG.addEventListener("click",e=>{
+  const th=e.target.closest("th[data-gk]");
+  if(th){const k=th.dataset.gk;
+    if(gstate.sort.k===k)gstate.sort.dir*=-1;
+    else gstate.sort={k,dir:(k==="t"||k==="p"||k==="o")?1:-1};
+    gstate.limit=120;renderGuide();return;}
+  if(e.target.id==="gexport"){
+    const cs=["platform","title","loose","cib","new","paid","owned","note"];
+    const mp={platform:"p",title:"t",loose:"l",cib:"cb",new:"nw",paid:"pd",owned:"o",note:"nt"};
+    const q=v=>{const t=norm(v);return /[",\n]/.test(t)?'"'+t.replace(/"/g,'""')+'"':t;};
+    download("price-guide.csv",cs.join(",")+"\n"+
+      guideRows().map(d=>cs.map(c=>q(d[mp[c]])).join(",")).join("\n"));}
+});
+
+const LS="cartridge-index-notes-v1";
+try{state.notes=JSON.parse(localStorage.getItem(LS)||"{}");}catch(_){state.notes={};}
+function setNote(k,patch){
+  const cur=state.notes[k]||{star:false,note:""};
+  const next=Object.assign({},cur,patch);
+  if(!next.star&&!next.note)delete state.notes[k];
+  else state.notes[k]=next;
+  try{localStorage.setItem(LS,JSON.stringify(state.notes));}catch(_){}
+}
+
+async function download(filename,data){
+  const a=document.createElement("a");
+  const blob=data instanceof Blob?data:new Blob([data],{type:"text/plain"});
+  a.href=URL.createObjectURL(blob);a.download=filename;a.click();
+  URL.revokeObjectURL(a.href);
+}
+document.getElementById("exportcsv").addEventListener("click",()=>{
+  const cs=["system","title","slug","media","region","publisher","genre","year",
+    "rating_bayesian","rating_tier","critic_score","sales_total","owned_count",
+    "rom_count","verified","best_verdict","loose_price","cib_price","new_price"];
+  const mp={system:"c",title:"t",slug:"s",media:"me",region:"rg",publisher:"pub",
+    genre:"g",year:"y",rating_bayesian:"rb",rating_tier:"rt",critic_score:"cs",
+    sales_total:"sl",owned_count:"oc",rom_count:"rc",verified:"vf",best_verdict:"vd",
+    loose_price:"l",cib_price:"cb",new_price:"nw"};
+  const q=v=>{const t=norm(v);return /[",\n]/.test(t)?'"'+t.replace(/"/g,'""')+'"':t;};
+  download("cartridge-index.csv",cs.join(",")+"\n"+
+    filtered().map(r=>cs.map(c=>q(r[mp[c]])).join(",")).join("\n"));
+});
+
+function openDrawer(r){
+  const k=keyOf(r),note=state.notes[k]||{star:false,note:""};
+  const kv=o=>'<dl class="kv">'+o.filter(x=>x[1]!=null&&x[1]!=="")
+    .map(x=>'<dt>'+x[0]+'</dt><dd>'+esc(x[1])+'</dd>').join("")+'</dl>';
+  const refs=refsOf(r);
+  const dr=document.getElementById("drawer");
+  dr.innerHTML='<button class="icon-btn close" id="dclose" aria-label="Close">\u2715</button>'+
+    '<h2>'+esc(r.t)+'</h2><div class="dslug">'+esc(r.cl)+(r.s?' \u00B7 '+esc(r.s):"")+'</div>'+
+    '<div style="display:flex;gap:7px;margin-top:11px;flex-wrap:wrap;align-items:center">'+
+      meter(r)+(r.oc?'<span class="pill owned">owned \u00d7 '+r.oc+'</span>':"")+
+      (r.vd?'<span class="pill '+esc(r.vd)+'">'+esc(r.vd)+'</span>':"")+
+      '<span class="tag">'+esc(r.cl)+'</span>'+(r.me?'<span class="tag">'+esc(r.me)+'</span>':"")+
+      (r.rg?'<span class="tag">'+esc(r.rg)+'</span>':"")+
+    '</div>'+
+    '<div class="dsec"><b>Release</b>'+kv([["Publisher",r.pub],["Developer",r.dv],
+      ["Year",r.y],["Genre",r.g],["Series",r.fr],
+      ["Players",r.mp?r.mp:""],["Serial",r.sr]])+'</div>'+
+    '<div class="dsec"><b>Rating</b>'+kv([
+      ["Community",r.cr!=null?r.cr+" / 5":""],["Votes",r.rv],
+      ["Weighted",r.rb!=null?r.rb+"  ("+r.rt+")":""]])+
+      (r.rb==null?'<div class="issue">No public rating found for this title.</div>':"")+
+    '</div>'+
+    (r.l!=null?'<div class="dsec"><b>Market value</b>'+kv([["Loose",usd(r.l)],
+      ["Complete",r.cb!=null?usd(r.cb):""],["Sealed",r.nw!=null?usd(r.nw):""],
+      ["Listed as",r.pt&&r.pt!==r.t?r.pt:""]])+'</div>':"")+
+    (r.cs!=null||r.sl!=null?'<div class="dsec"><b>Critics and sales</b>'+kv([
+      ["Critic score",r.cs!=null?r.cs+" / 10":""],
+      ["Known sales",r.sl!=null?"at least "+r.sl+"M units":""],
+      ["NA / JP / PAL",(r.sna||r.sjp||r.spal)?[r.sna,r.sjp,r.spal].map(x=>x==null?"\u2014":x).join(" / "):""]])+'</div>':"")+
+    '<div class="dsec"><b>File references</b>'+(refs.length?refs.map(ref=>
+      '<div class="mrow"><div><div class="mn">'+esc(ref.p||ref.s||"")+'</div>'+
+      '<div class="mp">'+esc(ref.id||"")+(ref.mm?" \u00B7 "+esc(ref.mm):"")+
+      (ref.crc?" \u00B7 "+esc(ref.crc):"")+(ref.sz?" \u00B7 "+mb(ref.sz):"")+'</div></div>'+
+      '<div>'+(ref.st?'<span class="tag">'+esc(ref.st)+'</span>':"")+
+      (ref.vd?' <span class="pill '+esc(ref.vd)+'">'+esc(ref.vd)+'</span>':"")+'</div></div>'
+    ).join(""):'<div class="issue">No dump on file. Identification data is kept when a library folder is configured.</div>')+
+      (r.w?'<div style="margin-top:7px"><a href="'+esc(r.w)+
+        '" target="_blank" rel="noopener">Wikipedia \u2197</a></div>':"")+'</div>'+
+    '<div class="dsec"><b>Your note</b><div class="marks">'+
+      '<button data-star="1" class="'+(note.star?"on":"")+'">star</button>'+
+      '<button data-star="" class="'+(!note.star?"on":"")+'">none</button></div>'+
+      '<div style="margin-top:7px"><textarea id="dnote" placeholder="Why does this one matter?">'+
+        esc(note.note||"")+'</textarea></div></div>';
+  dr.hidden=false;document.getElementById("scrim").hidden=false;
+  dr.dataset.k=k;dr.querySelector("#dclose").focus();
+}
+function closeDrawer(){
+  const dr=document.getElementById("drawer");if(dr.hidden)return;
+  const k=dr.dataset.k;
+  setNote(k,{note:(dr.querySelector("#dnote")||{}).value||""});
+  dr.hidden=true;document.getElementById("scrim").hidden=true;
+}
+document.getElementById("drawer").addEventListener("click",e=>{
+  if(e.target.id==="dclose"){closeDrawer();return;}
+  const b=e.target.closest("[data-star]");if(!b)return;
+  const k=document.getElementById("drawer").dataset.k;
+  setNote(k,{star:!!b.dataset.star});
+  const r=ALL.find(x=>keyOf(x)===k);if(r)openDrawer(r);
+});
+document.getElementById("scrim").addEventListener("click",closeDrawer);
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape")closeDrawer();
+  if(e.key==="/"&&!/input|textarea/i.test(e.target.tagName)){
+    e.preventDefault();document.getElementById("q").focus();}});
+
+let qt;
+document.getElementById("q").addEventListener("input",e=>{
+  clearTimeout(qt);qt=setTimeout(()=>{
+    state.q=e.target.value.trim().toLowerCase();state.limit=150;renderAll();},140);});
+document.getElementById("groupby").addEventListener("change",e=>{
+  state.group=e.target.value;state.limit=150;renderAll();});
+document.getElementById("clearall").addEventListener("click",()=>{
+  state.q="";document.getElementById("q").value="";
+  FACETS.forEach(f=>state.chosen[f.k].clear());state.limit=150;renderAll();});
+document.querySelectorAll('[role=tab]').forEach(t=>t.addEventListener("click",()=>{
+  const v=t.id.replace("tab-","");state.view=v;
+  document.querySelectorAll('[role=tab]').forEach(x=>
+    x.setAttribute("aria-selected",x===t?"true":"false"));
+  ["library","physical","analyze","guide"].forEach(n=>
+    document.getElementById("view-"+n).hidden=n!==v);
+  document.querySelector(".rail").hidden=(v==="guide"||v==="physical");
+  if(v==="analyze")renderAnalyze();
+  if(v==="guide")renderGuide();
+  if(v==="physical")renderPhysical();
+}));
+document.getElementById("theme").addEventListener("click",()=>{
+  const cur=document.documentElement.getAttribute("data-theme");
+  const dark=cur?cur==="dark":matchMedia("(prefers-color-scheme:dark)").matches;
+  document.documentElement.setAttribute("data-theme",dark?"light":"dark");});
+
+function renderAll(){
+  buildDisplay();renderHead();renderRows();renderTiles();renderFacets();
+  if(state.view==="analyze")renderAnalyze();
+}
+document.getElementById("brandsub").textContent=
+  ALL.length.toLocaleString()+" games \u00B7 "+new Set(ALL.map(r=>r.cl)).size+
+  " platforms \u00B7 "+ALL.filter(r=>r.oc).length+" owned";
+renderAll();
+})();
+</script>
+</body>
+</html>

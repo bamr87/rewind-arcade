@@ -1,0 +1,28 @@
+# Neo Geo Pocket / Color - retro-pi system manifest
+# Regenerate frontend entries after editing:  ./bin/retropi build
+id: ngp
+name: "Neo Geo Pocket / Color"
+short_name: "NGP"
+manufacturer: "SNK"
+year: 1998
+aliases: [ngpc, neogeopocket]
+
+frontend:
+  platform: ngp   # scraper/theme id understood by ES-DE and RetroPie
+  theme: ngp
+
+# File types the frontend will show for this system.
+extensions: [".ngp", ".ngc", ".zip", ".7z"]
+
+emulators:
+  default: mednafen-ngp
+  list:
+    - id: mednafen-ngp
+      type: libretro
+      core: mednafen_ngp_libretro
+      display: "Beetle NeoPop"
+
+bios: []
+
+notes: >-
+  One core covers Neo Geo Pocket and Pocket Color. .ngc is the color library.

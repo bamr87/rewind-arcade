@@ -1,0 +1,38 @@
+# Sega Dreamcast - retro-pi system manifest
+# Regenerate frontend entries after editing:  ./bin/retropi build
+id: dreamcast
+name: "Sega Dreamcast"
+short_name: "DC"
+manufacturer: "Sega"
+year: 1998
+aliases: []
+
+frontend:
+  platform: dreamcast   # scraper/theme id understood by ES-DE and RetroPie
+  theme: dreamcast
+
+# File types the frontend will show for this system.
+extensions: [".gdi", ".cdi", ".chd", ".m3u"]
+
+emulators:
+  default: flycast
+  list:
+    - id: flycast
+      type: libretro
+      core: flycast_libretro
+      display: "Flycast"
+
+# Checked by `retropi doctor --bios`. retro-pi never downloads BIOS files;
+# you must supply them from hardware you own.
+bios:
+  - file: "dc_boot.bin"
+    md5: e10c53c2f8b90bab96ead2d368858623
+    required: true
+    note: "Dreamcast boot ROM"
+  - file: "dc_flash.bin"
+    md5: 0a93f7940c455905bea6e392dfde92a4
+    required: true
+    note: "Flash/nvram image"
+
+notes: >-
+  Place BIOS files in bios/dc/ as well as bios/ - Flycast looks in both.

@@ -1,0 +1,164 @@
+#!/usr/bin/env bash
+# retropi - one entry point for building, installing and maintaining a
+# portable retro gaming setup on macOS and Raspberry Pi.
+#
+# Written for bash 3.2 so it runs on stock macOS as well as Raspberry Pi OS.
+
+set -o errexit
+set -o nounset
+set -o pipefail
+
+RETROPI_VERSION="0.1.0"
+
+# Resolve the real script location even when invoked through a symlink.
+_src="${BASH_SOURCE[0]}"
+while [[ -L "$_src" ]]; do
+  _dir="$(cd -P "$(dirname "$_src")" && pwd)"
+  _src="$(readlink "$_src")"
+  [[ "$_src" != /* ]] && _src="$_dir/$_src"
+done
+RETROPI_BIN_DIR="$(cd -P "$(dirname "$_src")" && pwd)"
+RETROPI_ROOT="$(cd -P "$RETROPI_BIN_DIR/.." && pwd)"
+export RETROPI_ROOT RETROPI_VERSION
+
+# shellcheck source=../lib/common.sh
+. "$RETROPI_ROOT/lib/common.sh"
+# shellcheck source=../lib/platform.sh
+. "$RETROPI_ROOT/lib/platform.sh"
+# shellcheck source=../lib/config.sh
+. "$RETROPI_ROOT/lib/config.sh"
+# shellcheck source=../lib/systems.sh
+. "$RETROPI_ROOT/lib/systems.sh"
+# shellcheck source=../lib/frontend.sh
+. "$RETROPI_ROOT/lib/frontend.sh"
+
+usage() {
+  cat >&2 <<'__USAGE__'
+retropi - portable retro gaming workspace for macOS and Raspberry Pi
+
+USAGE
+  retropi <command> [options]
+
+SETUP
+  doctor            Check this machine and report what is missing
+  install           Install the emulator stack (RetroArch, cores, frontend)
+  build             Generate frontend + emulator config from the manifests
+  frontend          Install and manage EmulationStation
+  config            Read, write and initialize configuration
+
+CONTENT
+  systems           List and inspect supported systems
+  roms              Inventory, verify and organize your ROM library
+  bios              Report which BIOS files each system still needs
+  cores             List, install and update libretro cores
+  audio             Choose the sound output (e.g. HDMI speakers)
+
+MAINTENANCE
+  sync              Push or pull the workspace to another machine (rsync)
+  provision         Write retro-pi onto a Raspberry Pi OS boot partition
+  package           Build a portable archive of this workspace
+  extend            Scaffold a new system manifest or extension pack
+  test              Run the test suite
+  clean             Remove generated state and caches
+
+GLOBAL OPTIONS
+  -n, --dry-run     Print what would happen, change nothing
+  -v, --verbose     Verbose output
+  -y, --yes         Assume yes for prompts (required in CI)
+      --no-color    Disable colored output
+  -h, --help        Show help; `retropi <command> --help` for command help
+      --version     Print version
+
+Run `retropi doctor` first - it explains what to do next.
+__USAGE__
+}
+
+# --- global flag parsing (before the subcommand) ------------------------------
+ARGS=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -n|--dry-run) RETROPI_DRY_RUN=1 ;;
+    -v|--verbose) RETROPI_VERBOSE=1 ;;
+    -y|--yes)     RETROPI_ASSUME_YES=1 ;;
+    --no-color)   NO_COLOR=1 ;;
+    --version)    printf 'retropi %s\n' "$RETROPI_VERSION"; exit 0 ;;
+    -h|--help)    usage; exit 0 ;;
+    --)           shift; while [[ $# -gt 0 ]]; do ARGS[${#ARGS[@]}]="$1"; shift; done; break ;;
+    *)
+      # First non-flag token is the subcommand. Everything from here on
+      # belongs to it -- otherwise `retropi doctor --help` would be caught by
+      # the global --help above and print the wrong help.
+      while [[ $# -gt 0 ]]; do ARGS[${#ARGS[@]}]="$1"; shift; done
+      break ;;
+  esac
+  shift
+done
+export RETROPI_DRY_RUN RETROPI_VERBOSE RETROPI_ASSUME_YES
+
+# Re-source colors if --no-color arrived after common.sh was read.
+if [[ -n "${NO_COLOR:-}" ]]; then
+  C_RESET=''; C_DIM=''; C_BOLD=''; C_RED=''; C_GREEN=''; C_YELLOW=''; C_BLUE=''; C_CYAN=''
+fi
+
+[[ ${#ARGS[@]} -eq 0 ]] && { usage; exit 1; }
+
+cmd="${ARGS[0]}"
+
+# Global flags are accepted AFTER the subcommand too, so `retropi doctor -v`
+# behaves like `retropi -v doctor`. Everything else -- including -h/--help,
+# which must reach the subcommand -- is passed through untouched. A literal
+# `--` stops the scan so trailing operands are never reinterpreted.
+rest=()
+if [[ ${#ARGS[@]} -gt 1 ]]; then
+  _passthrough=0
+  for _arg in "${ARGS[@]:1}"; do
+    if [[ "$_passthrough" == "1" ]]; then
+      rest[${#rest[@]}]="$_arg"
+      continue
+    fi
+    case "$_arg" in
+      --)           _passthrough=1; rest[${#rest[@]}]="$_arg" ;;
+      -v|--verbose) RETROPI_VERBOSE=1 ;;
+      -n|--dry-run) RETROPI_DRY_RUN=1 ;;
+      -y|--yes)     RETROPI_ASSUME_YES=1 ;;
+      --no-color)   NO_COLOR=1 ;;
+      *)            rest[${#rest[@]}]="$_arg" ;;
+    esac
+  done
+  export RETROPI_VERBOSE RETROPI_DRY_RUN RETROPI_ASSUME_YES
+  if [[ -n "${NO_COLOR:-}" ]]; then
+    C_RESET=''; C_DIM=''; C_BOLD=''; C_RED=''; C_GREEN=''; C_YELLOW=''; C_BLUE=''; C_CYAN=''
+  fi
+fi
+
+# --- bootstrap ----------------------------------------------------------------
+config_init
+detect_platform
+
+case "$cmd" in
+  help) usage; exit 0 ;;
+  version) printf 'retropi %s\n' "$RETROPI_VERSION"; exit 0 ;;
+esac
+
+handler="$RETROPI_ROOT/cmd/$cmd.sh"
+if [[ ! -f "$handler" ]]; then
+  error "unknown command: $cmd"
+  log ""
+  usage
+  exit 1
+fi
+
+# Commands that must work before any config exists.
+case "$cmd" in
+  doctor|config|test|clean) : ;;
+  *) config_load ;;
+esac
+
+# shellcheck source=/dev/null
+. "$handler"
+
+if [[ ${#rest[@]} -gt 0 ]]; then
+  "cmd_$cmd" "${rest[@]}"
+else
+  "cmd_$cmd"
+fi

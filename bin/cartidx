@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Dispatch to the catalog workspace.
+exec "$(cd "$(dirname "$0")" && pwd)/../catalog/bin/cartidx" "$@"

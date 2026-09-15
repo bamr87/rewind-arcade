@@ -1,0 +1,605 @@
+# Unified system registry for Rewind Arcade.
+# Human-facing encyclopedia: docs/systems/
+# Emulation manifests: emulate/config/systems/<id>.yaml
+# Dump identification: catalog/src/cartridge_index/systems/
+# Physical/price platforms: catalog/src/cartridge_index/platforms.py
+# Browser recreations: arcade/src/games/
+#
+# ids are shared. A retro-pi ROM folder named roms/<id> is the same id
+# cartridge-index uses for dumps, inventory and the price guide.
+
+systems:
+  - id: pong
+    name: "Pong"
+    short: "Pong"
+    manufacturer: "Atari"
+    year: 1972
+    media: software
+    arcade: true
+    emulate: false
+    emulate_enabled: false
+    identify: false
+    catalog: false
+  - id: snake
+    name: "Snake"
+    short: "Snake"
+    manufacturer: "Various"
+    year: 1976
+    media: software
+    arcade: true
+    emulate: false
+    emulate_enabled: false
+    identify: false
+    catalog: false
+  - id: breakout
+    name: "Breakout"
+    short: "Breakout"
+    manufacturer: "Atari"
+    year: 1976
+    media: software
+    arcade: true
+    emulate: false
+    emulate_enabled: false
+    identify: false
+    catalog: false
+  - id: atari2600
+    name: "Atari 2600"
+    short: "2600"
+    manufacturer: "Atari"
+    year: 1977
+    media: cartridge
+    arcade: false
+    emulate: true
+    emulate_enabled: true
+    identify: false
+    catalog: true
+  - id: atari800
+    name: "Atari 8-bit (400/800/XL/XE)"
+    short: "Atari 8-bit"
+    manufacturer: "Atari"
+    year: 1979
+    media: floppy
+    arcade: false
+    emulate: true
+    emulate_enabled: false
+    identify: false
+    catalog: true
+  - id: asteroids
+    name: "Asteroids"
+    short: "Asteroids"
+    manufacturer: "Atari"
+    year: 1979
+    media: software
+    arcade: true
+    emulate: false
+    emulate_enabled: false
+    identify: false
+    catalog: false
+  - id: intellivision
+    name: "Mattel Intellivision"
+    short: "INTV"
+    manufacturer: "Mattel"
+    year: 1979
+    media: cartridge
+    arcade: false
+    emulate: true
+    emulate_enabled: false
+    identify: false
+    catalog: true
+  - id: arcade
+    name: "Arcade"
+    short: "Arcade"
+    manufacturer: "Various"
+    year: 1980
+    media: pcb
+    arcade: false
+    emulate: true
+    emulate_enabled: true
+    identify: false
+    catalog: true
+  - id: dos
+    name: "MS-DOS"
+    short: "DOS"
+    manufacturer: "Microsoft"
+    year: 1981
+    media: floppy
+    arcade: false
+    emulate: true
+    emulate_enabled: true
+    identify: false
+    catalog: true
+  - id: atari5200
+    name: "Atari 5200"
+    short: "5200"
+    manufacturer: "Atari"
+    year: 1982
+    media: cartridge
+    arcade: false
+    emulate: true
+    emulate_enabled: false
+    identify: false
+    catalog: true
+  - id: c64
+    name: "Commodore 64"
+    short: "C64"
+    manufacturer: "Commodore"
+    year: 1982
+    media: floppy
+    arcade: false
+    emulate: true
+    emulate_enabled: true
+    identify: false
+    catalog: true
+  - id: colecovision
+    name: "ColecoVision"
+    short: "Coleco"
+    manufacturer: "Coleco"
+    year: 1982
+    media: cartridge
+    arcade: false
+    emulate: true
+    emulate_enabled: false
+    identify: false
+    catalog: true
+  - id: vectrex
+    name: "GCE Vectrex"
+    short: "Vectrex"
+    manufacturer: "GCE"
+    year: 1982
+    media: cartridge
+    arcade: false
+    emulate: true
+    emulate_enabled: false
+    identify: false
+    catalog: true
+  - id: nes
+    name: "Nintendo Entertainment System"
+    short: "NES"
+    manufacturer: "Nintendo"
+    year: 1983
+    media: cartridge
+    arcade: false
+    emulate: true
+    emulate_enabled: true
+    identify: true
+    catalog: true
+  - id: sg1000
+    name: "Sega SG-1000"
+    short: "SG-1000"
+    manufacturer: "Sega"
+    year: 1983
+    media: cartridge
+    arcade: false
+    emulate: true
+    emulate_enabled: false
+    identify: true
+    catalog: true
+  - id: amiga
+    name: "Commodore Amiga"
+    short: "Amiga"
+    manufacturer: "Commodore"
+    year: 1985
+    media: floppy
+    arcade: false
+    emulate: true
+    emulate_enabled: false
+    identify: false
+    catalog: true
+  - id: mastersystem
+    name: "Sega Master System"
+    short: "SMS"
+    manufacturer: "Sega"
+    year: 1985
+    media: cartridge
+    arcade: false
+    emulate: true
+    emulate_enabled: true
+    identify: true
+    catalog: true
+  - id: atari7800
+    name: "Atari 7800"
+    short: "7800"
+    manufacturer: "Atari"
+    year: 1986
+    media: cartridge
+    arcade: false
+    emulate: true
+    emulate_enabled: true
+    identify: false
+    catalog: true
+  - id: pcengine
+    name: "NEC PC Engine / TurboGrafx-16"
+    short: "PCE"
+    manufacturer: "NEC"
+    year: 1987
+    media: cartridge
+    arcade: false
+    emulate: true
+    emulate_enabled: true
+    identify: false
+    catalog: true
+  - id: scummvm
+    name: "ScummVM"
+    short: "ScummVM"
+    manufacturer: "Various"
+    year: 1987
+    media: directory
+    arcade: false
+    emulate: true
+    emulate_enabled: false
+    identify: false
+    catalog: true
+  - id: megadrive
+    name: "Sega Mega Drive / Genesis"
+    short: "Genesis"
+    manufacturer: "Sega"
+    year: 1988
+    media: cartridge
+    arcade: false
+    emulate: true
+    emulate_enabled: true
+    identify: true
+    catalog: true
+  - id: pcenginecd
+    name: "PC Engine CD / TurboGrafx-CD"
+    short: "PCE-CD"
+    manufacturer: "NEC"
+    year: 1988
+    media: disc
+    arcade: false
+    emulate: true
+    emulate_enabled: false
+    identify: false
+    catalog: true
+  - id: gb
+    name: "Nintendo Game Boy"
+    short: "GB"
+    manufacturer: "Nintendo"
+    year: 1989
+    media: cartridge
+    arcade: false
+    emulate: true
+    emulate_enabled: true
+    identify: false
+    catalog: true
+  - id: lynx
+    name: "Atari Lynx"
+    short: "Lynx"
+    manufacturer: "Atari"
+    year: 1989
+    media: cartridge
+    arcade: false
+    emulate: true
+    emulate_enabled: false
+    identify: false
+    catalog: true
+  - id: gamegear
+    name: "Sega Game Gear"
+    short: "GG"
+    manufacturer: "Sega"
+    year: 1990
+    media: cartridge
+    arcade: false
+    emulate: true
+    emulate_enabled: true
+    identify: true
+    catalog: true
+  - id: minesweeper
+    name: "Minesweeper"
+    short: "Minesweeper"
+    manufacturer: "Microsoft"
+    year: 1990
+    media: software
+    arcade: true
+    emulate: false
+    emulate_enabled: false
+    identify: false
+    catalog: false
+  - id: neogeo
+    name: "SNK Neo Geo"
+    short: "Neo Geo"
+    manufacturer: "SNK"
+    year: 1990
+    media: cartridge
+    arcade: false
+    emulate: true
+    emulate_enabled: true
+    identify: false
+    catalog: true
+  - id: snes
+    name: "Super Nintendo Entertainment System"
+    short: "SNES"
+    manufacturer: "Nintendo"
+    year: 1990
+    media: cartridge
+    arcade: false
+    emulate: true
+    emulate_enabled: true
+    identify: true
+    catalog: true
+  - id: segacd
+    name: "Sega CD / Mega-CD"
+    short: "Sega CD"
+    manufacturer: "Sega"
+    year: 1991
+    media: disc
+    arcade: false
+    emulate: true
+    emulate_enabled: true
+    identify: false
+    catalog: true
+  - id: jezzball
+    name: "JezzBall"
+    short: "JezzBall"
+    manufacturer: "Microsoft"
+    year: 1992
+    media: software
+    arcade: true
+    emulate: false
+    emulate_enabled: false
+    identify: false
+    catalog: false
+  - id: 3do
+    name: "3DO Interactive Multiplayer"
+    short: "3DO"
+    manufacturer: "Panasonic"
+    year: 1993
+    media: disc
+    arcade: false
+    emulate: true
+    emulate_enabled: false
+    identify: false
+    catalog: true
+  - id: jaguar
+    name: "Atari Jaguar"
+    short: "Jaguar"
+    manufacturer: "Atari"
+    year: 1993
+    media: cartridge
+    arcade: false
+    emulate: true
+    emulate_enabled: false
+    identify: false
+    catalog: true
+  - id: psx
+    name: "Sony PlayStation"
+    short: "PS1"
+    manufacturer: "Sony"
+    year: 1994
+    media: disc
+    arcade: false
+    emulate: true
+    emulate_enabled: true
+    identify: false
+    catalog: true
+  - id: saturn
+    name: "Sega Saturn"
+    short: "Saturn"
+    manufacturer: "Sega"
+    year: 1994
+    media: disc
+    arcade: false
+    emulate: true
+    emulate_enabled: true
+    identify: false
+    catalog: true
+  - id: sega32x
+    name: "Sega 32X"
+    short: "32X"
+    manufacturer: "Sega"
+    year: 1994
+    media: cartridge
+    arcade: false
+    emulate: true
+    emulate_enabled: true
+    identify: true
+    catalog: true
+  - id: virtualboy
+    name: "Nintendo Virtual Boy"
+    short: "VB"
+    manufacturer: "Nintendo"
+    year: 1995
+    media: cartridge
+    arcade: false
+    emulate: true
+    emulate_enabled: false
+    identify: false
+    catalog: true
+  - id: n64
+    name: "Nintendo 64"
+    short: "N64"
+    manufacturer: "Nintendo"
+    year: 1996
+    media: cartridge
+    arcade: false
+    emulate: true
+    emulate_enabled: true
+    identify: true
+    catalog: true
+  - id: dreamcast
+    name: "Sega Dreamcast"
+    short: "DC"
+    manufacturer: "Sega"
+    year: 1998
+    media: disc
+    arcade: false
+    emulate: true
+    emulate_enabled: true
+    identify: false
+    catalog: true
+  - id: gbc
+    name: "Nintendo Game Boy Color"
+    short: "GBC"
+    manufacturer: "Nintendo"
+    year: 1998
+    media: cartridge
+    arcade: false
+    emulate: true
+    emulate_enabled: true
+    identify: false
+    catalog: true
+  - id: ngp
+    name: "Neo Geo Pocket / Color"
+    short: "NGP"
+    manufacturer: "SNK"
+    year: 1998
+    media: cartridge
+    arcade: false
+    emulate: true
+    emulate_enabled: false
+    identify: false
+    catalog: true
+  - id: wonderswan
+    name: "Bandai WonderSwan / Color"
+    short: "WS"
+    manufacturer: "Bandai"
+    year: 1999
+    media: cartridge
+    arcade: false
+    emulate: true
+    emulate_enabled: false
+    identify: false
+    catalog: true
+  - id: ps2
+    name: "PlayStation 2"
+    short: "PS2"
+    manufacturer: "Sony"
+    year: 2000
+    media: disc
+    arcade: false
+    emulate: false
+    emulate_enabled: false
+    identify: false
+    catalog: true
+  - id: gamecube
+    name: "Nintendo GameCube"
+    short: "GCN"
+    manufacturer: "Nintendo"
+    year: 2001
+    media: disc
+    arcade: false
+    emulate: false
+    emulate_enabled: false
+    identify: false
+    catalog: true
+  - id: gba
+    name: "Nintendo Game Boy Advance"
+    short: "GBA"
+    manufacturer: "Nintendo"
+    year: 2001
+    media: cartridge
+    arcade: false
+    emulate: true
+    emulate_enabled: true
+    identify: false
+    catalog: true
+  - id: xbox
+    name: "Original Xbox"
+    short: "Xbox"
+    manufacturer: "Microsoft"
+    year: 2001
+    media: disc
+    arcade: false
+    emulate: false
+    emulate_enabled: false
+    identify: false
+    catalog: true
+  - id: nds
+    name: "Nintendo DS"
+    short: "NDS"
+    manufacturer: "Nintendo"
+    year: 2004
+    media: cartridge
+    arcade: false
+    emulate: true
+    emulate_enabled: true
+    identify: false
+    catalog: true
+  - id: psp
+    name: "Sony PlayStation Portable"
+    short: "PSP"
+    manufacturer: "Sony"
+    year: 2004
+    media: disc
+    arcade: false
+    emulate: true
+    emulate_enabled: true
+    identify: false
+    catalog: true
+  - id: ps3
+    name: "PlayStation 3"
+    short: "PS3"
+    manufacturer: "Sony"
+    year: 2006
+    media: disc
+    arcade: false
+    emulate: false
+    emulate_enabled: false
+    identify: false
+    catalog: true
+  - id: wii
+    name: "Nintendo Wii"
+    short: "Wii"
+    manufacturer: "Nintendo"
+    year: 2006
+    media: disc
+    arcade: false
+    emulate: false
+    emulate_enabled: false
+    identify: false
+    catalog: true
+  - id: 3ds
+    name: "Nintendo 3DS"
+    short: "3DS"
+    manufacturer: "Nintendo"
+    year: 2011
+    media: cartridge
+    arcade: false
+    emulate: false
+    emulate_enabled: false
+    identify: false
+    catalog: true
+  - id: psvita
+    name: "PlayStation Vita"
+    short: "Vita"
+    manufacturer: "Sony"
+    year: 2011
+    media: cartridge
+    arcade: false
+    emulate: false
+    emulate_enabled: false
+    identify: false
+    catalog: true
+  - id: wiiu
+    name: "Nintendo Wii U"
+    short: "Wii U"
+    manufacturer: "Nintendo"
+    year: 2012
+    media: disc
+    arcade: false
+    emulate: false
+    emulate_enabled: false
+    identify: false
+    catalog: true
+  - id: ps4
+    name: "PlayStation 4"
+    short: "PS4"
+    manufacturer: "Sony"
+    year: 2013
+    media: disc
+    arcade: false
+    emulate: false
+    emulate_enabled: false
+    identify: false
+    catalog: true
+  - id: switch
+    name: "Nintendo Switch"
+    short: "Switch"
+    manufacturer: "Nintendo"
+    year: 2017
+    media: cartridge
+    arcade: false
+    emulate: false
+    emulate_enabled: false
+    identify: false
+    catalog: true

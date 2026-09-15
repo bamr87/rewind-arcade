@@ -1,0 +1,28 @@
+# Atari 5200 - retro-pi system manifest
+# Regenerate frontend entries after editing:  ./bin/retropi build
+id: atari5200
+name: "Atari 5200"
+short_name: "5200"
+manufacturer: "Atari"
+year: 1982
+aliases: [5200]
+
+frontend:
+  platform: atari5200   # scraper/theme id understood by ES-DE and RetroPie
+  theme: atari5200
+
+# File types the frontend will show for this system.
+extensions: [".a52", ".bin", ".zip", ".7z"]
+
+emulators:
+  default: a5200
+  list:
+    - id: a5200
+      type: libretro
+      core: a5200_libretro
+      display: "a5200"
+
+bios: []
+
+notes: >-
+  The 5200 is electrically close to the 8-bit computers; a5200 is the dedicated core.

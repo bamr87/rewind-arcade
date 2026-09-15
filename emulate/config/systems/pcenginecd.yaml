@@ -1,0 +1,35 @@
+# PC Engine CD / TurboGrafx-CD - retro-pi system manifest
+# Regenerate frontend entries after editing:  ./bin/retropi build
+id: pcenginecd
+name: "PC Engine CD / TurboGrafx-CD"
+short_name: "PCE-CD"
+manufacturer: "NEC"
+year: 1988
+aliases: [tgcd, turbografxcd]
+
+frontend:
+  platform: pcenginecd   # scraper/theme id understood by ES-DE and RetroPie
+  theme: pcenginecd
+
+# File types the frontend will show for this system.
+extensions: [".cue", ".chd", ".iso", ".pce"]
+
+emulators:
+  default: beetle-pce
+  list:
+    - id: beetle-pce
+      type: libretro
+      core: mednafen_pce_fast_libretro
+      display: "Beetle PCE Fast"
+    - id: beetle-pce-accurate
+      type: libretro
+      core: mednafen_pce_libretro
+      display: "Beetle PCE"
+
+bios:
+  - file: "syscard3.pce"
+    required: true
+    note: "System Card 3.0"
+
+notes: >-
+  CD games need a System Card BIOS. HuCard games stay in the pcengine system.
