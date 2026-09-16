@@ -1,9 +1,19 @@
 import clsx from 'clsx';
-import { Database, Gamepad, Gamepad2, Info, Keyboard, Palette, RotateCcw } from 'lucide-react';
+import { Database, Gamepad, Gamepad2, HardDrive, Info, Keyboard, Palette, RotateCcw } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useCatalog } from '../catalog/store';
+import { mb } from '../catalog/format';
+import {
+  clearStored,
+  forgetFolder,
+  grantFolder,
+  pickFolder,
+  supportsFolder,
+  useRomLibrary,
+} from '../emulate/library';
+import { useRoms } from '../emulate/roms';
 import { padGlyph, padRoles, subscribePad, type PadButton, type PadInfo } from '../engine/gamepad';
 import { hrefFor } from '../engine/router';
 import {
@@ -112,6 +122,8 @@ export function SettingsPage() {
           </SettingRow>
         </Panel>
 
+        <RomLibraryPanel />
+
         <Panel title="Data" icon={<Database />}>
           <SettingRow
             label="Collection"
@@ -157,6 +169,74 @@ export function SettingsPage() {
         </Panel>
       </div>
     </div>
+  );
+}
+
+/**
+ * The dumps this browser can reach. On a deployed site this is the only source there is,
+ * so it lives in settings as well as on the Emulate page.
+ */
+function RomLibraryPanel() {
+  const lib = useRomLibrary();
+  const roms = useRoms();
+  const stored = roms.bySystem.size
+    ? [...roms.bySystem.values()].flat().filter((r) => r.source === 'stored')
+    : [];
+  const storedBytes = stored.reduce((n, r) => n + r.size, 0);
+
+  return (
+    <Panel title="ROM library" icon={<HardDrive />}>
+      <SettingRow
+        label="Roms folder"
+        help={
+          lib.folderStatus === 'granted'
+            ? `Reading ${lib.folderName} on demand. Nothing was copied.`
+            : lib.folderStatus === 'prompt'
+              ? `${lib.folderName ?? 'A folder'} is remembered, but a browser only re-grants access from a click.`
+              : supportsFolder()
+                ? 'Grant a roms/<system-id>/ folder once and this browser reopens it on every visit.'
+                : 'This browser has no folder access. Add files on the Emulate page instead; they are kept here.'
+        }
+      >
+        {lib.folderStatus === 'granted' ? (
+          <Button variant="ghost" disabled={lib.busy} onClick={() => void forgetFolder()}>
+            Forget folder
+          </Button>
+        ) : lib.folderStatus === 'prompt' ? (
+          <Button disabled={lib.busy} onClick={() => void grantFolder()}>
+            Re-open folder
+          </Button>
+        ) : (
+          <Button disabled={lib.busy || !supportsFolder()} onClick={() => void pickFolder()}>
+            Open roms folder
+          </Button>
+        )}
+      </SettingRow>
+      <SettingRow
+        label="Kept in this browser"
+        help={
+          stored.length
+            ? `${stored.length} dump${stored.length === 1 ? '' : 's'}, ${mb(storedBytes)}. Stored on this device only — nothing is uploaded.`
+            : 'Dumps you drop on the Emulate page are stored here so they survive a reload.'
+        }
+      >
+        <Button
+          variant="danger"
+          disabled={!stored.length || lib.busy}
+          onClick={() => {
+            void clearStored();
+            toast('Cleared the dumps kept in this browser');
+          }}
+        >
+          Clear
+        </Button>
+      </SettingRow>
+      <p className="mt-4 text-[13px] text-faint">
+        {roms.counts.server > 0
+          ? `The dev server is also listing ${roms.count - roms.counts.folder - roms.counts.stored} dump(s) from ${roms.root}.`
+          : 'No game files are ever downloaded or shipped — the site only plays what you point it at.'}
+      </p>
+    </Panel>
   );
 }
 

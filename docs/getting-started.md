@@ -17,7 +17,7 @@ A gamepad drives the whole frontend — the carousel, the gamelists, the other p
 
 Dumps you already keep in `emulate/roms/<system-id>/` appear in the browser frontend too: picking one launches it in the page, with no file picker. `npm run emulatorjs --prefix arcade` vendors EmulatorJS and the cores those systems use (~71 MB, gitignored) so a session loads nothing from a CDN.
 
-Production build is static files in `arcade/dist/` and is what GitHub Pages serves.
+Production build is static files in `arcade/dist/` and is what GitHub Pages serves. The deployed site runs entirely in the browser: point it at a roms folder (or add files) and drop in a `cartidx build` export, and it keeps both — no server, nothing uploaded.
 
 Adding a game is one directory plus one line in `arcade/src/games/registry.ts`. See [arcade/README.md](../arcade/README.md).
 

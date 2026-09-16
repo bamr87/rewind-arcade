@@ -23,7 +23,7 @@ export interface EsSystem {
   hue: string;
   count: number;
   canEmu: boolean;
-  /** Dumps for this system in the local roms folder. */
+  /** Dumps for this system the browser can launch, from any source. */
   romCount: number;
   /** libretro's picture of the console, when one exists for this id. */
   icon?: string;
@@ -91,14 +91,14 @@ function fromRow(row: GameRow, nointro?: string): EsGame {
   };
 }
 
-/** A dump in the roms folder that no catalog title claimed. */
+/** A dump no catalog title claimed, from the roms folder or this browser's own library. */
 function romEntry(rom: RomFile): EsGame {
   return {
     key: `${rom.system}:rom:${rom.file}`,
     systemId: rom.system,
     title: rom.label,
     sort: sortName(rom.label),
-    description: 'In your roms folder. Launches straight into the browser core.',
+    description: `${rom.source === 'stored' ? 'Saved in this browser' : 'In your roms folder'}. Launches straight into the browser core.`,
     kind: 'rom',
     rom,
   };
