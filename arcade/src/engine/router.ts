@@ -6,6 +6,8 @@ export interface Route {
   gameId?: string;
   systemId?: string;
   tab?: CatalogTab;
+  /** A file in the local roms folder, launched without a file picker. */
+  romFile?: string;
 }
 
 function parse(hash: string): Route {
@@ -14,9 +16,12 @@ function parse(hash: string): Route {
   const head = parts[0];
   if (head === 'play') return { name: 'play', gameId: parts[1] ? decodeURIComponent(parts[1]) : undefined };
   if (head === 'emulate') {
-    return parts[1]
-      ? { name: 'emulate', systemId: decodeURIComponent(parts[1]) }
-      : { name: 'emulate' };
+    if (!parts[1]) return { name: 'emulate' };
+    return {
+      name: 'emulate',
+      systemId: decodeURIComponent(parts[1]),
+      romFile: parts[2] ? decodeURIComponent(parts[2]) : undefined,
+    };
   }
   if (head === 'system' && parts[1]) {
     return { name: 'gamelist', systemId: decodeURIComponent(parts[1]) };
@@ -52,7 +57,12 @@ export function useHashRoute(): Route {
 
 export function hrefFor(route: Route): string {
   if (route.name === 'play') return route.gameId ? `#/play/${route.gameId}` : '#/play';
-  if (route.name === 'emulate') return route.systemId ? `#/emulate/${route.systemId}` : '#/emulate';
+  if (route.name === 'emulate') {
+    if (!route.systemId) return '#/emulate';
+    return route.romFile
+      ? `#/emulate/${route.systemId}/${encodeURIComponent(route.romFile)}`
+      : `#/emulate/${route.systemId}`;
+  }
   if (route.name === 'gamelist' && route.systemId) return `#/system/${route.systemId}`;
   if (route.name === 'catalog') {
     if (route.systemId) return `#/catalog/system/${route.systemId}`;

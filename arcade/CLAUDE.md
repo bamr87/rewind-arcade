@@ -46,6 +46,7 @@ handled by the host (pause, and confirming the overlay's primary button) and are
   Space would both pause through the engine and re-click the button.
 - Pointer coordinates are converted to the game's design space before dispatch, so game
   code never sees CSS pixels or DPR.
+- **A pad reaches a game as key codes.** `GameManifest.pad` (and `pad2` for a second player) maps a button *position* to a code the game already handles in `onKey`, so no engine file knows what any game does with it; directions default to the arrows, which is why every game was playable from a pad before any of them declared a binding. Start stays with the host for pause, and while a panel is up the pad drives the panel instead of the game.
 
 ### Shared services
 
@@ -58,7 +59,9 @@ out of `tone()`/`arp()`. `ensure()` is called on first input to satisfy autoplay
 - `src/profile/store.ts` — host-side play history (sessions, seconds, last 24 scores,
 favorites) behind `useSyncExternalStore`, persisted through `storage`. Best scores stay in the engine's `best:<id>` keys; profile export/import carries them along. Games never see this store.
 - `src/settings/store.ts` — frontend preferences. They are applied as `data-phosphor`,
-`data-motion`, and `data-ambient` on `<html>` so CSS reacts without React. Mute is not here; `audio.subscribe` plus `useMuted()` (`src/ui/hooks.ts`) keep every mute button in sync.
+`data-motion`, and `data-ambient` on `<html>` so CSS reacts without React. Mute is not here; `audio.subscribe` plus `useMuted()` (`src/ui/hooks.ts`) keep every mute button in sync. `apply()` also pushes the three pad preferences into `engine/gamepad.ts`, which is how engine code honours them without importing the frontend.
+- `src/engine/gamepad.ts` — the only `requestAnimationFrame` poll of the Gamepad API, because the API has no button events and two pollers would act on one press twice. It emits press/release/repeat events (auto-repeat and stick hysteresis live there), polls only while something subscribes, and releases everything held when it stops so no game is left thrusting. Buttons are named by position (`south`/`east`, never A/B) since which position confirms is the user's layout preference — ask `padRoles()` and `padGlyph()` rather than hard-coding a letter. `suspendPad()` hands the pad to an emulator iframe, which polls the same device itself.
+- `src/esde/spatial.ts` — pad navigation for the pages that are plain DOM: it focuses the nearest focusable element in the direction pressed, so a new page is navigable as soon as it renders. Deliberately pad-only — hijacking a keyboard's arrow keys would break scrolling — and it draws its ring from `[data-pad-focus]` because `:focus-visible` never fires for programmatic focus.
 
 ### Styling
 
@@ -67,6 +70,10 @@ favorites) behind `useSyncExternalStore`, persisted through `storage`. Best scor
 ### Catalog and systems (no Python, no dumps)
 
 Arcade must not import `catalog/` or `emulate/` code. Shared truth is `systems/registry.yaml`, bundled as text (`src/systems/registry.ts`). Collection rows come from a cartidx `data.js` export: the Vite dev server will serve `catalog/workspace/web/data.js` at `/catalog-data.js` when that file exists; production builds never embed it. Users can also drop the file in the Catalog page. Compact web keys match `catalog/src/cartridge_index/schema.py` — if you add a column the page reads, add it there first. The export's `window.SYSTEMS` table (console hardware facts) is optional: older exports and bundles already saved in IndexedDB lack it, so read `bundle.systems` as possibly undefined.
+
+EmulatorJS is vendored, not linked. `tools/fetch-emulatorjs.mjs` (`npm run emulatorjs`) copies the runtime, translations and one core per system from the CDN into `vendor/emulatorjs/`; `emulatorJsPlugin` serves that at `/emulatorjs/` and copies it into `dist/` at build. `src/emulate/emulatorjs.ts` probes `version.json` once and falls back to the CDN when the folder is absent, so a fresh checkout still runs. The core file each system needs is EmulatorJS's own `getCores()` mapping — `EJS_core` is not a file name (`segaMD` loads `genesis_plus_gx`, PSP only ships a threads build), so `CORE_FILES` in the script is the place that mapping lives. Each core also ships as plain, `-legacy` and `-thread` builds and the runtime chooses one (legacy on an ordinary page, threads when cross-origin isolated); anything it cannot find locally it silently re-requests from `cdn.emulatorjs.org`, so vendoring one variant looks fine while still hitting the network. Verify with the network log, not the console.
+
+Local dumps are a dev-server feature, never a shipped one. `romsPlugin` in `vite.config.ts` lists `emulate/roms/<system>/` (or `$ARCADE_ROMS` / `$RETROPI_PATHS_ROMS`) at `/roms-index.json` and streams the files at `/roms/<system>/<file>`, refusing anything that resolves outside the root; it imports `EMU_SYSTEMS` so the accepted extensions have one definition. `src/emulate/roms.ts` holds the index and the key matching that joins a file to a catalog title (slug, title, No-Intro name, minus cartidx's `-unverified-dump` tail or a `-japan` region tail); unmatched files become their own `kind: 'rom'` gamelist entries. A production build has no such folder: the index 404s and every route falls back to the file picker. EmulatorJS boots from page globals and throws if loaded twice, so each game runs in its own `srcDoc` iframe.
 
 Art is always hotlinked, never bundled or downloaded. `src/esde/covers.ts` is the one place image URLs are built: libretro thumbnails by No-Intro name, LaunchBox images from the export's `bx`/`lg`/`ts`/`ct` file names, and libretro's "systematic" console renders via jsDelivr. `SystemArt` preloads each candidate list and only draws images that actually load, so a missing cover never leaves a gap.
 

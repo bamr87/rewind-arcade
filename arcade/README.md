@@ -98,19 +98,34 @@ Tabs: Library, Physical, Analyze, Price guide — the same views as `cartidx ser
 
 ## Emulate
 
-From a system's gamelist, **Load dump** opens `#/emulate/<id>`. Drop a dump you own; EmulatorJS runs it in the page. Cores load from a CDN; **no game files are fetched or shipped**. Disc systems may still ask for BIOS you dumped yourself.
+Dumps you keep in `emulate/roms/<system-id>/` play with one click. The dev server lists that folder at `/roms-index.json` and streams the files themselves; a gamelist entry that matches one shows a **ROM** badge and launches straight into the browser core at `#/emulate/<id>/<file>`, no file picker. Files are matched to catalog titles by slug, by title, and by No-Intro name, so `sonic-the-hedgehog-2.bin` finds *Sonic The Hedgehog 2*; anything unmatched still appears in the gamelist under its own name. Point somewhere else with `ARCADE_ROMS=/Volumes/games/roms npm run dev` (`RETROPI_PATHS_ROMS` works too).
+
+**The emulator itself can be local too.** `npm run emulatorjs` vendors an EmulatorJS build (runtime, translations, and every core our systems use — about 71 MB) into `arcade/vendor/emulatorjs/`, gitignored. Cores ship in several builds and EmulatorJS picks one at run time, quietly re-requesting from its own CDN anything it cannot find locally, so the script fetches the plain and legacy builds of each; add `--threads` if you serve with COOP/COEP headers. The dev server, `preview`, and `dist/` then serve it at `/emulatorjs/`, so a session reaches no third-party host at all. Without it the frontend falls back to `cdn.emulatorjs.org` and the player says so. `--systems nes,snes` fetches fewer cores; `ARCADE_EMULATORJS` moves the folder. (`cores/reports/*.json` 404s against the CDN too — EmulatorJS asks for a file that is not published.)
+
+Without a local file, **Load dump** opens `#/emulate/<id>` and you drop a dump you own. Either way EmulatorJS runs it in the page, each game in its own iframe so switching games is clean. The emulator and its cores come from the vendored build when it is present and from the CDN otherwise; **no game files are fetched or shipped** — a production build serves no roms folder, so a static deploy always asks for a file. Disc systems may still ask for BIOS you dumped yourself, and `.cue` / `.m3u` are skipped because a browser core streams a single file: use `.chd`, `.iso`, or a zip.
 
 ## Controls (ES-DE)
 
 - **Left / Right** — system carousel
 - **Up / Down** — gamelist
-- **Enter / A** — select / launch
-- **Backspace / Esc / B** — back
-- **F1 / Start** — main menu
+- **Enter** — select / launch
+- **Backspace / Esc** — back
+- **F1** — main menu
+- **PgUp / PgDn** — jump ten
 - **/** — search the gamelist
 - A–Z — jump to title
 - **⌘K / Ctrl+K** — command palette
 
 During a recreation: **Space / Enter** pause or confirm, **Esc / P** pause. The HUD buttons cover everything else.
+
+## Gamepad
+
+Plug one in and press a button — browsers keep a pad hidden until it is used. It drives the whole frontend: the d-pad or left stick moves, **A** selects, **B** goes back, **Start** opens the main menu, **Y** opens the command palette, and the shoulders jump ten rows. The pages that are not a carousel (lobby, catalog, atlas, Hall of Fame, settings) have no wheel to steer, so there the d-pad moves a focus ring to the nearest button in that direction; the keyboard's arrow keys still just scroll.
+
+Every recreation plays from the pad: the d-pad and stick are the arrow keys, **Start** pauses, and each game binds its own action buttons — fire in Asteroids, serve in Breakout, rotate the wall in JezzBall, flag in Minesweeper. Pong seats two pads, one per paddle. JezzBall and Minesweeper still want a pointer for the part that aims.
+
+Settings → Gamepad has a live button read-out for checking a mapping, a rumble switch, and a layout choice: **Xbox**, **Nintendo** (A on the right confirms) or **PlayStation** (✕ confirms). The layout changes both the glyphs shown and which button confirms, so the prompts match the controller in your hands.
+
+While an emulator core is running, the pad belongs to it — EmulatorJS reads the same controller from inside its iframe, so the frontend stops polling until you eject.
 
 Best scores, play history, and settings are saved in `localStorage`. Append `?debug=1` to the URL to expose the live game instance on `window.__arcade` for console tinkering.

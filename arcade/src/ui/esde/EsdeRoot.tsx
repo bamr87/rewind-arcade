@@ -4,6 +4,7 @@ import { useCatalog } from '../../catalog/store';
 import { navigate, type Route } from '../../engine/router';
 import { useEsdeInput } from '../../esde/input';
 import { useEsLibrary } from '../../esde/library';
+import { useSpatialNav } from '../../esde/spatial';
 import { PlayLobby } from '../PlayLobby';
 import { Shell } from '../Shell';
 import { GamelistView } from './GamelistView';
@@ -28,6 +29,7 @@ export function EsdeRoot({ route }: { route: Route }) {
   // The palette chunk loads on first open, so the hotkey lives here rather than in it.
   const [paletteLoaded, setPaletteLoaded] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
   const system = systems.find((s) => s.id === route.systemId);
   const onMenu = () => setMenu(true);
   const blocked = menu || palette;
@@ -55,6 +57,7 @@ export function EsdeRoot({ route }: { route: Route }) {
   useEsdeInput((action) => {
     if (action === 'menu') onMenu();
     if (action === 'back') navigate({ name: 'arcade' });
+    if (action === 'search') openPalette();
   }, !blocked && !cabinet);
 
   const context = menu ? 'menu'
@@ -63,6 +66,9 @@ export function EsdeRoot({ route }: { route: Route }) {
     : 'other';
 
   const scroll = SCROLL_PAGES.includes(route.name);
+  // The ordinary pages have no carousel to steer, so a pad moves a focus ring across
+  // whatever they render instead. The whole shell is in range, top bar included.
+  useSpatialNav(rootRef, !blocked && scroll);
   const wheel = emulateWheel ? systems.filter((s) => s.canEmu) : systems;
   const readyHint = catalog.status === 'ready'
     ? `${catalog.bundle?.games.length.toLocaleString()} in collection`
@@ -74,7 +80,7 @@ export function EsdeRoot({ route }: { route: Route }) {
   }, [pageKey]);
 
   return (
-    <div className="esde">
+    <div className="esde" ref={rootRef}>
       <Shell route={route} onMenu={onMenu} onSearch={openPalette} collectionLabel={readyHint} />
       <main ref={mainRef} className={`esde-main${scroll ? ' esde-main--scroll' : ''}`}>
         {/* Opacity only: a transform here would re-anchor the catalog's fixed drawers. */}
@@ -86,7 +92,13 @@ export function EsdeRoot({ route }: { route: Route }) {
           transition={{ duration: 0.22 }}
         >
           {(homeWheel || emulateWheel || (route.name === 'gamelist' && !system)) && (
-            <SystemView key={emulateWheel ? 'emu' : 'home'} systems={wheel} menuOpen={blocked} onMenu={onMenu} />
+            <SystemView
+              key={emulateWheel ? 'emu' : 'home'}
+              systems={wheel}
+              menuOpen={blocked}
+              onMenu={onMenu}
+              onSearch={openPalette}
+            />
           )}
           {route.name === 'gamelist' && system && (
             <GamelistView system={system} games={gamesOf(system.id)} menuOpen={blocked} onMenu={onMenu} />

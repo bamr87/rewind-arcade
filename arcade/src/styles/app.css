@@ -37,6 +37,13 @@
     outline: 2px solid var(--accent);
     outline-offset: 2px;
   }
+  /* Gamepad focus. Browsers only raise :focus-visible for real key presses, so a pad
+     that moves focus programmatically would leave no ring at all. */
+  [data-pad-focus] {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 18%, transparent);
+  }
   ::selection {
     background: color-mix(in srgb, var(--accent) 40%, transparent);
   }

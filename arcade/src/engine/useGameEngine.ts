@@ -5,10 +5,20 @@ import type {
   GameManifest,
   HudModel,
   OverlayModel,
+  PadMap,
   PointerInfo,
 } from './types';
 import { audio } from './audio';
+import { padEnabled, padRoles, subscribePad, type PadEvent } from './gamepad';
 import { storage } from './storage';
+
+/** Every game understands the arrow keys, so a pad steers one without saying anything. */
+const PAD_DIRECTIONS: PadMap = {
+  up: 'ArrowUp',
+  down: 'ArrowDown',
+  left: 'ArrowLeft',
+  right: 'ArrowRight',
+};
 
 export type EngineStatus = 'running' | 'paused';
 
@@ -214,6 +224,49 @@ export function useGameEngine(manifest: GameManifest, config: GameConfig, option
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
 
+    // A pad speaks the game's own key codes: the manifest maps each button position to
+    // a code and the host never learns what any of them mean. Start is the one button
+    // the host keeps, so every game inherits pause without binding anything.
+    const padMap = (index: number): PadMap =>
+      index === 0
+        ? { ...PAD_DIRECTIONS, ...manifest.pad }
+        : { ...PAD_DIRECTIONS, ...(manifest.pad2 ?? manifest.pad) };
+
+    const onPad = (e: PadEvent) => {
+      if (!padEnabled()) return;
+      const code = padMap(e.index)[e.button];
+      // A release always reaches the game, panel or not, or a held direction sticks
+      // down for the rest of the session.
+      if (!e.down) {
+        if (code) instance.onKey?.(code, false);
+        return;
+      }
+      if (e.repeat) return;
+      audio.ensure();
+      const { confirm, cancel } = padRoles();
+      // While a panel is up the pad drives the panel rather than the game.
+      if (pausedRef.current) {
+        if (e.button === confirm || e.button === 'start') setPaused(false);
+        return;
+      }
+      const ov = overlayRef.current;
+      if (ov) {
+        if (e.button === confirm || e.button === 'start') {
+          const primary = ov.buttons.find((b) => b.primary) ?? ov.buttons[0];
+          if (primary) instance.onAction?.(primary.action);
+        } else if (e.button === cancel && ov.buttons.length > 1) {
+          instance.onAction?.(ov.buttons[ov.buttons.length - 1].action);
+        }
+        return;
+      }
+      if (e.button === 'start') {
+        setPaused(true);
+        return;
+      }
+      if (code) instance.onKey?.(code, true);
+    };
+    const offPad = subscribePad(onPad);
+
     /* --------------------------- Auto-pause ----------------------------- */
     const autoPause = () => {
       if (!overlayRef.current) setPaused(true);
@@ -248,6 +301,7 @@ export function useGameEngine(manifest: GameManifest, config: GameConfig, option
       canvas.removeEventListener('wheel', onWheel);
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
+      offPad();
       window.removeEventListener('blur', onBlur);
       document.removeEventListener('visibilitychange', onVisibility);
       instance.destroy?.();

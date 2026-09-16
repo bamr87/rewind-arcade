@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useCatalog } from '../catalog/store';
 import type { GameRow, SystemRow } from '../catalog/types';
+import { findRom, titleKeys, useRoms, type RomFile } from '../emulate/roms';
 import { EMU_SYSTEMS, getEmuSystem } from '../emulate/systems';
 import { GAMES } from '../games/registry';
 import { getPlatform } from '../systems/registry';
@@ -22,6 +23,8 @@ export interface EsSystem {
   hue: string;
   count: number;
   canEmu: boolean;
+  /** Dumps for this system in the local roms folder. */
+  romCount: number;
   /** libretro's picture of the console, when one exists for this id. */
   icon?: string;
   /** Box-art URL candidates for standout titles, one list per title. */
@@ -48,7 +51,9 @@ export interface EsGame {
   esrb?: string;
   owned?: boolean;
   region?: string;
-  kind: 'play' | 'catalog' | 'load';
+  kind: 'play' | 'catalog' | 'load' | 'rom';
+  /** The file in the local roms folder this title launches, when there is one. */
+  rom?: RomFile;
   playId?: string;
   slug?: string;
   accent?: string;
@@ -86,6 +91,19 @@ function fromRow(row: GameRow, nointro?: string): EsGame {
   };
 }
 
+/** A dump in the roms folder that no catalog title claimed. */
+function romEntry(rom: RomFile): EsGame {
+  return {
+    key: `${rom.system}:rom:${rom.file}`,
+    systemId: rom.system,
+    title: rom.label,
+    sort: sortName(rom.label),
+    description: 'In your roms folder. Launches straight into the browser core.',
+    kind: 'rom',
+    rom,
+  };
+}
+
 function loadEntry(systemId: string, short: string): EsGame {
   return {
     key: `${systemId}:__load`,
@@ -113,6 +131,7 @@ export function useEsLibrary(): { systems: EsSystem[]; gamesOf: (id: string) => 
   const games = catalog.bundle?.games;
   const roms = catalog.bundle?.roms;
   const systemRows = catalog.bundle?.systems;
+  const local = useRoms();
 
   return useMemo(() => {
     const names = new Map<string, string>();
@@ -147,9 +166,26 @@ export function useEsLibrary(): { systems: EsSystem[]; gamesOf: (id: string) => 
     }));
     bySys.set(RECREATIONS_ID, recreations);
 
+    // A dump in the roms folder joins the title it matches; the rest stand on their own.
+    for (const [sid, files] of local.bySystem) {
+      const entries = bySys.get(sid) ?? [];
+      const used = new Set<RomFile>();
+      for (const game of entries) {
+        if (game.kind !== 'catalog' || game.rom) continue;
+        const hit = findRom(local, sid, titleKeys(game.title, game.slug, game.nointro));
+        if (hit && !used.has(hit)) {
+          game.rom = hit;
+          used.add(hit);
+        }
+      }
+      for (const file of files) if (!used.has(file)) entries.push(romEntry(file));
+      bySys.set(sid, entries);
+    }
+
     const ids = new Set<string>([RECREATIONS_ID]);
     for (const s of EMU_SYSTEMS) ids.add(s.id);
     for (const id of bySys.keys()) ids.add(id);
+    for (const id of local.bySystem.keys()) ids.add(id);
 
     const systems: EsSystem[] = [];
     for (const id of ids) {
@@ -171,6 +207,7 @@ export function useEsLibrary(): { systems: EsSystem[]; gamesOf: (id: string) => 
           hue: '#38bdf8',
           count: recreations.length,
           canEmu: false,
+          romCount: 0,
           covers: [],
         });
         continue;
@@ -189,6 +226,7 @@ export function useEsLibrary(): { systems: EsSystem[]; gamesOf: (id: string) => 
         hue: makerHue(manufacturer),
         count: entries.filter((e) => e.kind !== 'load').length,
         canEmu: Boolean(emu),
+        romCount: local.bySystem.get(id)?.length ?? 0,
         icon: systemIcon(id),
         covers: standouts(entries),
         facts: facts.get(id),
@@ -212,5 +250,5 @@ export function useEsLibrary(): { systems: EsSystem[]; gamesOf: (id: string) => 
 
     const gamesOf = (id: string) => bySys.get(id) ?? [];
     return { systems, gamesOf };
-  }, [games, roms, systemRows]);
+  }, [games, roms, systemRows, local]);
 }

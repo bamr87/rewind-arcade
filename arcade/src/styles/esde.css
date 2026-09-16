@@ -65,11 +65,11 @@
   color: #041016;
   background: #94a3b8;
 }
-.esde-help kbd[data-btn="A"] { background: #3ddc84; }
-.esde-help kbd[data-btn="B"] { background: #f07178; }
-.esde-help kbd[data-btn="Start"],
-.esde-help kbd[data-btn="L/R"],
-.esde-help kbd[data-btn="U/D"] { border-radius: 6px; background: #cbd5e1; }
+/* Coloured by what the button does, not by its letter: the glyph itself changes with
+   the pad layout, so "A" is green on an Xbox pad and on a Nintendo one. */
+.esde-help kbd[data-role="confirm"] { background: #3ddc84; }
+.esde-help kbd[data-role="cancel"] { background: #f07178; }
+.esde-help kbd[data-role="plain"] { border-radius: 6px; background: #cbd5e1; }
 
 .esde-systems {
   height: 100%;

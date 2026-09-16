@@ -9,10 +9,12 @@ export function SystemView({
   systems,
   menuOpen,
   onMenu,
+  onSearch,
 }: {
   systems: EsSystem[];
   menuOpen: boolean;
   onMenu: () => void;
+  onSearch: () => void;
 }) {
   // Selection is held by id, not position: the list grows when a catalog export finishes
   // loading, and a remembered index would then point at a different console.
@@ -34,8 +36,17 @@ export function SystemView({
       const list = systemsRef.current;
       if (!list.length) return id;
       const at = Math.max(0, list.findIndex((s) => s.id === id));
-      return list[(at + dir + list.length) % list.length].id;
+      // Two-step modulo: a shoulder-button jump can carry further than the list is long.
+      return list[(((at + dir) % list.length) + list.length) % list.length].id;
     });
+  };
+
+  const jump = (letter: string) => {
+    const list = systemsRef.current;
+    const hit = list.find(
+      (s) => s.short.toLowerCase().startsWith(letter) || s.name.toLowerCase().startsWith(letter),
+    );
+    if (hit) setSelectedId(hit.id);
   };
 
   const enter = () => {
@@ -43,11 +54,15 @@ export function SystemView({
     if (s) navigate({ name: 'gamelist', systemId: s.id });
   };
 
-  useEsdeInput((action) => {
+  useEsdeInput((action, letter) => {
     if (action === 'left') move(-1);
     if (action === 'right') move(1);
+    if (action === 'pageUp') move(-5);
+    if (action === 'pageDown') move(5);
     if (action === 'accept' || action === 'down') enter();
     if (action === 'menu') onMenu();
+    if (action === 'search') onSearch();
+    if (action === 'letter' && letter) jump(letter);
   }, !menuOpen);
 
   const current = systems[index];

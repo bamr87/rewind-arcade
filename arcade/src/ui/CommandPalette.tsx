@@ -22,6 +22,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useCatalog } from '../catalog/store';
 import type { GameRow } from '../catalog/types';
 import { getEmuSystem } from '../emulate/systems';
+import { padEnabled, padRoles, subscribePad } from '../engine/gamepad';
 import { navigate, type Route } from '../engine/router';
 import { storage } from '../engine/storage';
 import { fmt } from '../engine/util';
@@ -100,6 +101,27 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
   useEffect(() => {
     if (!open) setSearch('');
   }, [open]);
+
+  // cmdk owns the list and listens for real key events, so rather than reach into it,
+  // the pad speaks to it in its own language.
+  useEffect(() => {
+    if (!open) return;
+    return subscribePad((e) => {
+      if (!e.down || !padEnabled()) return;
+      const { confirm, cancel } = padRoles();
+      if (e.button === cancel) {
+        onOpenChange(false);
+        return;
+      }
+      if (e.button === confirm && e.repeat) return;
+      const key =
+        e.button === confirm ? 'Enter' : e.button === 'up' ? 'ArrowUp' : e.button === 'down' ? 'ArrowDown' : '';
+      if (!key) return;
+      document
+        .querySelector<HTMLInputElement>('[cmdk-input]')
+        ?.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
+    });
+  }, [open, onOpenChange]);
 
   const needle = search.trim().toLowerCase();
   const titles = useMemo(() => {

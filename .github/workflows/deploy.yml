@@ -33,6 +33,11 @@ jobs:
           cache-dependency-path: arcade/package-lock.json
 
       - run: npm ci
+
+      # Vendor EmulatorJS so the published site serves the emulator and its cores itself
+      # rather than a CDN. Adds ~71 MB to the Pages artifact.
+      - run: npm run emulatorjs
+
       - run: npm run build
 
       - uses: actions/upload-pages-artifact@v3

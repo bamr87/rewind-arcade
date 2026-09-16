@@ -1,9 +1,11 @@
 import { useSyncExternalStore } from 'react';
+import { setPadConfig, type PadLayout } from '../engine/gamepad';
 import { storage } from '../engine/storage';
 
 /**
- * Frontend preferences (theme, CRT filter, motion). Applied as data attributes on
- * <html> so plain CSS can react; sound stays in the engine's audio bus.
+ * Frontend preferences (theme, CRT filter, motion, gamepad). Applied as data attributes
+ * on <html> so plain CSS can react; sound stays in the engine's audio bus and the pad
+ * preferences are pushed into the pad service.
  */
 
 export const PHOSPHORS = [
@@ -17,12 +19,22 @@ export const PHOSPHORS = [
 export type Phosphor = (typeof PHOSPHORS)[number]['id'];
 export type MotionPref = 'system' | 'reduced' | 'full';
 
+/** Which controller the button glyphs and the confirm position should match. */
+export const PAD_LAYOUTS: { id: PadLayout; label: string; note: string }[] = [
+  { id: 'xbox', label: 'Xbox', note: 'A confirms, B goes back' },
+  { id: 'nintendo', label: 'Nintendo', note: 'A on the right confirms, B goes back' },
+  { id: 'playstation', label: 'PlayStation', note: '✕ confirms, ○ goes back' },
+];
+
 export interface Settings {
   phosphor: Phosphor;
   crt: boolean;
   ambient: boolean;
   confetti: boolean;
   motion: MotionPref;
+  gamepad: boolean;
+  padLayout: PadLayout;
+  rumble: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -31,19 +43,29 @@ export const DEFAULT_SETTINGS: Settings = {
   ambient: true,
   confetti: true,
   motion: 'system',
+  gamepad: true,
+  padLayout: 'xbox',
+  rumble: true,
 };
 
 const KEY = 'settings-v1';
 
+type BoolKey = 'crt' | 'ambient' | 'confetti' | 'gamepad' | 'rumble';
+
 function load(): Settings {
   const raw = storage.getJson<Record<string, unknown>>(KEY, {});
-  const bool = (k: 'crt' | 'ambient' | 'confetti') => (typeof raw[k] === 'boolean' ? (raw[k] as boolean) : DEFAULT_SETTINGS[k]);
+  const bool = (k: BoolKey) => (typeof raw[k] === 'boolean' ? (raw[k] as boolean) : DEFAULT_SETTINGS[k]);
   return {
     phosphor: PHOSPHORS.some((p) => p.id === raw.phosphor) ? (raw.phosphor as Phosphor) : DEFAULT_SETTINGS.phosphor,
     crt: bool('crt'),
     ambient: bool('ambient'),
     confetti: bool('confetti'),
     motion: raw.motion === 'reduced' || raw.motion === 'full' ? raw.motion : 'system',
+    gamepad: bool('gamepad'),
+    padLayout: PAD_LAYOUTS.some((l) => l.id === raw.padLayout)
+      ? (raw.padLayout as PadLayout)
+      : DEFAULT_SETTINGS.padLayout,
+    rumble: bool('rumble'),
   };
 }
 
@@ -52,6 +74,8 @@ function apply(s: Settings) {
   root.dataset.phosphor = s.phosphor;
   root.dataset.motion = s.motion;
   root.dataset.ambient = s.ambient ? 'on' : 'off';
+  // The pad service holds these so nothing under engine/ has to import the frontend.
+  setPadConfig({ enabled: s.gamepad, layout: s.padLayout, rumble: s.rumble });
 }
 
 let state = load();

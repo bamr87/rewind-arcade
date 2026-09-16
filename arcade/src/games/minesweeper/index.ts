@@ -15,7 +15,9 @@ export const minesweeperManifest: GameManifest = {
     { icon: '🔢', text: 'A number counts the mines in the eight squares around it.' },
     { icon: '🚩', text: 'Right-click, scroll, or press F to flag a suspected mine.' },
     { icon: '⚡', text: 'Click a fully flagged number to clear its remaining neighbours.' },
+    { icon: '🎮', text: 'Gamepad: either face button switches flag mode. Digging still wants a pointer.' },
   ],
+  pad: { south: 'KeyF', east: 'KeyF' },
   config: [
     { key: 'cols', label: 'Field width', type: 'range', min: 9, max: 30, step: 1, default: 16, unit: ' cols', restart: true, help: 'Number of columns in the mine field.' },
     { key: 'rows', label: 'Field height', type: 'range', min: 9, max: 20, step: 1, default: 16, unit: ' rows', restart: true, help: 'Number of rows in the mine field.' },

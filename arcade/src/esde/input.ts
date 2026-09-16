@@ -1,4 +1,14 @@
 import { useEffect, useRef } from 'react';
+import { padEnabled, padRoles, subscribePad, type PadButton } from '../engine/gamepad';
+
+/**
+ * Keyboard and gamepad for the cabinet views, as one stream of intents. A view says
+ * what an action means; it never learns which device produced it.
+ *
+ * The pad half is just a translation of `engine/gamepad.ts` events — the poll loop,
+ * auto-repeat and stick hysteresis all live there, so two mounted views can use this
+ * hook without polling twice or acting on one press twice.
+ */
 
 export type EsdeAction =
   | 'left'
@@ -9,6 +19,8 @@ export type EsdeAction =
   | 'back'
   | 'menu'
   | 'search'
+  | 'pageUp'
+  | 'pageDown'
   | 'letter';
 
 const KEYS: Record<string, EsdeAction> = {
@@ -22,9 +34,36 @@ const KEYS: Record<string, EsdeAction> = {
   Escape: 'back',
   F1: 'menu',
   Tab: 'menu',
+  PageUp: 'pageUp',
+  PageDown: 'pageDown',
 };
 
-const REPEAT = new Set<EsdeAction>(['left', 'right', 'up', 'down']);
+const REPEAT = new Set<EsdeAction>(['left', 'right', 'up', 'down', 'pageUp', 'pageDown']);
+
+/** Which intent a pad button carries. Confirm and cancel swap with the user's layout. */
+function padAction(button: PadButton): EsdeAction | undefined {
+  const { confirm, cancel } = padRoles();
+  if (button === confirm) return 'accept';
+  if (button === cancel) return 'back';
+  switch (button) {
+    case 'up':
+    case 'down':
+    case 'left':
+    case 'right':
+      return button;
+    case 'start':
+    case 'select':
+      return 'menu';
+    case 'north':
+      return 'search';
+    case 'l1':
+      return 'pageUp';
+    case 'r1':
+      return 'pageDown';
+    default:
+      return undefined;
+  }
+}
 
 export function useEsdeInput(
   onAction: (action: EsdeAction, letter?: string) => void,
@@ -35,9 +74,6 @@ export function useEsdeInput(
 
   useEffect(() => {
     if (!active) return;
-    const held = new Map<EsdeAction, number>();
-    let raf = 0;
-    let lastPad = 0;
 
     const fire = (action: EsdeAction, letter?: string) => {
       onActionRef.current(action, letter);
@@ -64,41 +100,18 @@ export function useEsdeInput(
       }
     };
 
-    const poll = (t: number) => {
-      raf = requestAnimationFrame(poll);
-      const pads = navigator.getGamepads?.() ?? [];
-      const pad = pads[0];
-      if (!pad) return;
-      const now = t;
-      const press = (action: EsdeAction, down: boolean) => {
-        if (down) {
-          const prev = held.get(action);
-          if (prev == null) {
-            held.set(action, now);
-            fire(action);
-          } else if (now - prev > 280 && now - lastPad > 70) {
-            lastPad = now;
-            fire(action);
-          }
-        } else {
-          held.delete(action);
-        }
-      };
-      const b = pad.buttons;
-      press('accept', Boolean(b[0]?.pressed));
-      press('back', Boolean(b[1]?.pressed));
-      press('menu', Boolean(b[9]?.pressed) || Boolean(b[8]?.pressed));
-      press('up', Boolean(b[12]?.pressed) || pad.axes[1] < -0.55);
-      press('down', Boolean(b[13]?.pressed) || pad.axes[1] > 0.55);
-      press('left', Boolean(b[14]?.pressed) || pad.axes[0] < -0.55);
-      press('right', Boolean(b[15]?.pressed) || pad.axes[0] > 0.55);
-    };
+    const offPad = subscribePad((e) => {
+      if (!e.down || !padEnabled()) return;
+      const action = padAction(e.button);
+      // Held movement repeats; a held confirm must not launch the same game twice.
+      if (!action || (e.repeat && !REPEAT.has(action))) return;
+      fire(action);
+    });
 
     window.addEventListener('keydown', onKey);
-    raf = requestAnimationFrame(poll);
     return () => {
       window.removeEventListener('keydown', onKey);
-      cancelAnimationFrame(raf);
+      offPad();
     };
   }, [active]);
 }

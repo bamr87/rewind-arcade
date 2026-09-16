@@ -6,6 +6,7 @@ import type { GameConfig, GameManifest } from '../engine/types';
 import { defaultConfig } from '../engine/types';
 import { useGameEngine } from '../engine/useGameEngine';
 import { audio } from '../engine/audio';
+import { padEnabled, padGlyph, padRoles, rumble, subscribePad } from '../engine/gamepad';
 import { storage } from '../engine/storage';
 import { navigate } from '../engine/router';
 import { fmt } from '../engine/util';
@@ -14,7 +15,7 @@ import { getSettings, setSetting, useSettings } from '../settings/store';
 import { Hud } from './Hud';
 import { Overlay } from './Overlay';
 import { ConfigPanel } from './ConfigPanel';
-import { useMuted } from './hooks';
+import { useGamepads, useMuted } from './hooks';
 import { downloadBlob, Kbd } from './kit';
 
 interface Props {
@@ -56,6 +57,8 @@ export function GamePage({ manifest }: Props) {
   const [config, setConfig] = useState<GameConfig>(() => storage.loadConfig(manifest.id, defaults));
   const [muted, toggleSound] = useMuted();
   const settings = useSettings();
+  const pads = useGamepads();
+  const onPad = settings.gamepad && pads.length > 0;
   const [configOpen, setConfigOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
@@ -71,6 +74,7 @@ export function GamePage({ manifest }: Props) {
       const now = performance.now();
       if (now - lastCelebration.current < 4000) return;
       lastCelebration.current = now;
+      rumble(0, 0.7, 180);
       toast(`New record in ${manifest.title}`, {
         description: `${fmt(score)} points`,
         icon: <Trophy className="size-4 text-gold" />,
@@ -121,6 +125,16 @@ export function GamePage({ manifest }: Props) {
     document.addEventListener('fullscreenchange', onChange);
     return () => document.removeEventListener('fullscreenchange', onChange);
   }, []);
+
+  // The engine resumes on confirm, but "Quit to lobby" is this page's button, so the
+  // pause panel's other choice has to be answered here.
+  useEffect(() => {
+    if (engine.status !== 'paused') return;
+    return subscribePad((e) => {
+      if (!e.down || e.repeat || !padEnabled()) return;
+      if (e.button === padRoles().cancel) navigate({ name: 'play' });
+    });
+  }, [engine.status]);
 
   const updateConfig = (key: string, value: number | boolean | string) => {
     setConfig((prev) => {
@@ -219,7 +233,7 @@ export function GamePage({ manifest }: Props) {
         <div className="flex items-center justify-center gap-3">
           <span>{manifest.tagline}</span>
           <span className="flex items-center gap-1.5 text-faint">
-            <Kbd>Space</Kbd> pause
+            <Kbd>{onPad ? padGlyph('start') : 'Space'}</Kbd> pause
           </span>
         </div>
       </footer>
@@ -249,6 +263,11 @@ export function GamePage({ manifest }: Props) {
             <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 border-t border-white/7 pt-4 text-xs text-dim">
               <span className="flex items-center gap-1.5"><Kbd>Space</Kbd> pause or confirm</span>
               <span className="flex items-center gap-1.5"><Kbd>Esc</Kbd><Kbd>P</Kbd> pause</span>
+              {onPad && (
+                <span className="flex items-center gap-1.5">
+                  <Kbd>{padGlyph('start')}</Kbd> pause on the pad
+                </span>
+              )}
             </div>
           </aside>
         </>

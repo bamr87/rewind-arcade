@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { rumble } from '../../engine/gamepad';
 import { navigate } from '../../engine/router';
 import { storage } from '../../engine/storage';
 import { getEmuSystem } from '../../emulate/systems';
@@ -7,8 +8,14 @@ import type { EsGame, EsSystem } from '../../esde/library';
 import { CoverArt } from './CoverArt';
 
 function launch(game: EsGame) {
+  rumble();
   if (game.kind === 'play' && game.playId) {
     navigate({ name: 'play', gameId: game.playId });
+    return;
+  }
+  // A dump already in the roms folder goes straight to the core; everything else asks for one.
+  if (game.rom) {
+    navigate({ name: 'emulate', systemId: game.rom.system, romFile: game.rom.file });
     return;
   }
   if (getEmuSystem(game.systemId)) {
@@ -67,6 +74,11 @@ export function GamelistView({
     }
     if (action === 'up') setIndex((n) => (n + filtered.length - 1) % Math.max(1, filtered.length));
     if (action === 'down') setIndex((n) => (n + 1) % Math.max(1, filtered.length));
+    // Page jumps clamp rather than wrap: on a long list, landing at the far end by
+    // accident loses your place.
+    const page = (by: number) => setIndex((n) => Math.max(0, Math.min(filtered.length - 1, n + by)));
+    if (action === 'pageUp') page(-10);
+    if (action === 'pageDown') page(10);
     if (action === 'left' || action === 'back') navigate({ name: 'arcade' });
     if (action === 'accept' && current) launch(current);
     if (action === 'menu') onMenu();
@@ -113,6 +125,11 @@ export function GamelistView({
             >
               <CoverArt game={g} systemId={system.id} systemShort={system.short} hue={system.hue} media={system.media} size="row" />
               <span className="esde-row-title">{g.title}</span>
+              {g.rom ? (
+                <span className="rounded bg-good/15 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-good">
+                  ROM
+                </span>
+              ) : null}
               {g.owned ? <span className="esde-fav">★</span> : null}
               {g.year ? <span className="esde-row-year">{g.year}</span> : null}
             </button>
@@ -127,7 +144,7 @@ export function GamelistView({
 
 function Meta({ game, system }: { game: EsGame; system: EsSystem }) {
   const bars = game.rating == null ? 0 : Math.max(1, Math.min(5, Math.round(game.rating)));
-  const canPlay = game.kind === 'play' || Boolean(getEmuSystem(game.systemId));
+  const canPlay = game.kind === 'play' || Boolean(game.rom) || Boolean(getEmuSystem(game.systemId));
   return (
     <aside className="esde-meta">
       <CoverArt
@@ -154,10 +171,11 @@ function Meta({ game, system }: { game: EsGame; system: EsSystem }) {
         {game.players && <><dt>Players</dt><dd>{game.players}</dd></>}
         {game.region && <><dt>Region</dt><dd>{game.region}</dd></>}
         {game.esrb && <><dt>ESRB</dt><dd>{game.esrb}</dd></>}
+        {game.rom && <><dt>File</dt><dd className="break-all">{game.rom.file}</dd></>}
       </dl>
       {canPlay && (
         <button className="esde-launch" onClick={() => launch(game)}>
-          {game.kind === 'play' ? 'Start' : 'Load dump'}
+          {game.kind === 'play' ? 'Start' : game.rom ? 'Play' : 'Load dump'}
         </button>
       )}
     </aside>

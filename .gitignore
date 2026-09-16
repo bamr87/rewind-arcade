@@ -9,6 +9,7 @@ Thumbs.db
 arcade/node_modules/
 arcade/dist/
 arcade/*.tsbuildinfo
+arcade/vendor/
 **/.vite
 *.local
 .playwright-mcp

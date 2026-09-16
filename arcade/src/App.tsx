@@ -17,7 +17,7 @@ function Page({ route }: { route: Route }) {
   if (route.name === 'emulate' && route.systemId) {
     return (
       <div className="app app--immersive">
-        <EmulatePage systemId={route.systemId} />
+        <EmulatePage systemId={route.systemId} romFile={route.romFile} />
       </div>
     );
   }

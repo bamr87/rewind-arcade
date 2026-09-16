@@ -13,6 +13,10 @@ npm run dev --prefix arcade
 
 Open the printed URL. Hash routes: `#/` for the hub, `#/play/jezzball` for a game, `#/emulate` for the console loader, `#/catalog` for the collection browser, `#/systems` for the shared id map.
 
+A gamepad drives the whole frontend — the carousel, the gamelists, the other pages by way of a focus ring, and every recreation. Plug one in and press a button; the layout (Xbox, Nintendo, PlayStation) is under Settings → Gamepad.
+
+Dumps you already keep in `emulate/roms/<system-id>/` appear in the browser frontend too: picking one launches it in the page, with no file picker. `npm run emulatorjs --prefix arcade` vendors EmulatorJS and the cores those systems use (~71 MB, gitignored) so a session loads nothing from a CDN.
+
 Production build is static files in `arcade/dist/` and is what GitHub Pages serves.
 
 Adding a game is one directory plus one line in `arcade/src/games/registry.ts`. See [arcade/README.md](../arcade/README.md).

@@ -19,9 +19,12 @@ export const EMU_SYSTEMS: EmuSystem[] = [
   { id: 'megadrive', name: 'Mega Drive / Genesis', short: 'Genesis', core: 'segaMD', exts: ['.md', '.gen', '.bin', '.smd'] },
   { id: 'mastersystem', name: 'Master System', short: 'SMS', core: 'segaMS', exts: ['.sms'] },
   { id: 'gamegear', name: 'Game Gear', short: 'GG', core: 'segaGG', exts: ['.gg'] },
+  // The Master System core (Genesis Plus GX) also runs SG-1000 cartridges.
+  { id: 'sg1000', name: 'SG-1000', short: 'SG-1000', core: 'segaMS', exts: ['.sg'] },
   { id: 'sega32x', name: '32X', short: '32X', core: 'sega32x', exts: ['.32x'] },
   { id: 'segacd', name: 'Sega CD', short: 'Sega CD', core: 'segaCD', exts: ['.cue', '.chd', '.iso'], bios: 'BIOS required' },
-  { id: 'saturn', name: 'Saturn', short: 'Saturn', core: 'saturn', exts: ['.cue', '.chd', '.iso'], bios: 'BIOS required' },
+  // EmulatorJS knows the Saturn as "segaSaturn"; plain "saturn" finds no core.
+  { id: 'saturn', name: 'Saturn', short: 'Saturn', core: 'segaSaturn', exts: ['.cue', '.chd', '.iso'], bios: 'BIOS required' },
   { id: 'psx', name: 'PlayStation', short: 'PS1', core: 'psx', exts: ['.cue', '.chd', '.iso', '.pbp', '.m3u'], bios: 'BIOS required' },
   { id: 'psp', name: 'PSP', short: 'PSP', core: 'psp', exts: ['.iso', '.cso', '.pbp'] },
   { id: 'atari2600', name: 'Atari 2600', short: '2600', core: 'atari2600', exts: ['.a26', '.bin'] },

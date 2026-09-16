@@ -7,6 +7,8 @@
  * game means writing one file that satisfies this contract and registering it.
  */
 
+import type { PadButton } from './gamepad';
+
 /* ----------------------------- Configuration ----------------------------- */
 
 export type ConfigValue = number | boolean | string;
@@ -101,6 +103,15 @@ export interface PointerInfo {
   pointerType: string;
 }
 
+/**
+ * Optional gamepad bindings: a button *position* on the pad -> a key code this game
+ * already handles in `onKey`. The host delivers the code and never learns what it
+ * means, so a game keeps its input vocabulary to itself and no engine file grows a
+ * list of games. Directions default to the arrow keys; Start always belongs to the
+ * host, for pause and for confirming a panel.
+ */
+export type PadMap = Partial<Record<PadButton, string>>;
+
 /** Minimal audio surface shared by every game (see audio.ts). */
 export interface AudioBus {
   muted: boolean;
@@ -180,6 +191,10 @@ export interface GameManifest {
    * build guide) set 'none'; everything else wants a real, visible pointer.
    */
   cursor?: string;
+  /** Pad bindings for the first controller; directions already work without this. */
+  pad?: PadMap;
+  /** Bindings for a second controller, for the games that seat two players. */
+  pad2?: PadMap;
   config: ConfigField[];
   create(context: GameContext): GameInstance;
 }

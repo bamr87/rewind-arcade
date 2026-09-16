@@ -1,10 +1,20 @@
-import { Database, Gamepad2, Info, Keyboard, Palette, RotateCcw } from 'lucide-react';
+import clsx from 'clsx';
+import { Database, Gamepad, Gamepad2, Info, Keyboard, Palette, RotateCcw } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useCatalog } from '../catalog/store';
+import { padGlyph, padRoles, subscribePad, type PadButton, type PadInfo } from '../engine/gamepad';
 import { hrefFor } from '../engine/router';
-import { PHOSPHORS, resetSettings, setSetting, useSettings, type MotionPref } from '../settings/store';
-import { useMuted } from './hooks';
+import {
+  PAD_LAYOUTS,
+  PHOSPHORS,
+  resetSettings,
+  setSetting,
+  useSettings,
+  type MotionPref,
+} from '../settings/store';
+import { useGamepads, useMuted } from './hooks';
 import { Button, buttonClass, Kbd, MOD, PageHeader, Panel, Segmented, SettingRow, Switch } from './kit';
 
 const SHORTCUTS: [string[], string][] = [
@@ -122,7 +132,9 @@ export function SettingsPage() {
           </SettingRow>
         </Panel>
 
-        <Panel title="Keyboard and gamepad" icon={<Keyboard />}>
+        <GamepadPanel />
+
+        <Panel title="Keyboard" icon={<Keyboard />}>
           <dl className="grid gap-x-10 sm:grid-cols-2">
             {SHORTCUTS.map(([keys, label]) => (
               <div key={label} className="flex items-center justify-between gap-4 border-b border-white/5 py-2.5">
@@ -135,7 +147,6 @@ export function SettingsPage() {
               </div>
             ))}
           </dl>
-          <p className="mt-4 text-[13px] text-faint">A gamepad's d-pad, A, B, and Start work across the system and gamelist views.</p>
         </Panel>
 
         <Panel title="About" icon={<Info />}>
@@ -144,6 +155,97 @@ export function SettingsPage() {
             collection export. It never downloads games or BIOS, and your files never leave this machine.
           </p>
         </Panel>
+      </div>
+    </div>
+  );
+}
+
+function GamepadPanel() {
+  const s = useSettings();
+  const pads = useGamepads();
+  const { confirm, cancel } = padRoles();
+  const layout = PAD_LAYOUTS.find((l) => l.id === s.padLayout);
+
+  return (
+    <Panel title="Gamepad" icon={<Gamepad />}>
+      <SettingRow
+        label="Gamepad navigation"
+        help="Steer the carousel and gamelists, move a focus ring across the other pages, and play every recreation."
+      >
+        <Switch label="Gamepad navigation" checked={s.gamepad} onChange={(v) => setSetting('gamepad', v)} />
+      </SettingRow>
+      <SettingRow label="Button layout" help={layout?.note}>
+        <Segmented
+          id="pad-layout"
+          value={s.padLayout}
+          options={PAD_LAYOUTS.map((l) => ({ value: l.id, label: l.label }))}
+          onChange={(v) => setSetting('padLayout', v)}
+        />
+      </SettingRow>
+      <SettingRow label="Rumble" help="A short bump when a game launches and when you beat a record.">
+        <Switch label="Rumble" checked={s.rumble} onChange={(v) => setSetting('rumble', v)} />
+      </SettingRow>
+      <PadTester pads={pads} />
+      <p className="mt-3 text-[13px] leading-relaxed text-faint">
+        {padGlyph(confirm)} selects · {padGlyph(cancel)} goes back · {padGlyph('start')} opens the menu ·{' '}
+        {padGlyph('north')} searches · {padGlyph('l1')}/{padGlyph('r1')} jump ten at a time. In a game the pad is the
+        game's, apart from {padGlyph('start')} for pause.
+      </p>
+    </Panel>
+  );
+}
+
+const TEST_BUTTONS: PadButton[] = [
+  'up', 'down', 'left', 'right',
+  'south', 'east', 'west', 'north',
+  'l1', 'r1', 'l2', 'r2',
+  'select', 'start',
+];
+
+/** Live button read-out, so a mapping can be checked rather than guessed at. */
+function PadTester({ pads }: { pads: PadInfo[] }) {
+  const [held, setHeld] = useState<Set<PadButton>>(() => new Set());
+
+  useEffect(
+    () =>
+      subscribePad((e) => {
+        setHeld((prev) => {
+          // Auto-repeat re-reports a button that is already lit.
+          if (e.down === prev.has(e.button)) return prev;
+          const next = new Set(prev);
+          if (e.down) next.add(e.button);
+          else next.delete(e.button);
+          return next;
+        });
+      }),
+    [],
+  );
+
+  return (
+    <div className="mt-4 rounded-xl bg-white/4 p-4 ring-1 ring-inset ring-white/8">
+      <div className="flex items-baseline gap-3">
+        <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-fg">
+          {pads.length ? pads[0].id : 'No controller yet'}
+        </span>
+        {pads.length > 1 && <span className="shrink-0 font-mono text-[11px] text-faint">+{pads.length - 1}</span>}
+      </div>
+      <p className="mt-1 text-[13px] text-faint">
+        {pads.length
+          ? 'Press buttons to check the mapping.'
+          : 'Connect one and press any button — browsers keep a pad hidden until it is used.'}
+      </p>
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        {TEST_BUTTONS.map((b) => (
+          <span
+            key={b}
+            className={clsx(
+              'grid h-7 min-w-9 place-items-center rounded-lg px-2 font-mono text-[11px] ring-1 ring-inset transition',
+              held.has(b) ? 'bg-accent/20 text-accent ring-accent/50' : 'bg-white/4 text-faint ring-white/10',
+            )}
+          >
+            {padGlyph(b)}
+          </span>
+        ))}
       </div>
     </div>
   );

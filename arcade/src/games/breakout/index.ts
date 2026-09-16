@@ -14,7 +14,9 @@ export const breakoutManifest: GameManifest = {
     { icon: '🖱', text: 'Slide the paddle with the mouse or arrow keys.' },
     { icon: '🟢', text: 'Click or press F to serve a stuck ball.' },
     { icon: '🧱', text: 'Clear every brick to win the round.' },
+    { icon: '🎮', text: 'Gamepad: the d-pad slides the paddle, either face button serves.' },
   ],
+  pad: { south: 'KeyF', east: 'KeyF', r1: 'KeyF' },
   config: [
     { key: 'rows', label: 'Brick rows', type: 'range', min: 3, max: 8, step: 1, default: 6, restart: true },
     { key: 'cols', label: 'Brick columns', type: 'range', min: 6, max: 14, step: 1, default: 10, restart: true },

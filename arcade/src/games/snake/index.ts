@@ -15,6 +15,7 @@ export const snakeManifest: GameManifest = {
     { icon: '👆', text: 'On touch, swipe to turn.' },
     { icon: '🍎', text: 'Eat apples to grow and score.' },
     { icon: '💥', text: 'Avoid the walls and your own tail.' },
+    { icon: '🎮', text: 'Gamepad: the d-pad or left stick steers, Start pauses.' },
   ],
   config: [
     { key: 'board', label: 'Board size', type: 'range', min: 13, max: 29, step: 2, default: 21, unit: ' sq', restart: true, help: 'Width and height of the square board, in cells.' },
