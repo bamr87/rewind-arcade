@@ -1,14 +1,21 @@
 import { useSyncExternalStore } from 'react';
+import { getLibrary, readLibraryFile, subscribeLibrary, type LibraryFile } from './library';
 
 /**
- * The dumps already sitting in `emulate/roms/<system>/`, as listed by the roms plugin in
- * `vite.config.ts`. A production build serves no such folder: the index 404s, the frontend
- * finds no local games, and every emulate route falls back to asking for a file.
+ * Every dump the frontend can launch, from whichever source has it.
  *
- * Files are named however their owner named them, so a dump is matched to a catalog title
- * by a set of keys rather than one: the bare slug, the No-Intro name without its tags, and
- * the slug without the tail cartidx adds (`-unverified-dump`) or a region (`-japan`).
+ * Two of them exist. The dev server lists `emulate/roms/<system>/` through the roms
+ * plugin in `vite.config.ts`; a deployed site has no such folder, so there the browser's
+ * own library answers instead (see `library.ts`) — a folder you granted, or files you
+ * added. Both arrive here in the same shape, which is what lets gamelists, ROM badges
+ * and one-click launch behave identically on a static host and in development.
+ *
+ * Files are named however their owner named them, so a dump is matched to a catalog
+ * title by a set of keys rather than one: the bare slug, the No-Intro name without its
+ * tags, and the slug without the tail cartidx adds (`-unverified-dump`) or a region.
  */
+
+export type RomSource = 'server' | 'folder' | 'stored';
 
 export interface RomFile {
   system: string;
@@ -17,18 +24,22 @@ export interface RomFile {
   /** Shown when no catalog title claims this file. */
   label: string;
   keys: string[];
+  source: RomSource;
+  /** Present for browser-held files; how the bytes are read back. */
+  lib?: LibraryFile;
 }
 
 export type RomStatus = 'loading' | 'ready' | 'empty';
 
 export interface RomIndex {
   status: RomStatus;
-  /** The folder being served, for the UI to name. */
+  /** Where the files came from, for the UI to name. */
   root: string | null;
   count: number;
   bySystem: Map<string, RomFile[]>;
   /** `${system}|${key}` → file. */
   keyed: Map<string, RomFile>;
+  counts: Record<RomSource, number>;
 }
 
 const CARTIDX_SUFFIX = /-(?:unverified-dump|overdump|headered|bad-dump|dup-\d+)$/;
@@ -69,21 +80,22 @@ function labelOf(file: string): string {
   return stem.split('-').filter(Boolean).map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 }
 
+/** How a file is described to the person who owns it. */
+export function sourceLabel(source: RomSource): string {
+  return source === 'stored' ? 'saved in this browser' : 'from your roms folder';
+}
+
 const EMPTY: RomIndex = {
   status: 'loading',
   root: null,
   count: 0,
   bySystem: new Map(),
   keyed: new Map(),
+  counts: { server: 0, folder: 0, stored: 0 },
 };
 
 let state = EMPTY;
 const listeners = new Set<() => void>();
-
-function emit(next: RomIndex) {
-  state = next;
-  listeners.forEach((l) => l());
-}
 
 function subscribe(fn: () => void) {
   listeners.add(fn);
@@ -92,32 +104,60 @@ function subscribe(fn: () => void) {
   };
 }
 
-function build(root: string | null, raw: unknown[]): RomIndex {
+interface ServerRom {
+  system: string;
+  file: string;
+  size: number;
+}
+
+let serverRoot: string | null = null;
+let serverRoms: ServerRom[] = [];
+let serverDone = false;
+
+function build(): RomIndex {
+  const library = getLibrary();
   const bySystem = new Map<string, RomFile[]>();
   const keyed = new Map<string, RomFile>();
-  let count = 0;
-  for (const entry of raw) {
-    if (!entry || typeof entry !== 'object') continue;
-    const r = entry as { system?: unknown; file?: unknown; size?: unknown };
-    if (typeof r.system !== 'string' || typeof r.file !== 'string') continue;
-    const rom: RomFile = {
-      system: r.system,
-      file: r.file,
-      size: typeof r.size === 'number' ? r.size : 0,
-      label: labelOf(r.file),
-      keys: fileKeys(r.file),
-    };
-    const list = bySystem.get(rom.system);
+  const counts: Record<RomSource, number> = { server: 0, folder: 0, stored: 0 };
+  const seen = new Set<string>();
+
+  const add = (system: string, file: string, size: number, source: RomSource, lib?: LibraryFile) => {
+    // The same dump can be both on disk and in the browser; the first source wins.
+    const id = `${system}|${file.toLowerCase()}`;
+    if (seen.has(id)) return;
+    seen.add(id);
+    const rom: RomFile = { system, file, size, label: labelOf(file), keys: fileKeys(file), source, lib };
+    const list = bySystem.get(system);
     if (list) list.push(rom);
-    else bySystem.set(rom.system, [rom]);
+    else bySystem.set(system, [rom]);
     for (const key of rom.keys) {
-      const id = `${rom.system}|${key}`;
-      if (!keyed.has(id)) keyed.set(id, rom);
+      const at = `${system}|${key}`;
+      if (!keyed.has(at)) keyed.set(at, rom);
     }
-    count += 1;
-  }
-  return { status: count ? 'ready' : 'empty', root, count, bySystem, keyed };
+    counts[source] += 1;
+  };
+
+  for (const r of serverRoms) add(r.system, r.file, r.size, 'server');
+  for (const f of library.files) add(f.system, f.file, f.size, f.source, f);
+
+  const count = counts.server + counts.folder + counts.stored;
+  const loading = !serverDone || !library.ready;
+  return {
+    status: loading && !count ? 'loading' : count ? 'ready' : 'empty',
+    root: serverRoot ?? library.folderName,
+    count,
+    bySystem,
+    keyed,
+    counts,
+  };
 }
+
+function publish() {
+  state = build();
+  listeners.forEach((l) => l());
+}
+
+subscribeLibrary(publish);
 
 let booted = false;
 
@@ -128,10 +168,18 @@ async function boot() {
     const res = await fetch(`${import.meta.env.BASE_URL}roms-index.json`, { cache: 'no-store' });
     if (!res.ok) throw new Error(`roms index: ${res.status}`);
     const data = (await res.json()) as { root?: unknown; roms?: unknown };
-    emit(build(typeof data.root === 'string' ? data.root : null, Array.isArray(data.roms) ? data.roms : []));
+    serverRoot = typeof data.root === 'string' ? data.root : null;
+    serverRoms = (Array.isArray(data.roms) ? data.roms : []).filter(
+      (r): r is ServerRom =>
+        Boolean(r) && typeof r === 'object' && typeof r.system === 'string' && typeof r.file === 'string',
+    );
   } catch {
-    emit({ ...EMPTY, status: 'empty' });
+    // A static deploy serves no index; the browser's own library is the whole story.
+    serverRoot = null;
+    serverRoms = [];
   }
+  serverDone = true;
+  publish();
 }
 
 void boot();
@@ -148,7 +196,24 @@ export function findRom(index: RomIndex, system: string, keys: string[]): RomFil
   return undefined;
 }
 
-export function romUrl(rom: RomFile): string {
-  const rel = `${import.meta.env.BASE_URL}roms/${rom.system}/${encodeURIComponent(rom.file)}`;
-  return new URL(rel, window.location.href).href;
+export interface OpenRom {
+  url: string;
+  /** Frees the object URL for a browser-held file. Safe to call for any source. */
+  release: () => void;
+}
+
+/**
+ * A URL the emulator can load. Dev-server files already have one; a browser-held file
+ * becomes an object URL, which the player must release when it ejects. The iframe that
+ * runs the core is `srcDoc`, so it shares this document's origin and can read it.
+ */
+export async function openRom(rom: RomFile): Promise<OpenRom> {
+  if (rom.source === 'server') {
+    const rel = `${import.meta.env.BASE_URL}roms/${rom.system}/${encodeURIComponent(rom.file)}`;
+    return { url: new URL(rel, window.location.href).href, release: () => {} };
+  }
+  if (!rom.lib) throw new Error(`${rom.file} cannot be read from here`);
+  const blob = await readLibraryFile(rom.lib);
+  const url = URL.createObjectURL(blob);
+  return { url, release: () => URL.revokeObjectURL(url) };
 }

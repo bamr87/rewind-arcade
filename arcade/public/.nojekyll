@@ -1,0 +1,2 @@
+Tells GitHub Pages to serve this tree as-is. Without it a branch-based Pages deploy runs
+Jekyll, which skips files and folders whose names begin with an underscore.

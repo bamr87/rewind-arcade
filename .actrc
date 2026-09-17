@@ -1,0 +1,3 @@
+# nektos/act defaults for ./bin/ci --act
+-P ubuntu-latest=catthehacker/ubuntu:act-latest
+--reuse

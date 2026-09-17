@@ -27,6 +27,15 @@ arcade-build: ## Type-check and build the arcade into arcade/dist/
 arcade-preview: ## Serve the production arcade build
 	npm run preview --prefix arcade
 
+.PHONY: pages-build
+pages-build: ## GitHub Pages artifact (vendor EmulatorJS + production build)
+	npm run emulatorjs --prefix arcade
+	npm run build --prefix arcade
+
+.PHONY: pages
+pages: pages-build ## Build the Pages artifact and serve arcade/dist/ (no Vite plugins)
+	python3 -m http.server 4173 --bind 127.0.0.1 --directory arcade/dist
+
 # --- emulate ------------------------------------------------------------------
 
 .PHONY: doctor
@@ -67,3 +76,11 @@ check: ## Arcade build + emulate check + catalog check
 	npm run build --prefix arcade
 	@$(MAKE) -C emulate check
 	@$(MAKE) -C catalog check
+
+.PHONY: ci
+ci: ## Run GitHub workflow jobs on this host (see ./bin/ci --help)
+	@./bin/ci
+
+.PHONY: ci-act
+ci-act: ## Run workflows in containers via nektos/act
+	@./bin/ci --act

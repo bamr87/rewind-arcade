@@ -1,0 +1,106 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Pages: Chrome (GitHub Pages)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://127.0.0.1:4173/",
+      "webRoot": "${workspaceFolder}/arcade/dist",
+      "preLaunchTask": "pages: rebuild and serve"
+    },
+    {
+      "name": "Pages: Chrome (dist already built)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://127.0.0.1:4173/",
+      "webRoot": "${workspaceFolder}/arcade/dist",
+      "preLaunchTask": "pages: serve"
+    },
+    {
+      "name": "Arcade: Chrome",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://127.0.0.1:5173/",
+      "webRoot": "${workspaceFolder}/arcade",
+      "preLaunchTask": "play"
+    },
+    {
+      "name": "Arcade: Chrome (server already running)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://127.0.0.1:5173/",
+      "webRoot": "${workspaceFolder}/arcade"
+    },
+    {
+      "name": "Catalog: tests",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "unittest",
+      "args": ["discover", "-s", "tests", "-t", ".", "-v"],
+      "cwd": "${workspaceFolder}/catalog",
+      "env": { "PYTHONPATH": "src" },
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "Catalog: cartidx",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/catalog/bin/cartidx",
+      "args": ["${input:cartidxCmd}"],
+      "cwd": "${workspaceFolder}/catalog",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "CI: arcade",
+      "type": "bashdb",
+      "request": "launch",
+      "program": "${workspaceFolder}/bin/ci",
+      "args": ["arcade"],
+      "cwd": "${workspaceFolder}",
+      "pathBash": "bash",
+      "terminalKind": "integrated"
+    },
+    {
+      "name": "CI: catalog",
+      "type": "bashdb",
+      "request": "launch",
+      "program": "${workspaceFolder}/bin/ci",
+      "args": ["catalog"],
+      "cwd": "${workspaceFolder}",
+      "pathBash": "bash",
+      "terminalKind": "integrated"
+    },
+    {
+      "name": "CI: emulate",
+      "type": "bashdb",
+      "request": "launch",
+      "program": "${workspaceFolder}/bin/ci",
+      "args": ["emulate"],
+      "cwd": "${workspaceFolder}",
+      "pathBash": "bash",
+      "terminalKind": "integrated"
+    },
+    {
+      "name": "retropi: doctor",
+      "type": "bashdb",
+      "request": "launch",
+      "program": "${workspaceFolder}/emulate/bin/retropi",
+      "args": ["doctor", "--verbose"],
+      "cwd": "${workspaceFolder}/emulate",
+      "pathBash": "bash",
+      "terminalKind": "integrated"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "cartidxCmd",
+      "type": "pickString",
+      "description": "cartidx command",
+      "default": "status",
+      "options": ["status", "systems", "--help"]
+    }
+  ]
+}

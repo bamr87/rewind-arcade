@@ -28,6 +28,8 @@ make arcade-build         # tsc + vite → arcade/dist/
 ./bin/cartidx --help      # catalog CLI
 make test                 # emulate + catalog suites
 make check                # arcade build + both suites
+./bin/ci                  # GitHub workflow jobs on this host
+./bin/ci --act            # same YAML via nektos/act (Docker)
 ```
 
 Arcade has no unit suite; `npm run build --prefix arcade` is the gate (`strict`, unused locals/params fail). Emulate: `make -C emulate check` and `make -C emulate test-linux`. Catalog: `make -C catalog check`.

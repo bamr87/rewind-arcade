@@ -1,0 +1,118 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "play",
+      "detail": "Vite arcade dev server",
+      "type": "shell",
+      "command": "make play",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "vite",
+        "pattern": { "regexp": "^$" },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": "Local:"
+        }
+      },
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "arcade-build",
+      "type": "shell",
+      "command": "make arcade-build",
+      "group": "build",
+      "problemMatcher": ["$tsc"]
+    },
+    {
+      "label": "check",
+      "detail": "Arcade build + emulate check + catalog check",
+      "type": "shell",
+      "command": "make check",
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "test",
+      "type": "shell",
+      "command": "make test",
+      "group": { "kind": "test", "isDefault": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "ci",
+      "detail": "GitHub workflow jobs on this host",
+      "type": "shell",
+      "command": "make ci",
+      "problemMatcher": []
+    },
+    {
+      "label": "ci-act",
+      "detail": "Workflows via nektos/act (Docker)",
+      "type": "shell",
+      "command": "make ci-act",
+      "problemMatcher": []
+    },
+    {
+      "label": "ci: arcade",
+      "type": "shell",
+      "command": "./bin/ci arcade",
+      "problemMatcher": []
+    },
+    {
+      "label": "ci: catalog",
+      "type": "shell",
+      "command": "./bin/ci catalog",
+      "problemMatcher": []
+    },
+    {
+      "label": "pages: build",
+      "detail": "Same as deploy.yml: emulatorjs + production build",
+      "type": "shell",
+      "command": "make pages-build",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "pages: serve",
+      "detail": "Static server on arcade/dist (GitHub Pages, no Vite middleware)",
+      "type": "shell",
+      "command": "python3 -m http.server 4173 --bind 127.0.0.1 --directory arcade/dist",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "pages",
+        "pattern": { "regexp": "^$" },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": "Serving HTTP"
+        }
+      },
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "pages: rebuild and serve",
+      "detail": "emulatorjs + build + static server on :4173",
+      "type": "shell",
+      "command": "make pages",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "pages",
+        "pattern": { "regexp": "^$" },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": "Serving HTTP"
+        }
+      },
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "ci: emulate",
+      "type": "shell",
+      "command": "./bin/ci emulate",
+      "problemMatcher": []
+    }
+  ]
+}

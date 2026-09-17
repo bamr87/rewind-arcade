@@ -1,0 +1,179 @@
+#!/usr/bin/env bash
+# Run .github/workflows locally: native steps by default, or nektos/act.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT"
+
+MODE=native
+DOCKER=0
+JOB=all
+
+usage() {
+  cat <<'EOF'
+Run GitHub Actions workflows on this machine.
+
+  ./bin/ci                  arcade + catalog + emulate (host)
+  ./bin/ci arcade|catalog|emulate|deploy
+  ./bin/ci --docker         also emulate Debian/Pi container jobs
+  ./bin/ci --act [name]     nektos/act (Docker). Skips Pages deploy.
+  ./bin/ci list
+
+Native runs the same commands as the YAML. --act runs the YAML in containers.
+EOF
+}
+
+die() { printf '%s\n' "$*" >&2; exit 1; }
+
+need() {
+  command -v "$1" >/dev/null 2>&1 || die "need $1"
+}
+
+step() { printf '\n==> %s\n' "$*" >&2; }
+
+run_arcade() {
+  step "arcade.yml / build"
+  need npm
+  need node
+  (cd "$ROOT/arcade" && npm ci && npm run build)
+}
+
+run_catalog() {
+  step "catalog.yml / test"
+  need python3
+  make -C "$ROOT/catalog" check
+}
+
+run_emulate() {
+  step "emulate.yml / test (this host)"
+  need bash
+  need python3
+  (
+    cd "$ROOT/emulate"
+    bash --version | head -1
+    python3 --version
+    python3 -c 'import yaml' 2>/dev/null && echo "PyYAML: present" || echo "PyYAML: absent"
+    ./bin/retropi config validate
+    python3 tools/validate-vscode.py
+    ./tests/run.sh
+    RETROPI_YAML_PURE=1 ./tests/run.sh
+    ./bin/retropi --version
+    ./bin/retropi systems list
+    ./bin/retropi build --no-install
+    ./bin/retropi roms scan
+    ./bin/retropi package --name ci-artifact
+    python3 - <<'PY'
+import xml.etree.ElementTree as ET
+root = ET.parse('build/es_systems.xml').getroot()
+systems = root.findall('system')
+assert systems, "no systems generated"
+for s in systems:
+    for tag in ('name', 'fullname', 'path', 'extension', 'platform'):
+        assert (s.findtext(tag) or '').strip(), f"{s.findtext('name')}: missing {tag}"
+    assert s.findall('command'), f"{s.findtext('name')}: no launch command"
+print(f"ok: {len(systems)} systems, all elements present")
+PY
+    mkdir -p /tmp/unpack
+    tar -xzf dist/ci-artifact.tar.gz -C /tmp/unpack
+    (cd /tmp/unpack/ci-artifact && ./bin/retropi --version && ./bin/retropi systems list)
+  )
+  step "emulate.yml / shellcheck"
+  if command -v shellcheck >/dev/null 2>&1; then
+    make -C "$ROOT/emulate" lint
+  else
+    printf 'skip lint: shellcheck not installed\n' >&2
+  fi
+  if [[ "$DOCKER" -eq 1 ]]; then
+    step "emulate.yml / debian + raspberry-pi images"
+    need docker
+    make -C "$ROOT/emulate" test-linux
+    (
+      cd "$ROOT/emulate"
+      docker build --platform linux/arm64 -f docker/Dockerfile -t retropi-test .
+      docker run --rm --platform linux/arm64 retropi-test
+    )
+  fi
+}
+
+run_deploy() {
+  step "deploy.yml / build (no Pages upload)"
+  need npm
+  (cd "$ROOT/arcade" && npm ci && npm run emulatorjs && npm run build)
+}
+
+run_native() {
+  case "$1" in
+    arcade) run_arcade ;;
+    catalog) run_catalog ;;
+    emulate) run_emulate ;;
+    deploy) run_deploy ;;
+    all)
+      run_arcade
+      run_catalog
+      run_emulate
+      ;;
+    *) die "unknown job: $1" ;;
+  esac
+}
+
+run_act() {
+  need act
+  need docker
+  local wf event
+  event=workflow_dispatch
+  case "$1" in
+    arcade) wf=.github/workflows/arcade.yml ;;
+    catalog) wf=.github/workflows/catalog.yml ;;
+    emulate) wf=.github/workflows/emulate.yml ;;
+    deploy) wf=.github/workflows/deploy.yml ;;
+    all)
+      run_act arcade
+      run_act catalog
+      run_act emulate
+      run_act deploy
+      return 0
+      ;;
+    *) die "unknown job: $1" ;;
+  esac
+  step "act $wf"
+  if [[ "$1" == emulate ]]; then
+    act "$event" -W "$wf" -j test -j lint --matrix os:ubuntu-latest
+  elif [[ "$1" == deploy ]]; then
+    act "$event" -W "$wf" -j build
+  else
+    act "$event" -W "$wf"
+  fi
+}
+
+list_jobs() {
+  cat <<'EOF'
+workflow          native                         act
+arcade.yml        npm ci && npm run build        full
+catalog.yml       make -C catalog check          full
+emulate.yml       host test + lint               ubuntu test + lint
+                  --docker: debian + arm64
+deploy.yml        emulatorjs + build             build job only (no Pages)
+EOF
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -h|--help) usage; exit 0 ;;
+    --act) MODE=act; shift ;;
+    --docker) DOCKER=1; shift ;;
+    list) JOB=list; shift ;;
+    arcade|catalog|emulate|deploy|all) JOB="$1"; shift ;;
+    *) die "unknown argument: $1" ;;
+  esac
+done
+
+if [[ "$JOB" == list ]]; then
+  list_jobs
+  exit 0
+fi
+
+if [[ "$MODE" == act ]]; then
+  run_act "$JOB"
+else
+  run_native "$JOB"
+fi

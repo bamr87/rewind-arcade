@@ -67,6 +67,18 @@
 }
 /* Coloured by what the button does, not by its letter: the glyph itself changes with
    the pad layout, so "A" is green on an Xbox pad and on a Nintendo one. */
+/* Where a deployed site gets its dumps from: a granted folder, or files kept in the browser. */
+.emu-library {
+  margin: 0 0 18px;
+  padding: 12px 14px;
+  border: 1px solid rgba(148, 163, 184, .16);
+  border-radius: 14px;
+  background: rgba(15, 23, 42, .45);
+}
+.emu-library-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.emu-library-name { flex: 1 1 260px; min-width: 0; font-size: 13px; color: #b9c7de; }
+.emu-library-name em { margin-left: 8px; font-style: normal; color: #7c8ba3; }
+
 .esde-help kbd[data-role="confirm"] { background: #3ddc84; }
 .esde-help kbd[data-role="cancel"] { background: #f07178; }
 .esde-help kbd[data-role="plain"] { border-radius: 6px; background: #cbd5e1; }
