@@ -8,7 +8,8 @@ export function PlayCover({ id, title, accent }: { id: string; title: string; ac
       {id === 'snake' && <Snake />}
       {id === 'asteroids' && <Rocks />}
       {id === 'minesweeper' && <Mines />}
-      {!['pong', 'jezzball', 'breakout', 'snake', 'asteroids', 'minesweeper'].includes(id) && (
+      {id === 'skifree' && <Ski />}
+      {!['pong', 'jezzball', 'breakout', 'snake', 'asteroids', 'minesweeper', 'skifree'].includes(id) && (
         <rect width="240" height="320" fill={accent} />
       )}
       <rect x="0" y="248" width="240" height="72" fill="#000" opacity="0.55" />
@@ -83,6 +84,32 @@ function Rocks() {
       <polygon points="60,150 88,140 110,168 78,190 50,172" fill="none" stroke="#94a3b8" strokeWidth="2" />
       <polygon points="160,160 198,148 210,186 176,210 150,188" fill="none" stroke="#e2e8f0" strokeWidth="2" />
       <polygon points="118,200 128,214 112,226 104,210" fill="none" stroke="#38bdf8" strokeWidth="2" />
+    </g>
+  );
+}
+
+function Ski() {
+  return (
+    <g>
+      <rect width="240" height="320" fill="#e0f2fe" />
+      <rect width="240" height="72" fill="#7dd3fc" />
+      <polyline points="108,40 112,90 118,150 122,210" fill="none" stroke="#94a3b8" strokeWidth="1.5" />
+      <polyline points="116,40 120,90 124,150 128,210" fill="none" stroke="#94a3b8" strokeWidth="1.5" />
+      <polygon points="48,168 68,112 88,168" fill="#166534" />
+      <rect x="64" y="168" width="8" height="12" fill="#7c4a2a" />
+      <polygon points="168,150 192,86 216,150" fill="#14532d" />
+      <rect x="188" y="150" width="8" height="14" fill="#7c4a2a" />
+      <polygon points="20,210 36,168 52,210" fill="#15803d" />
+      <rect x="32" y="210" width="7" height="10" fill="#7c4a2a" />
+      <ellipse cx="120" cy="58" rx="7" ry="9" fill="#e11d48" />
+      <circle cx="120" cy="42" r="6" fill="#fde68a" />
+      <path d="M114,42 A7,7 0 0 1 126,42" fill="#0f172a" />
+      <line x1="108" y1="40" x2="112" y2="72" stroke="#1e3a8a" strokeWidth="2" />
+      <line x1="128" y1="40" x2="132" y2="72" stroke="#1e3a8a" strokeWidth="2" />
+      <ellipse cx="120" cy="188" rx="18" ry="22" fill="#f8fafc" stroke="#64748b" />
+      <circle cx="120" cy="160" r="12" fill="#f8fafc" stroke="#64748b" />
+      <circle cx="116" cy="158" r="2" fill="#0f172a" />
+      <circle cx="125" cy="158" r="2" fill="#0f172a" />
     </g>
   );
 }

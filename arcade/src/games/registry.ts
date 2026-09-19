@@ -4,6 +4,7 @@ import { breakoutManifest } from './breakout';
 import { jezzballManifest } from './jezzball';
 import { minesweeperManifest } from './minesweeper';
 import { pongManifest } from './pong';
+import { skifreeManifest } from './skifree';
 import { snakeManifest } from './snake';
 
 export const GAMES: GameManifest[] = [
@@ -13,6 +14,7 @@ export const GAMES: GameManifest[] = [
   snakeManifest,
   asteroidsManifest,
   minesweeperManifest,
+  skifreeManifest,
 ];
 
 export function getGame(id: string | undefined): GameManifest | undefined {
