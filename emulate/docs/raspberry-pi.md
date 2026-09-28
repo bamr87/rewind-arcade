@@ -19,6 +19,7 @@ On the Pi itself:
 git clone <your-fork> retro-pi && cd retro-pi
 ./platforms/raspberrypi/bootstrap.sh
 ./bin/retropi install
+./bin/retropi frontend launch   # from a graphical desktop session
 ```
 
 From a Mac, with the Pi's USB disk mounted (`bootfs`):
@@ -33,13 +34,14 @@ The bootstrap runs the generic [Debian bootstrap](debian.md) — dependencies, R
 
 ## Works alongside RetroPie
 
-If RetroPie is already installed, retro-pi detects and uses it rather than competing with it:
+ES-DE is the default frontend, even when RetroPie is installed. Existing RetroArch and cores remain reusable:
 
 - cores: `/opt/retropie/libretrocores`
 - RetroArch: `/opt/retropie/emulators/retroarch/bin/retroarch`
-- frontend config: `/opt/retropie/configs/all/emulationstation`
 
-You can also run retro-pi standalone with plain RetroArch and ES-DE.
+To retain RetroPie's frontend, explicitly run `./bin/retropi config set frontend.kind emulationstation`, then rebuild. Its configuration remains under `/opt/retropie/configs/all/emulationstation`; ES-DE uses `~/ES-DE`. No legacy settings or scraped metadata are migrated or deleted automatically.
+
+The ES-DE AppImage requires a 64-bit OS and a working graphical session. Upstream recommends `MESA_GL_VERSION_OVERRIDE=3.3 ./bin/retropi frontend launch` on Raspberry Pi OS if desktop OpenGL is not advertised correctly. On unsupported 32-bit boards, explicitly choose an installed legacy frontend or use `install --no-frontend`; there is no silent fallback.
 
 ## Tuning for slower boards
 
@@ -104,13 +106,13 @@ Because saves are centralized (`saves.centralize`), they live outside the ROM tr
 
 ## Autostart into the frontend
 
-With RetroPie, EmulationStation already autostarts. For a plain Raspberry Pi OS install, add to `~/.bashrc` (console boot):
+On Raspberry Pi OS Desktop, add the absolute path to `bin/retropi frontend launch` to the desktop's autostart applications. ES-DE's AppImage needs a graphical session; running it directly from a bare console is not sufficient. On a console-only installation, install the X11 dependencies and use the managed session described in [debian.md](debian.md#playing-on-the-machines-own-monitor):
 
 ```sh
-if [ "$(tty)" = "/dev/tty1" ]; then
-  emulationstation
-fi
+./bin/retropi frontend session start
 ```
+
+With an explicitly selected RetroPie frontend, RetroPie's existing autostart can remain in place.
 
 ## Controllers
 

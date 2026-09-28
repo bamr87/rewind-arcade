@@ -16,7 +16,7 @@ cmd_frontend() {
     dirs)     _fe_dirs ;;
     -h|--help|help)
       cat >&2 <<'__H__'
-retropi frontend - manage EmulationStation
+retropi frontend - manage ES-DE (the default ROM frontend)
 
   frontend status            what is installed, where, and whether it is wired up
   frontend install           download and install ES-DE for this platform
@@ -46,7 +46,9 @@ __H__
 
 _fe_status() {
   hr "frontend"
-  if frontend_installed; then
+  if [[ "$RETROPI_FE_KIND" == "none" ]]; then
+    info "frontend disabled (frontend.kind: none); configuration-only mode"
+  elif frontend_installed; then
     printf '  %-18s %s%s%s\n' "installed" "$C_GREEN" "yes" "$C_RESET" >&2
     printf '  %-18s %s\n' "flavor" "$(frontend_flavor)" >&2
     printf '  %-18s %s\n' "version" "$(frontend_version)" >&2
@@ -55,7 +57,7 @@ _fe_status() {
     printf '  %-18s %s%s%s\n' "installed" "$C_YELLOW" "no" "$C_RESET" >&2
     printf '  %-18s %s\n' "configured kind" "$(cfg frontend.kind es-de)" >&2
     local asset
-    if asset="$(frontend_resolve_asset 2>/dev/null)"; then
+    if [[ "$RETROPI_FE_KIND" == "es-de" ]] && asset="$(frontend_resolve_asset 2>/dev/null)"; then
       printf '  %-18s %s (%s)\n' "available" "$(printf '%s' "$asset" | cut -f1)" \
         "$(printf '%s' "$asset" | cut -f3)" >&2
     fi

@@ -123,6 +123,151 @@ test_generated_gamelist_is_valid_xml() {
   assert_ok python3 -c "import xml.etree.ElementTree as E; E.parse('$GLSB/out/gamelist.xml')"
 }
 
+test_nested_same_basename_games_are_distinct_and_idempotent() {
+  mkdir -p "$GLSB/roms/Europe" "$GLSB/roms/USA/Collection"
+  : > "$GLSB/roms/Probe.nes"
+  : > "$GLSB/roms/Europe/Probe.nes"
+  : > "$GLSB/roms/USA/Collection/Probe.nes"
+  : > "$GLSB/roms/USA/Collection/Other.NES"
+  : > "$GLSB/roms/USA/Collection/Notes.txt"
+  local line content
+  line="$(GL nes "$GLSB/roms" "$GLSB/out/gamelist.xml" --ext .nes)"
+  assert_eq $'nes\t4\t4\t0\t0' "$line"
+  content="$(cat "$GLSB/out/gamelist.xml")"
+  assert_contains "$content" '<path>./Europe/Probe.nes</path>'
+  assert_contains "$content" '<path>./USA/Collection/Probe.nes</path>'
+  assert_contains "$content" '<path>./Probe.nes</path>'
+  assert_contains "$content" '<path>./USA/Collection/Other.NES</path>'
+  assert_not_contains "$content" 'Notes.txt'
+  cp "$GLSB/out/gamelist.xml" "$GLSB/out/before.xml"
+  line="$(GL nes "$GLSB/roms" "$GLSB/out/gamelist.xml" --ext .nes)"
+  assert_eq $'nes\t4\t0\t4\t0' "$line"
+  assert_ok cmp "$GLSB/out/before.xml" "$GLSB/out/gamelist.xml"
+}
+
+test_nested_merge_preserves_metadata_and_stale_same_basename() {
+  mkdir -p "$GLSB/roms/Europe" "$GLSB/roms/USA"
+  : > "$GLSB/roms/Europe/Probe.nes"
+  : > "$GLSB/roms/USA/Probe.nes"
+  : > "$GLSB/roms/Probe.nes"
+  cat > "$GLSB/out/gamelist.xml" <<'__XML__'
+<gameList>
+  <game id="eu"><path>.//Europe/../Europe/Probe.nes</path><name>European Title</name><desc>Scraped description</desc><image>./media/eu.png</image><rating>0.9</rating><playcount>7</playcount></game>
+  <game id="us"><path>USA/./Probe.nes</path><name>American Title</name><favorite>true</favorite></game>
+  <game id="stale"><path>./Gone/Probe.nes</path><name>Stale Title</name><desc>Keep this too</desc></game>
+  <folder><path>./Europe</path><name>My Folder</name></folder>
+</gameList>
+__XML__
+  cp "$GLSB/out/gamelist.xml" "$GLSB/out/original.xml"
+  local line
+  line="$(GL nes "$GLSB/roms" "$GLSB/out/gamelist.xml" --ext .nes)"
+  assert_eq $'nes\t3\t1\t2\t1' "$line"
+  assert_ok python3 - "$GLSB/out/original.xml" "$GLSB/out/gamelist.xml" <<'__PY__'
+import sys
+import xml.etree.ElementTree as ET
+
+before, after = (ET.parse(path).getroot() for path in sys.argv[1:])
+assert len(after.findall('game')) == 4
+for original, merged in zip(before, after):
+    assert original.tag == merged.tag
+    assert original.attrib == merged.attrib
+    assert [(e.tag, e.text, e.attrib) for e in original] == [
+        (e.tag, e.text, e.attrib) for e in merged]
+assert after[-1].findtext('path') == './Probe.nes'
+assert after[-1].findtext('name') == 'Probe'
+__PY__
+  cp "$GLSB/out/gamelist.xml" "$GLSB/out/before.xml"
+  line="$(GL nes "$GLSB/roms" "$GLSB/out/gamelist.xml" --ext .nes)"
+  assert_eq $'nes\t3\t0\t3\t1' "$line"
+  assert_ok cmp "$GLSB/out/before.xml" "$GLSB/out/gamelist.xml"
+}
+
+test_absolute_paths_keep_scraped_metadata() {
+  mkdir -p "$GLSB/roms/USA"
+  : > "$GLSB/roms/Probe.nes"
+  : > "$GLSB/roms/USA/Probe.nes"
+  local root abs nested
+  root="$(cd "$GLSB/roms" && pwd -P)"
+  abs="$root/Probe.nes"
+  nested="$root/USA/Probe.nes"
+  cat > "$GLSB/out/gamelist.xml" <<__XML__
+<gameList>
+  <game><path>$abs</path><name>My Own Title</name><desc>Scraped description</desc></game>
+  <game><path>$nested</path><name>Nested Title</name><desc>Nested scraped</desc></game>
+</gameList>
+__XML__
+  cp "$GLSB/out/gamelist.xml" "$GLSB/out/before.xml"
+  local line
+  line="$(GL nes "$GLSB/roms" "$GLSB/out/gamelist.xml" --ext .nes)"
+  assert_eq $'nes\t2\t0\t2\t0' "$line"
+  assert_ok cmp "$GLSB/out/before.xml" "$GLSB/out/gamelist.xml"
+}
+
+test_external_absolute_path_does_not_hide_a_local_game() {
+  : > "$GLSB/roms/Probe.nes"
+  cat > "$GLSB/out/gamelist.xml" <<'__XML__'
+<gameList>
+  <game><path>/tmp/elsewhere/Probe.nes</path><name>External Title</name><desc>Keep external</desc></game>
+</gameList>
+__XML__
+  local line content
+  line="$(GL nes "$GLSB/roms" "$GLSB/out/gamelist.xml" --ext .nes)"
+  assert_eq $'nes\t1\t1\t0\t1' "$line"
+  content="$(cat "$GLSB/out/gamelist.xml")"
+  assert_contains "$content" "Keep external"
+  assert_contains "$content" "<path>./Probe.nes</path>"
+  assert_contains "$content" "<name>Probe</name>"
+}
+
+test_hidden_and_noload_directories_are_not_scanned() {
+  mkdir -p "$GLSB/roms/.hidden/deeper" "$GLSB/roms/Visible/.hidden" \
+    "$GLSB/roms/Blocked/deeper" "$GLSB/roms/Visible/Blocked/deeper"
+  : > "$GLSB/roms/.hidden/deeper/Hidden.nes"
+  : > "$GLSB/roms/Visible/.hidden/Hidden.nes"
+  : > "$GLSB/roms/Visible/.hidden.nes"
+  : > "$GLSB/roms/Blocked/noload.txt"
+  : > "$GLSB/roms/Blocked/Blocked.nes"
+  : > "$GLSB/roms/Blocked/deeper/Blocked.nes"
+  : > "$GLSB/roms/Visible/Blocked/noload.txt"
+  : > "$GLSB/roms/Visible/Blocked/deeper/Blocked.nes"
+  : > "$GLSB/roms/Visible/Probe.nes"
+  local line content
+  line="$(GL nes "$GLSB/roms" "$GLSB/out/gamelist.xml" --ext .nes --ext .txt)"
+  assert_eq $'nes\t1\t1\t0\t0' "$line"
+  content="$(cat "$GLSB/out/gamelist.xml")"
+  assert_contains "$content" '<path>./Visible/Probe.nes</path>'
+  assert_not_contains "$content" 'hidden'
+  assert_not_contains "$content" 'Hidden'
+  assert_not_contains "$content" 'Blocked'
+  assert_not_contains "$content" 'noload.txt'
+}
+
+test_noload_at_rom_root_preserves_existing_entries() {
+  : > "$GLSB/roms/Probe.nes"
+  GL nes "$GLSB/roms" "$GLSB/out/gamelist.xml" --ext .nes >/dev/null
+  cp "$GLSB/out/gamelist.xml" "$GLSB/out/before.xml"
+  mkdir -p "$GLSB/roms/Nested"
+  : > "$GLSB/roms/Nested/New.nes"
+  : > "$GLSB/roms/noload.txt"
+  local line
+  line="$(GL nes "$GLSB/roms" "$GLSB/out/gamelist.xml" --ext .nes)"
+  assert_eq $'nes\t0\t0\t0\t1' "$line"
+  assert_ok cmp "$GLSB/out/before.xml" "$GLSB/out/gamelist.xml"
+}
+
+test_directory_symlinks_are_not_followed() {
+  mkdir -p "$GLSB/roms/Nested" "$GLSB/out/External"
+  : > "$GLSB/roms/Nested/Probe.nes"
+  : > "$GLSB/out/External/Outside.nes"
+  ln -s .. "$GLSB/roms/Nested/loop"
+  ln -s Nested "$GLSB/roms/alias"
+  ln -s "$GLSB/out/External" "$GLSB/roms/external"
+  local line
+  line="$(GL nes "$GLSB/roms" "$GLSB/out/gamelist.xml" --ext .nes)"
+  assert_eq $'nes\t1\t1\t0\t0' "$line"
+  assert_contains "$(cat "$GLSB/out/gamelist.xml")" '<path>./Nested/Probe.nes</path>'
+}
+
 # --- titles come from inside single-ROM archives ------------------------------
 # An archive is usually named more loosely than the ROM it wraps
 # ("some-game.zip" containing "Some Game (USA) (Rev 1).z64").

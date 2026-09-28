@@ -29,12 +29,16 @@ paths:
 
 # --------------------------------------------------------------- frontend ----
 frontend:
-  # es-de             ES-DE (EmulationStation Desktop Edition)  macOS + Linux
-  # emulationstation  RetroPie's EmulationStation               Raspberry Pi
+  # es-de             primary ROM frontend: macOS, Linux, 64-bit Raspberry Pi
+  # emulationstation  opt in to an existing RetroPie frontend
   # none              generate config only, launch nothing
   kind: es-de
   theme: slate-es-de
   show_hidden_games: false
+
+  # Keep disabled systems from reappearing via ES-DE's bundled definitions.
+  # Set false to merge our enabled systems with ES-DE's full bundled list.
+  load_exclusive: true
 
   # Write gamelist.xml during `retropi build` so the frontend shows real
   # titles ("The Legend of Zelda") instead of raw filenames. Existing

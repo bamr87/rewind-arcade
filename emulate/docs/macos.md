@@ -11,16 +11,17 @@ Works on both Apple Silicon and Intel; the correct core builds are selected auto
 
 ## The frontend
 
-RetroArch is installed from the upstream universal build, not Homebrew: the cask is x86_64/OpenGL, which runs under Rosetta on Apple Silicon and cannot open a video context for hardware-rendered cores, so N64, Dreamcast, PSP and Saturn all fail while 2D systems keep working. The universal build is native and uses Metal. **ES-DE does not** — it ships as a signed DMG, so it is a manual step:
+RetroArch is installed from the upstream universal build, not Homebrew: the cask is x86_64/OpenGL, which runs under Rosetta on Apple Silicon and cannot open a video context for hardware-rendered cores, so N64, Dreamcast, PSP and Saturn all fail while 2D systems keep working. The universal build is native and uses Metal. The default install also downloads ES-DE's architecture-specific DMG and installs the app as the primary ROM frontend.
 
-1. Download from <https://es-de.org/#Downloads>
-2. Drag `ES-DE.app` to `/Applications`
-3. Launch it once so it creates `~/.emulationstation`
-4. `./bin/retropi build`
+```sh
+./bin/retropi frontend status
+./bin/retropi build
+./bin/retropi frontend launch
+```
 
-retro-pi writes to `~/.emulationstation/custom_systems/es_systems.xml`, which ES-DE merges with its built-in definitions.
+If automatic installation fails, download from <https://es-de.org/#Downloads>, drag `ES-DE.app` into `/Applications`, then rebuild. Current ES-DE uses `~/ES-DE/custom_systems/es_systems.xml`, with settings under `~/ES-DE/settings/`. No first launch is required before building. Existing scraped metadata is preserved.
 
-You can skip the frontend entirely and launch games from RetroArch — the cores and paths are configured either way.
+You can use `install --no-frontend` and launch games through `tools/run-rom.sh` instead; it applies the generated RetroArch BIOS and save paths without needing ES-DE.
 
 ## Core architecture: the Rosetta trap
 
@@ -50,7 +51,7 @@ xattr -dr com.apple.quarantine ~/Library/Application\ Support/RetroArch/cores
 |---|---|
 | Cores | `~/Library/Application Support/RetroArch/cores` |
 | RetroArch config | `~/Library/Application Support/RetroArch` |
-| Frontend config | `~/.emulationstation/custom_systems` |
+| Frontend config | `~/ES-DE/custom_systems` (ES-DE 3.x) |
 | ROMs, saves, BIOS | inside this repo, unless you change `paths` |
 
 ## bash 3.2

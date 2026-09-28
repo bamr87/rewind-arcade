@@ -8,8 +8,8 @@ year: 1989
 aliases: [atarilynx]
 
 frontend:
-  platform: lynx   # scraper/theme id understood by ES-DE and RetroPie
-  theme: lynx
+  platform: atarilynx
+  theme: atarilynx
 
 # File types the frontend will show for this system.
 extensions: [".lnx", ".zip", ".7z"]

@@ -10,7 +10,7 @@ Verified end to end on Debian 13 (trixie), x86_64: RetroArch 1.20 from apt, 30 c
 git clone <your-fork> retro-pi && cd retro-pi
 ./platforms/debian/bootstrap.sh         # desktop
 ./platforms/debian/bootstrap.sh --headless   # server: adds Xvfb for display-free testing
-./bin/retropi install --all             # RetroArch, cores, ES-DE, generated config
+./bin/retropi install                   # ES-DE, RetroArch, cores, generated config
 ./bin/retropi doctor
 ```
 

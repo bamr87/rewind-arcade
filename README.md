@@ -7,7 +7,7 @@ Three pillars, one set of system ids.
 | Pillar | What it is | Entry |
 |---|---|---|
 | **Play** | Client-side portal: recreations, in-browser console loader, catalog browser, systems atlas | [`arcade/`](arcade/README.md) · [play it](https://bamr87.github.io/rewind-arcade/) |
-| **Emulate** | RetroArch + EmulationStation on macOS, Raspberry Pi, and Debian | [`emulate/`](emulate/README.md) · `./bin/retropi` |
+| **Emulate** | ES-DE (EmulationStation Desktop Edition), the main ROM frontend, backed by RetroArch on macOS, Raspberry Pi, and Debian | [`emulate/`](emulate/README.md) · `./bin/retropi` |
 | **Catalog** | Physical inventory, dump identification, prices, SQLite analytics | [`catalog/`](catalog/README.md) · `./bin/cartidx` |
 
 System ids are shared. `roms/nes` that emulate laid out is the same `nes` the catalog hashes, values, and files on a shelf. The full map is [`systems/registry.yaml`](systems/registry.yaml) and the encyclopedia in [`docs/systems/`](docs/systems/README.md).
@@ -18,8 +18,10 @@ System ids are shared. `roms/nes` that emulate laid out is the same `nes` the ca
 # Play — browser arcade, no backend
 npm install --prefix arcade && npm run dev --prefix arcade
 
-# Emulate — what does this machine need?
+# Emulate — desktop ROM library and emulator stack
 ./bin/retropi doctor
+./bin/retropi install           # ES-DE + RetroArch + cores + configuration
+./bin/retropi frontend launch   # browse and launch your own ROMs in ES-DE
 
 # Catalog — index the platforms you collect
 ./bin/cartidx init --systems nes,snes,n64
@@ -56,7 +58,7 @@ Cartridges, discs, floppies, tapes, arcade PCBs, and original PC software. Ninte
 | Add a console | one YAML in `emulate/config/systems/` — [guide](emulate/docs/adding-systems.md) |
 | See every platform this repo knows | [docs/systems](docs/systems/README.md) |
 
-Emulate ships **38** console manifests (24 enabled in a fresh frontend). Catalog identifies **8** cartridge families from dump bytes and accepts a wider shelf of platforms for inventory and prices. Arcade ships **6** original recreations, an in-browser console loader (`#/emulate`), a catalog browser (`#/catalog`), and a systems atlas (`#/systems`).
+Emulate ships **38** console manifests with two dozen systems enabled in a fresh ES-DE frontend. ES-DE is the primary interface for the local ROM library; RetroArch and standalone emulators run the games. The browser console loader remains an optional, separate experience, not a desktop ES-DE replacement. Catalog identifies **8** cartridge families from dump bytes and accepts a wider shelf of platforms for inventory and prices. Arcade ships **6** original recreations, an in-browser console loader (`#/emulate`), a catalog browser (`#/catalog`), and a systems atlas (`#/systems`).
 
 ## Documentation
 

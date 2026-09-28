@@ -21,14 +21,15 @@ Production build is static files in `arcade/dist/` and is what GitHub Pages serv
 
 Adding a game is one directory plus one line in `arcade/src/games/registry.ts`. See [arcade/README.md](../arcade/README.md).
 
-## Emulate (RetroArch + EmulationStation)
+## Emulate (ES-DE + RetroArch)
 
-Same workspace on macOS, a Raspberry Pi, or Debian/Ubuntu.
+ES-DE (EmulationStation Desktop Edition) is the primary ROM frontend on macOS, 64-bit Raspberry Pi OS, and Debian/Ubuntu. RetroArch runs the selected games; the browser loader is a separate optional interface.
 
 ```sh
 ./bin/retropi doctor        # reports what this machine needs; changes nothing
-./bin/retropi install       # RetroArch + cores + generated config
+./bin/retropi install       # ES-DE + RetroArch + cores + generated config
 ./bin/retropi build         # regenerate the frontend
+./bin/retropi frontend launch   # browse and launch games in ES-DE
 ```
 
 Put dumps you own in `emulate/roms/<system-id>/` (or point `paths.roms` at a drive). The tool never fetches games or BIOS.

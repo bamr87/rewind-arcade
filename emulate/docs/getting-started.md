@@ -26,7 +26,7 @@ This installs the OS-level dependencies (python3, curl, unzip, rsync) and RetroA
 ./bin/retropi install
 ```
 
-Installs RetroArch if missing, downloads a libretro core for every enabled system from the official buildbot, then generates your frontend configuration.
+Installs ES-DE and RetroArch if missing, downloads libretro cores for enabled systems from the official buildbot, then generates your frontend configuration. ES-DE is the main ROM frontend. `install --no-frontend` skips installing it, and `install --all` remains an alias for the full stack. Installation still downloads cores and generates configuration if the selected frontend cannot be installed, then exits non-zero instead of silently selecting a different frontend.
 
 To be selective:
 
@@ -72,9 +72,10 @@ Folder names are matched against every name a system answers to — its id, alia
 
 ```sh
 ./bin/retropi build
+./bin/retropi frontend launch
 ```
 
-This writes `es_systems.xml` into your frontend's config directory. Start ES-DE or EmulationStation and your systems are there.
+This writes ES-DE's custom system definitions and gamelists, then opens ES-DE. Systems with no games remain hidden. Select a game with your keyboard or controller; ES-DE launches RetroArch using the generated core, BIOS and save paths. Scraping and theme selection are available in ES-DE's own menus. Exit the emulator to return to ES-DE.
 
 ## The loop from here
 
