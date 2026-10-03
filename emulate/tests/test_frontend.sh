@@ -173,6 +173,7 @@ test_custom_data_home_reaches_esde_launch() {
 test_tilde_appdata_expands_before_generation_and_launch() {
   _fake_frontend "$SB/bin/es-de"
   RETROPI_FRONTEND_BIN="$SB/bin/es-de"
+  # shellcheck disable=SC2088 # the literal, unexpanded tilde is the input under test
   ESDE_APPDATA_DIR='~/custom esde'
   frontend_detect
   assert_eq "$HOME/custom esde" "$(frontend_home)"
