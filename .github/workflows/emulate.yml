@@ -103,6 +103,12 @@ jobs:
 
   raspberry-pi:
     name: raspberry pi (linux/arm64)
+    # Only on pushes to main and manual dispatch. The arm64 image builds and
+    # runs under QEMU emulation (~30 min/run), the largest minute consumer in
+    # this workflow, and private-repo minutes are capped (bamr87/bamr87#268).
+    # To check a branch before merging:
+    #   gh workflow run emulate.yml -R bamr87/rewind-arcade --ref <branch>
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     defaults:
       run:
