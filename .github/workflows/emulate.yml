@@ -20,7 +20,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, ubuntu-latest]
+        # macOS (stock bash 3.2) runs only on manual dispatch. macOS minutes
+        # bill at 10x against the private-repo Actions allowance, and that
+        # allowance running out blocked every private repo in the fleet from
+        # 2026-09-14 to 09-30 (bamr87/bamr87#268). Run the bash 3.2 leg before
+        # a release, or after touching bash-3.2-sensitive code:
+        #   gh workflow run emulate.yml -R bamr87/rewind-arcade --ref <branch>
+        os: ${{ github.event_name == 'workflow_dispatch' && fromJSON('["macos-latest", "ubuntu-latest"]') || fromJSON('["ubuntu-latest"]') }}
     defaults:
       run:
         working-directory: emulate
@@ -36,7 +42,13 @@ jobs:
       - name: Validate every manifest
         run: ./bin/retropi config validate
 
+      # Skipped on macOS: the validator probes the local `bash` for the Bash
+      # Debug extension (needs bash >= 4), and a macOS runner's PATH bash is
+      # Apple's 3.2. That stock bash is exactly what this leg is meant to
+      # test, so the check can never pass there. It is a developer-machine
+      # check, not a config defect. The same static checks still run on Linux.
       - name: Validate the .vscode run/debug configuration
+        if: runner.os != 'macOS'
         run: python3 tools/validate-vscode.py
 
       - name: Run the test suite
@@ -91,6 +103,12 @@ jobs:
 
   raspberry-pi:
     name: raspberry pi (linux/arm64)
+    # Only on pushes to main and manual dispatch. The arm64 image builds and
+    # runs under QEMU emulation (~30 min/run), the largest minute consumer in
+    # this workflow, and private-repo minutes are capped (bamr87/bamr87#268).
+    # To check a branch before merging:
+    #   gh workflow run emulate.yml -R bamr87/rewind-arcade --ref <branch>
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     defaults:
       run:
