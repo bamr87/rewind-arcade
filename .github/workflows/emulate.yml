@@ -57,7 +57,10 @@ jobs:
         run: |
           python3 - <<'PY'
           import xml.etree.ElementTree as ET
-          root = ET.parse('build/es_systems.xml').getroot()
+          # ES-DE's dialect allows <loadExclusive/> beside the systemList root;
+          # strip it so ElementTree sees a single-root document.
+          xml = open('build/es_systems.xml').read().replace('<loadExclusive/>', '')
+          root = ET.fromstring(xml)
           systems = root.findall('system')
           assert systems, "no systems generated"
           for s in systems:
