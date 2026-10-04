@@ -9,7 +9,8 @@ export function PlayCover({ id, title, accent }: { id: string; title: string; ac
       {id === 'asteroids' && <Rocks />}
       {id === 'minesweeper' && <Mines />}
       {id === 'skifree' && <Ski />}
-      {!['pong', 'jezzball', 'breakout', 'snake', 'asteroids', 'minesweeper', 'skifree'].includes(id) && (
+      {id === 'pellet-panic' && <Pellets />}
+      {!['pong', 'jezzball', 'breakout', 'snake', 'asteroids', 'minesweeper', 'skifree', 'pellet-panic'].includes(id) && (
         <rect width="240" height="320" fill={accent} />
       )}
       <rect x="0" y="248" width="240" height="72" fill="#000" opacity="0.55" />
@@ -110,6 +111,36 @@ function Ski() {
       <circle cx="120" cy="160" r="12" fill="#f8fafc" stroke="#64748b" />
       <circle cx="116" cy="158" r="2" fill="#0f172a" />
       <circle cx="125" cy="158" r="2" fill="#0f172a" />
+    </g>
+  );
+}
+
+function Pellets() {
+  const walls = [
+    [16, 16, 208, 8], [16, 16, 8, 216], [216, 16, 8, 216], [16, 224, 208, 8],
+    [48, 48, 48, 24], [144, 48, 48, 24], [48, 104, 24, 72], [168, 104, 24, 72],
+    [96, 112, 48, 40], [48, 192, 144, 8],
+  ];
+  return (
+    <g>
+      <rect width="240" height="320" fill="#03040b" />
+      {walls.map(([x, y, w, h], i) => (
+        <rect key={i} x={x} y={y} width={w} height={h} rx="3" fill="#0b1033" stroke="#6366f1" strokeWidth="2" />
+      ))}
+      <line x1="108" y1="112" x2="132" y2="112" stroke="#f9a8d4" strokeWidth="3" />
+      {Array.from({ length: 9 }, (_, i) => (
+        <rect key={i} x={50 + i * 16} y="86" width="4" height="4" fill="#fde68a" />
+      ))}
+      {Array.from({ length: 5 }, (_, i) => (
+        <rect key={i} x="32" y={98 + i * 16} width="4" height="4" fill="#fde68a" />
+      ))}
+      <circle cx="34" cy="36" r="6" fill="#fde68a" />
+      <circle cx="206" cy="36" r="6" fill="#fde68a" />
+      <path d="M120 172 L136 163 A 18 18 0 1 0 136 181 Z" fill="#facc15" />
+      <circle cx="117" cy="164" r="2" fill="#1c1917" />
+      <path d="M150 74 q4 4 10 9 q2 2 0 4 l-6 6 q-4 3 -8 0 l-6 -6 q-2 -2 0 -4 q6 -5 10 -9 z" fill="#f43f5e" />
+      <path d="M182 146 q4 4 10 9 q2 2 0 4 l-6 6 q-4 3 -8 0 l-6 -6 q-2 -2 0 -4 q6 -5 10 -9 z" fill="#22d3ee" />
+      <path d="M56 152 q4 4 10 9 q2 2 0 4 l-6 6 q-4 3 -8 0 l-6 -6 q-2 -2 0 -4 q6 -5 10 -9 z" fill="#1d4ed8" />
     </g>
   );
 }
