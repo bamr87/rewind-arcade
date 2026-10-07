@@ -133,7 +133,7 @@ make test          # the test suite
 make test-linux    # run the suite in Debian bookworm + trixie containers
 ```
 
-CI runs the suite on macOS (bash 3.2) and Ubuntu (bash 5.x), again with the built-in YAML parser forced, once more on `linux/arm64` under QEMU — the real Raspberry Pi target — and on Debian 13 (trixie).
+CI runs the suite on Ubuntu (bash 5.x), and on macOS (bash 3.2) when the `emulate` workflow is dispatched manually (macOS minutes bill at 10x), again with the built-in YAML parser forced, once more on `linux/arm64` under QEMU — the real Raspberry Pi target, on pushes to `main` and manual dispatch only — and on Debian 13 (trixie).
 
 To launch a game without needing one, generate an original test cartridge:
 

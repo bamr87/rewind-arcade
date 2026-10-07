@@ -82,6 +82,9 @@ Steer a snake with the arrow keys / **WASD** (or swipe on touch), eat apples to 
 ### Asteroids (1979)
 Thrust, turn, and shoot the rocks. **F** / **K** fires (Space is pause). Edges wrap; big rocks split.
 
+### Pellet Panic (1980)
+An original maze chase: eat every pellet while four chasers hunt you. Rook chases you directly, Lark ambushes four tiles ahead, Moth flanks off Rook's position, and Wisp backs off when it gets close. They alternate scatter and chase phases. A power pellet turns them blue, so they reverse, slow down, and can be eaten for 200 / 400 / 800 / 1600. **Every level is a freshly generated, left-right-mirrored maze** with side tunnels, a central pen, and no dead ends. Steer with the arrows / **WASD** (or swipe). A turn pressed early is taken at the next opening. Settings: lives, chaser speed, fright time, and a maze seed (0 = new mazes every game). `npm run play:pellet-panic` checks the generator over 500 seeds (symmetric, connected, dead-end free, deterministic) and drives the game's rules headlessly.
+
 ## Frontend
 
 - **Play lobby** (`#/play`) — a featured cabinet (your last game, or a daily pick), lifetime stats, and a game grid you can filter by favorites, played, or new, search, and sort.
