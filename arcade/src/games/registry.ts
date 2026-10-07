@@ -3,6 +3,7 @@ import { asteroidsManifest } from './asteroids';
 import { breakoutManifest } from './breakout';
 import { jezzballManifest } from './jezzball';
 import { minesweeperManifest } from './minesweeper';
+import { pelletPanicManifest } from './pellet-panic';
 import { pongManifest } from './pong';
 import { skifreeManifest } from './skifree';
 import { snakeManifest } from './snake';
@@ -15,6 +16,7 @@ export const GAMES: GameManifest[] = [
   asteroidsManifest,
   minesweeperManifest,
   skifreeManifest,
+  pelletPanicManifest,
 ];
 
 export function getGame(id: string | undefined): GameManifest | undefined {
