@@ -1,6 +1,6 @@
-# EmulationStation
+# ES-DE (EmulationStation Desktop Edition)
 
-EmulationStation is a managed part of retro-pi, not an external dependency you wire up yourself. retro-pi installs it, decides where its files belong, and generates the three things it reads: the system list, the gamelists, and (on request) its settings.
+ES-DE is Rewind Arcade's primary desktop ROM frontend, backed by RetroArch and optional standalone emulators. The default `retropi install` installs ES-DE with the emulator stack. retro-pi manages its system definitions and gamelists; settings are merged only on request. The browser arcade and its console loader remain separate, optional experiences.
 
 ```sh
 ./bin/retropi frontend install    # download and install ES-DE for this platform
@@ -17,7 +17,9 @@ EmulationStation is a managed part of retro-pi, not an external dependency you w
 | `emulationstation` | RetroPie's EmulationStation | Raspberry Pi |
 | `none` | generate configuration, launch nothing | anywhere |
 
-Both read the same `es_systems.xml`, which is what lets one configuration serve a Mac and a Pi. Set it with `frontend.kind`; retro-pi detects what is actually installed regardless.
+`frontend.kind` selects the frontend to discover, install and launch; it defaults to `es-de`. An installed legacy EmulationStation does not satisfy an ES-DE installation. Set `frontend.kind: emulationstation` to use an existing RetroPie setup, or `none` to generate configuration without installing or launching a frontend. `RETROPI_FRONTEND_BIN` remains an authoritative explicit executable override; a missing override is reported as missing rather than replaced by another binary.
+
+ES-DE loads only the generated systems by default, using its `<loadExclusive/>` directive. This makes `systems disable` and `build --systems` authoritative even when the excluded systems still contain ROMs. Set `frontend.load_exclusive: false` to complement ES-DE's bundled system list instead. Legacy EmulationStation output omits the directive.
 
 ## Install
 
@@ -34,7 +36,7 @@ Asset URLs are opaque IDs rather than predictable paths, so they are looked up r
 
 On macOS the disk image carries a licence agreement that would otherwise block the mount; retro-pi accepts it, copies the app to `/Applications`, and clears the download quarantine flag. On Linux the AppImage lands in `~/Applications`, and retro-pi runs it once to prove it starts; if it does not, it names the FUSE package for your release (`libfuse2t64` on Debian 13, see [debian.md](debian.md)).
 
-If RetroPie is already installed, retro-pi detects and uses it instead of installing anything.
+RetroPie's cores and RetroArch can still be reused while ES-DE provides the frontend. To keep the legacy frontend instead, run `./bin/retropi config set frontend.kind emulationstation` before installing or building. Installing legacy EmulationStation itself remains RetroPie's responsibility. `install --no-frontend` skips frontend installation for that invocation; it does not change the configured selection.
 
 ## Where files go
 
@@ -48,7 +50,7 @@ ES-DE 3.0 moved its application data directory from `~/.emulationstation` to `~/
 | themes | `<home>/themes` | same |
 | settings | `<home>/settings/es_settings.xml` | `<home>/es_settings.xml` |
 
-`retropi frontend dirs` prints the resolved paths. Override the lot with `RETROPI_ES_CONFIG_HOME`.
+`retropi frontend dirs` prints the resolved paths. Override the application data directory with `RETROPI_ES_CONFIG_HOME`; current ES-DE releases receive that exact directory through `ESDE_APPDATA_DIR` in both desktop and X11-session launch paths. A pre-existing `ESDE_APPDATA_DIR` is also honored when no retro-pi override is set. A leading `~` is expanded before either generation or launch, matching ES-DE. Custom data-directory launching requires an ES-DE release supporting that upstream environment variable; upgrade older releases before using it. Do not substitute `--home`: that changes ES-DE's whole home-directory interpretation and appends `ES-DE` to the supplied path.
 
 ## Gamelists
 
@@ -69,7 +71,7 @@ A `<sortname>` is written too, so "The Backdrop Cycler" files under B.
 
 `retropi build` does this automatically; turn it off with `frontend.generate_gamelists: false` or `build --no-gamelists`.
 
-**Existing gamelists are merged, never overwritten.** Descriptions, images, ratings and play counts you have scraped are preserved; only games missing from the list are added. An entry whose file has disappeared is reported and left alone, because the metadata is usually worth more than the tidiness.
+**Existing gamelists are merged, never overwritten.** Descriptions, images, ratings and play counts you have scraped are preserved; only games missing from the list are added. Nested game directories retain their relative paths, so identical filenames in separate folders remain distinct. Hidden directories, directory symlinks and subtrees containing `noload.txt` are not scanned. An entry whose file has disappeared is reported and left alone, because the metadata is usually worth more than the tidiness.
 
 ## Themes
 
@@ -99,7 +101,11 @@ frontend:
 ./bin/retropi frontend settings --apply   # merge it in (the original is backed up)
 ```
 
-The merge preserves every other setting and keeps the element type the frontend already chose for a key.
+The merge preserves every other setting and keeps the element type the frontend already chose for a key. Close ES-DE before applying settings so its shutdown does not overwrite the merge. Generated system entries use absolute ROM paths, so launching the managed systems does not require changing `ROMDirectory`; applying it is useful for ES-DE's own directory tools and optional bundled-system merging.
+
+## Controllers and media
+
+Configure the frontend controller in ES-DE and emulator controls in RetroArch; they are separate mappings. Returning from RetroArch restores ES-DE's library view. Use ES-DE's theme downloader for compatible ES-DE themes and its scraper for artwork and descriptions. Legacy EmulationStation themes and media layouts are not interchangeable with ES-DE's. This repository does not download games or BIOS images.
 
 ## Verifying it worked
 
@@ -111,3 +117,5 @@ grep -E "Parsing (systems|gamelist)" ~/ES-DE/logs/es_log.txt
 ```
 
 You should see your `custom_systems/es_systems.xml` and one line per system gamelist.
+
+Upstream references: [ES-DE user guide](https://gitlab.com/es-de/emulationstation-de/-/blob/master/USERGUIDE.md), [advanced configuration](https://gitlab.com/es-de/emulationstation-de/-/blob/master/INSTALL.md).

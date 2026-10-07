@@ -1,26 +1,25 @@
 #!/usr/bin/env bash
 # cmd/install.sh - install the emulator stack for this machine.
 #
-# macOS:        RetroArch via Homebrew cask, ES-DE via its DMG (assisted).
-# Raspberry Pi: RetroArch via apt, or defer to an existing RetroPie install.
+# RetroArch, ES-DE, cores and generated configuration form the default stack.
 
 cmd_install() {
-  local do_ra=1 do_cores=1 do_frontend=0 do_build=1 all=0
+  local do_ra=1 do_cores=1 do_frontend=1 do_build=1
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --all)          all=1; do_frontend=1 ;;
+      --all)          do_ra=1; do_cores=1; do_frontend=1; do_build=1 ;;
       --no-frontend)  do_frontend=0 ;;
       --frontend)     do_frontend=1; do_ra=0; do_cores=0; do_build=0 ;;
-      --cores)        do_cores=1; do_ra=0; do_build=0 ;;
-      --retroarch)    do_ra=1; do_cores=0; do_build=0 ;;
+      --cores)        do_cores=1; do_ra=0; do_frontend=0; do_build=0 ;;
+      --retroarch)    do_ra=1; do_cores=0; do_frontend=0; do_build=0 ;;
       --no-cores)     do_cores=0 ;;
       --no-build)     do_build=0 ;;
       -h|--help)
         cat >&2 <<'__H__'
 retropi install - install the emulator stack
 
-  (no options)      RetroArch + cores for enabled systems + build
-  --all             also install an EmulationStation frontend
+  (no options)      ES-DE + RetroArch + cores for enabled systems + build
+  --all             same as the default full stack
   --no-frontend     skip the frontend
   --retroarch       install RetroArch only
   --cores           install libretro cores only
@@ -38,12 +37,19 @@ __H__
 
   info "installing on $(platform_label)"
 
+  local frontend_rc=0
   [[ "$do_ra" == "1" ]] && _install_retroarch
-  [[ "$do_frontend" == "1" ]] && _install_frontend
+  if [[ "$do_frontend" == "1" ]]; then
+    _install_frontend || frontend_rc=1
+  fi
   [[ "$do_cores" == "1" ]] && _install_cores
   [[ "$do_build" == "1" ]] && { info "generating configuration"; cmd_build; }
 
   log ""
+  if [[ "$frontend_rc" != "0" ]]; then
+    error "install incomplete: the configured frontend did not install"
+    return 1
+  fi
   info "install finished - verifying"
   cmd_doctor --no-bios || true
   return 0
@@ -93,23 +99,17 @@ _install_retroarch() {
 
 _install_frontend() {
   frontend_detect
-  if frontend_installed; then
-    ok "frontend already installed: $(frontend_bin)"
-    return 0
-  fi
-  info "installing EmulationStation"
   if frontend_install; then
     return 0
   fi
-  warn "automatic frontend install was not possible on this platform"
+  error "could not install the configured frontend: $RETROPI_FE_KIND"
   log ""
-  log "Install one by hand, then run ./bin/retropi build:"
-  log "  ES-DE:    https://es-de.org/"
-  log "  RetroPie: https://retropie.org.uk/docs/Manual-Installation/"
+  log "Install the selected frontend manually, then run ./bin/retropi build."
+  log "For an emulator-only setup, use: ./bin/retropi install --no-frontend"
   log ""
   log "retro-pi writes its configuration to:"
   log "  $(es_config_dir)/es_systems.xml"
-  return 0
+  return 1
 }
 
 _install_cores() {

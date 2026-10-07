@@ -8,9 +8,8 @@
 #
 # This file is the ONLY place that knows where either one keeps its files,
 # what it is called, or how to install it - the same role lib/platform.sh
-# plays for the operating system. Paths are PROBED rather than hardcoded,
-# because ES-DE moved its home from ~/.emulationstation to ~/ES-DE in 3.0 and
-# RetroPie keeps everything under /opt/retropie.
+# plays for the operating system. Layout follows the selected frontend and
+# installed version, never stale directories left by a different frontend.
 
 RETROPI_FE_KIND=""
 RETROPI_FE_BIN=""
@@ -23,6 +22,11 @@ _FE_DETECTING=0
 
 # _fe_app_candidates - possible frontend executables, best first.
 _fe_app_candidates() {
+  if [[ "$RETROPI_FE_KIND" == "emulationstation" ]]; then
+    printf '%s\n' "/opt/retropie/supplementary/emulationstation/emulationstation"
+    have emulationstation && command -v emulationstation
+    return 0
+  fi
   case "$RETROPI_OS" in
     macos)
       printf '%s\n' "/Applications/ES-DE.app/Contents/MacOS/ES-DE"
@@ -30,21 +34,12 @@ _fe_app_candidates() {
       ;;
     *)
       printf '%s\n' "$HOME/Applications/ES-DE.AppImage"
+      printf '%s\n' "$HOME/Applications/ES-DE_x64.AppImage"
+      printf '%s\n' "$HOME/Applications/ES-DE_aarch64.AppImage"
       printf '%s\n' "$HOME/.local/bin/ES-DE.AppImage"
-      printf '%s\n' "/opt/retropie/supplementary/emulationstation/emulationstation"
       ;;
   esac
   have es-de && command -v es-de
-  have emulationstation && command -v emulationstation
-  return 0
-}
-
-# _fe_home_candidates - existing config homes, best first. Used only when no
-# frontend is installed to derive the answer from.
-_fe_home_candidates() {
-  printf '%s\n' "$HOME/ES-DE"                                  # ES-DE >= 3.0
-  printf '%s\n' "$HOME/.emulationstation"                      # ES-DE 2.x, RetroPie
-  printf '%s\n' "/opt/retropie/configs/all/emulationstation"   # RetroPie
   return 0
 }
 
@@ -61,8 +56,15 @@ frontend_detect() {
   RETROPI_FE_HOME=""
   RETROPI_FE_FLAVOR="none"
   RETROPI_FE_VERSION=""
+  RETROPI_FE_KIND="$(cfg frontend.kind es-de)"
+  case "$RETROPI_FE_KIND" in
+    es-de|emulationstation|none) ;;
+    *) die "frontend.kind must be es-de, emulationstation or none" ;;
+  esac
 
-  if [[ -n "${RETROPI_FRONTEND_BIN:-}" ]]; then
+  if [[ "$RETROPI_FE_KIND" == "none" ]]; then
+    : # Generate configuration without discovering or launching a frontend.
+  elif [[ -n "${RETROPI_FRONTEND_BIN:-}" ]]; then
     # An explicit binary is authoritative. If it is not executable we report
     # "not installed" rather than quietly running some other frontend the user
     # did not ask for.
@@ -77,13 +79,18 @@ frontend_detect() {
   case "$RETROPI_FE_BIN" in
     *ES-DE*|*es-de*) RETROPI_FE_FLAVOR="es-de" ;;
     *emulationstation*) RETROPI_FE_FLAVOR="emulationstation" ;;
-    *) RETROPI_FE_FLAVOR="none" ;;
+    "") RETROPI_FE_FLAVOR="none" ;;
+    *) RETROPI_FE_FLAVOR="$RETROPI_FE_KIND" ;;
   esac
 
   # An explicit override wins outright, even before it exists on disk -- it is
   # a destination, not a discovery hint.
   if [[ -n "${RETROPI_ES_CONFIG_HOME:-}" ]]; then
-    RETROPI_FE_HOME="$RETROPI_ES_CONFIG_HOME"
+    RETROPI_FE_HOME="$(abspath "$RETROPI_ES_CONFIG_HOME")"
+  elif [[ -n "${ESDE_APPDATA_DIR:-}" && "$RETROPI_FE_KIND" == "es-de" ]]; then
+    # ES-DE expands a leading ~ itself. Expand it here too, or generation
+    # writes to a literal ./~ directory while launch reads $HOME.
+    RETROPI_FE_HOME="$(abspath "$ESDE_APPDATA_DIR")"
   elif [[ "$RETROPI_FE_FLAVOR" != "none" ]]; then
     # An installed frontend decides its own layout: ES-DE 3.x reads
     # <home>/ES-DE and will NEVER look at a ~/.emulationstation left behind by
@@ -91,14 +98,9 @@ frontend_detect() {
     # config where the frontend cannot see it.
     RETROPI_FE_HOME="$(frontend_default_home)"
   else
-    while IFS= read -r c; do
-      [[ -n "$c" ]] || continue
-      if [[ -d "$c" ]]; then RETROPI_FE_HOME="$c"; break; fi
-    done < <(_fe_home_candidates)
-    [[ -n "$RETROPI_FE_HOME" ]] || RETROPI_FE_HOME="$(frontend_default_home)"
+    RETROPI_FE_HOME="$(frontend_default_home)"
   fi
 
-  RETROPI_FE_KIND="$(cfg frontend.kind es-de)"
   export RETROPI_FE_KIND RETROPI_FE_BIN RETROPI_FE_HOME RETROPI_FE_FLAVOR RETROPI_FE_VERSION
   _FE_DETECTING=0
 }
@@ -125,10 +127,12 @@ frontend_default_home() {
       ;;
     *)
       # Nothing installed: assume the layout of the configured kind.
-      if [[ -d /opt/retropie/configs/all/emulationstation ]]; then
-        printf '%s' "/opt/retropie/configs/all/emulationstation"
-      elif [[ "$(cfg frontend.kind es-de)" == "emulationstation" ]]; then
-        printf '%s' "$HOME/.emulationstation"
+      if [[ "$(cfg frontend.kind es-de)" == "emulationstation" ]]; then
+        if [[ -d /opt/retropie/configs/all/emulationstation ]]; then
+          printf '%s' "/opt/retropie/configs/all/emulationstation"
+        else
+          printf '%s' "$HOME/.emulationstation"
+        fi
       else
         printf '%s' "$HOME/ES-DE"
       fi
@@ -181,7 +185,7 @@ frontend_themes_dir()         { printf '%s/themes' "$(frontend_home)"; }
 frontend_settings_file() {
   local home
   home="$(frontend_home)"
-  if [[ -d "$home/settings" || "$(frontend_flavor)" == "es-de" ]]; then
+  if [[ "$(frontend_flavor)" == "es-de" || ( "$(frontend_flavor)" == "none" && "$(cfg frontend.kind es-de)" != "emulationstation" ) ]]; then
     printf '%s/settings/es_settings.xml' "$home"
   else
     printf '%s/es_settings.xml' "$home"
@@ -193,7 +197,7 @@ frontend_settings_file() {
 # ES-DE wants it under custom_systems/ so it merges with the bundled set.
 es_config_dir() {
   if [[ -n "${RETROPI_ES_CONFIG:-}" ]]; then printf '%s' "$RETROPI_ES_CONFIG"; return; fi
-  if [[ "$(frontend_flavor)" == "emulationstation" ]]; then
+  if [[ "$(frontend_flavor)" == "emulationstation" || ( "$(frontend_flavor)" == "none" && "$(cfg frontend.kind es-de)" == "emulationstation" ) ]]; then
     frontend_home
   else
     frontend_custom_systems_dir
@@ -255,14 +259,23 @@ _fe_fetch() {
 # frontend_install - download and install ES-DE for this platform.
 frontend_install() {
   local force="${1:-0}"
+  frontend_detect
+  if [[ "$RETROPI_FE_KIND" == "none" ]]; then
+    info "frontend disabled (frontend.kind: none); skipping installation"
+    return 0
+  fi
   if frontend_installed && [[ "$force" != "1" ]]; then
     ok "frontend already installed: $(frontend_bin)"
     return 0
   fi
 
-  if [[ "$RETROPI_OS" == "linux" && -x /opt/retropie/supplementary/emulationstation/emulationstation ]]; then
-    ok "RetroPie's EmulationStation is already present; using it"
-    return 0
+  if [[ "$RETROPI_FE_KIND" == "emulationstation" ]]; then
+    if frontend_installed; then
+      ok "RetroPie's EmulationStation is managed by RetroPie; leaving it unchanged"
+      return 0
+    fi
+    warn "install RetroPie's EmulationStation manually: https://retropie.org.uk/docs/Manual-Installation/"
+    return 1
   fi
 
   local asset name url tag
@@ -324,12 +337,17 @@ _fe_install_appimage() {
 # --- launch -------------------------------------------------------------------
 
 frontend_launch() {
+  [[ "$(cfg frontend.kind es-de)" != "none" ]] || die "frontend disabled (frontend.kind: none)"
   frontend_installed || die "no frontend installed; run: ./bin/retropi frontend install"
   local bin
   bin="$(frontend_bin)"
   info "launching $(frontend_flavor): $bin"
   [[ "$RETROPI_DRY_RUN" == "1" ]] && { step "dry run: would exec $bin"; return 0; }
-  "$bin" "$@"
+  if [[ "$(frontend_flavor)" == "es-de" ]]; then
+    ESDE_APPDATA_DIR="$(frontend_home)" "$bin" "$@"
+  else
+    "$bin" "$@"
+  fi
 }
 
 # --- session: the frontend on this machine's own monitor ----------------------
@@ -438,11 +456,10 @@ frontend_session_client() {
   info "screen ${w}x${h} ($rot), frontend region ${gw}x${gh}+${gx}+${gy}"
   [[ "$region" == "full" ]] || display_write_retroarch_cfg "$(build_dir)/retroarch-display.cfg" "$geo"
 
-  local bin args=()
-  bin="$(frontend_bin)"
+  local args=()
   [[ "$(frontend_flavor)" == "es-de" ]] && args=(--no-splash)
   [[ "$region" == "full" || "$(frontend_flavor)" != "es-de" ]] || args+=(--resolution "$gw" "$gh")
-  "$bin" "${args[@]}" </dev/null &
+  frontend_launch ${args[@]+"${args[@]}"} </dev/null &
   local pid=$! win="" i rc=0
   # No window manager: SDL centres the window, so put it where the region is.
   # `xdotool search` fails until the window maps; under errexit + pipefail an

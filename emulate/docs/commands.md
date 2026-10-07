@@ -28,11 +28,11 @@ Exits non-zero when it finds failures, so it works as a CI gate.
 
 ### `install`
 
-Installs the emulator stack: RetroArch, libretro cores for the enabled systems, then generates configuration.
+Installs the emulator stack: ES-DE (the main ROM frontend), RetroArch, libretro cores for the enabled systems, then generates configuration. A frontend failure does not skip cores or configuration, but the command still exits non-zero and prints the manual-install or emulator-only next step.
 
 ```
-(no options)      RetroArch + cores + build
---all             also install an EmulationStation frontend
+(no options)      ES-DE + RetroArch + cores + build
+--all             same as the default full stack
 --retroarch       RetroArch only
 --cores           cores only
 --frontend        frontend only
@@ -59,6 +59,8 @@ Regenerates everything downstream of the manifests: the ROM directory tree, `es_
 Output lands in `build/` and is installed into the frontend's config directory. Existing files are backed up first.
 
 `--systems` is a filter, not a preference: building with it leaves every other system out of the generated frontend config until the next full build.
+
+ES-DE defaults to exclusive loading of the generated systems, so disabled systems cannot reappear through its bundled definitions. Set `frontend.load_exclusive: false` to retain ES-DE's bundled systems alongside managed overrides. The `<loadExclusive/>` directive is an ES-DE-specific top-level sibling of `<systemList>`; generic single-root XML parsers need to wrap these elements when inspecting that output. Legacy EmulationStation receives a plain `<systemList>` document.
 
 ### `config`
 

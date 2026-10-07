@@ -189,12 +189,16 @@ __H__
 
   hr "frontend"
   frontend_detect
-  if frontend_installed; then
+  if [[ "$RETROPI_FE_KIND" == "none" ]]; then
+    _pass "frontend disabled (frontend.kind: none)"
+  elif frontend_installed; then
     _pass "EmulationStation: $(frontend_flavor) $(frontend_version)"
     _pass "binary: $(frontend_bin)"
   else
-    _warn "no EmulationStation frontend detected"
-    if frontend_asset_pattern >/dev/null 2>&1; then
+    _warn "configured frontend not detected: $RETROPI_FE_KIND"
+    if [[ "$RETROPI_FE_KIND" == "emulationstation" ]]; then
+      _hint "  install RetroPie's EmulationStation manually, or set frontend.kind to es-de"
+    elif frontend_asset_pattern >/dev/null 2>&1; then
       _hint "  install it: ./bin/retropi frontend install"
     else
       _hint "  no ES-DE build for $RETROPI_OS/$RETROPI_ARCH; install a frontend manually (https://es-de.org/)"

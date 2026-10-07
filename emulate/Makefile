@@ -21,7 +21,7 @@ doctor: ## Check this machine and report what is missing
 	@$(RETROPI) doctor
 
 .PHONY: install
-install: ## Install the emulator stack (RetroArch + cores) and build config
+install: ## Install ES-DE + RetroArch + cores and build config
 	@$(RETROPI) install
 
 .PHONY: build

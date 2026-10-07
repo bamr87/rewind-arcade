@@ -7,8 +7,9 @@ GoodTools naming so the frontend looks right with no scraping and no network.
 
 Existing gamelists are MERGED, never overwritten: entries you have scraped
 (descriptions, images, ratings, play counts) are preserved, and only games
-missing from the list are added. A game whose file has disappeared is reported
-but left alone.
+missing from the list are added. Absolute paths inside the ROM directory match
+their relative entries, so a rebuild does not append a duplicate. A game whose
+file has disappeared is reported but left alone.
 
     lib/gamelist.py <system_id> <rom_dir> <out_xml> [--ext .nes --ext .zip]
     lib/gamelist.py --clean-name "Legend of Zelda, The (USA) (Rev 1).nes"
@@ -97,20 +98,47 @@ def title_source(rom_path: str) -> str:
 
 
 def find_roms(rom_dir: str, extensions: list[str]) -> list[str]:
+    """Return relative ROM paths without following directory symlinks."""
     wanted = {e.lower() for e in extensions}
     found = []
-    for entry in sorted(os.listdir(rom_dir)):
-        path = os.path.join(rom_dir, entry)
-        if not os.path.isfile(path):
+    for directory, dirs, files in os.walk(rom_dir, followlinks=False):
+        # ES-DE excludes the entire subtree marked by noload.txt.
+        if "noload.txt" in files:
+            dirs[:] = []
             continue
-        if entry.startswith(".") or entry == "_ABOUT.txt":
-            continue
-        if os.path.splitext(entry)[1].lower() in wanted:
-            found.append(entry)
-    return found
+        dirs[:] = [d for d in dirs if not d.startswith(".")]
+        for entry in files:
+            if entry.startswith(".") or entry == "_ABOUT.txt":
+                continue
+            path = os.path.join(directory, entry)
+            if os.path.isfile(path) and os.path.splitext(entry)[1].lower() in wanted:
+                found.append(os.path.relpath(path, rom_dir))
+    return sorted(found)
 
 
-def load_existing(path: str):
+def entry_key(path: str, rom_dir: str) -> str:
+    """Identity shared by relative, ./relative, and in-tree absolute paths."""
+    raw = (path or "").strip()
+    if not raw:
+        return ""
+    normalized = os.path.normpath(os.path.expanduser(raw))
+    if not os.path.isabs(normalized):
+        return normalized
+    # Resolve parents only. /var and /private/var must match, but a ROM symlink
+    # must keep its name inside the library rather than follow its target.
+    root = os.path.realpath(rom_dir)
+    parent, name = os.path.split(normalized)
+    located = os.path.join(os.path.realpath(parent), name) if parent else normalized
+    try:
+        rel = os.path.relpath(located, root)
+    except ValueError:
+        return normalized
+    if rel == os.pardir or rel.startswith(os.pardir + os.sep):
+        return normalized
+    return rel
+
+
+def load_existing(path: str, rom_dir: str):
     """-> (root_element, {rom_path: game_element}). Tolerates a missing file."""
     if not os.path.exists(path):
         return ET.Element("gameList"), {}
@@ -122,9 +150,10 @@ def load_existing(path: str):
     root = tree.getroot()
     index = {}
     for game in root.findall("game"):
-        p = (game.findtext("path") or "").strip()
-        if p:
-            index[os.path.basename(p)] = game
+        key = entry_key(game.findtext("path") or "", rom_dir)
+        # Keep the first entry: a later duplicate must not replace scraped data.
+        if key and key not in index:
+            index[key] = game
     return root, index
 
 
@@ -150,7 +179,7 @@ def generate(system_id: str, rom_dir: str, out_xml: str,
         return {"system": system_id, "added": 0, "kept": 0, "missing": 0, "total": 0}
 
     roms = find_roms(rom_dir, extensions)
-    root, existing = load_existing(out_xml)
+    root, existing = load_existing(out_xml, rom_dir)
 
     added = kept = 0
     for rom in roms:
