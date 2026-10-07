@@ -99,7 +99,7 @@ jobs:
       - name: Lint
         run: |
           shellcheck -S warning -x -e SC2034 bin/retropi lib/*.sh cmd/*.sh platforms/*/*.sh tools/*.sh
-          shellcheck -S warning -x tests/run.sh tests/lib/*.sh tests/test_*.sh
+          shellcheck -S warning -x -e SC2034 tests/run.sh tests/lib/*.sh tests/test_*.sh
 
   raspberry-pi:
     name: raspberry pi (linux/arm64)

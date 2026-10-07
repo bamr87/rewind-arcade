@@ -44,6 +44,7 @@ config_sources() {
 }
 
 # config_load [--force] - build the flat cache when stale.
+# shellcheck disable=SC2120 # --force is optional; only the tests pass it
 config_load() {
   local force="${1:-}"
   local sources stale=0 src
