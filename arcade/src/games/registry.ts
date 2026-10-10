@@ -2,6 +2,7 @@ import type { GameManifest } from '../engine/types';
 import { asteroidsManifest } from './asteroids';
 import { breakoutManifest } from './breakout';
 import { jezzballManifest } from './jezzball';
+import { lodeDiggerManifest } from './lode-digger';
 import { minesweeperManifest } from './minesweeper';
 import { pelletPanicManifest } from './pellet-panic';
 import { pongManifest } from './pong';
@@ -17,6 +18,7 @@ export const GAMES: GameManifest[] = [
   minesweeperManifest,
   skifreeManifest,
   pelletPanicManifest,
+  lodeDiggerManifest,
 ];
 
 export function getGame(id: string | undefined): GameManifest | undefined {

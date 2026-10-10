@@ -49,7 +49,7 @@ Cartridges, discs, floppies, tapes, arcade PCBs, and original PC software. Ninte
 
 | You want to… | Use |
 |---|---|
-| Play Pong / JezzBall / Breakout / Snake / Asteroids / Minesweeper / SkiFree / Pellet Panic | `arcade/` |
+| Play Pong / JezzBall / Breakout / Snake / Asteroids / Minesweeper / SkiFree / Pellet Panic / Lode Digger | `arcade/` |
 | Load a dump in the browser | `arcade/` → `#/emulate` |
 | Browse a cartidx export | `arcade/` → `#/catalog` |
 | Boot a NES, PS1, or Dreamcast ROM on a Mac or Pi | `./bin/retropi install` then `build` |
