@@ -10,7 +10,8 @@ export function PlayCover({ id, title, accent }: { id: string; title: string; ac
       {id === 'minesweeper' && <Mines />}
       {id === 'skifree' && <Ski />}
       {id === 'pellet-panic' && <Pellets />}
-      {!['pong', 'jezzball', 'breakout', 'snake', 'asteroids', 'minesweeper', 'skifree', 'pellet-panic'].includes(id) && (
+      {id === 'rockfall' && <Cave />}
+      {!['pong', 'jezzball', 'breakout', 'snake', 'asteroids', 'minesweeper', 'skifree', 'pellet-panic', 'rockfall'].includes(id) && (
         <rect width="240" height="320" fill={accent} />
       )}
       <rect x="0" y="248" width="240" height="72" fill="#000" opacity="0.55" />
@@ -141,6 +142,39 @@ function Pellets() {
       <path d="M150 74 q4 4 10 9 q2 2 0 4 l-6 6 q-4 3 -8 0 l-6 -6 q-2 -2 0 -4 q6 -5 10 -9 z" fill="#f43f5e" />
       <path d="M182 146 q4 4 10 9 q2 2 0 4 l-6 6 q-4 3 -8 0 l-6 -6 q-2 -2 0 -4 q6 -5 10 -9 z" fill="#22d3ee" />
       <path d="M56 152 q4 4 10 9 q2 2 0 4 l-6 6 q-4 3 -8 0 l-6 -6 q-2 -2 0 -4 q6 -5 10 -9 z" fill="#1d4ed8" />
+    </g>
+  );
+}
+
+function Cave() {
+  // 7 × 8 tiles of 32: d = dirt, w = steel, b = boulder, g = gem, . = dug out, p = digger, e = exit.
+  const rows = ['wwwwwww', 'wdbdgdw', 'wd.bddw', 'wg.ddbw', 'wd..gdw', 'wbdp.dw', 'wddbgew', 'wwwwwww'];
+  return (
+    <g>
+      <rect width="240" height="320" fill="#0c0a09" />
+      {rows.flatMap((row, y) =>
+        row.split('').map((t, x) => {
+          const px = 8 + x * 32;
+          const py = 4 + y * 32;
+          const key = `${x}-${y}`;
+          if (t === 'd') return <rect key={key} x={px} y={py} width="32" height="32" fill="#7c2d12" />;
+          if (t === 'w') return <rect key={key} x={px} y={py} width="32" height="32" fill="#334155" stroke="#64748b" />;
+          if (t === 'b') return <circle key={key} cx={px + 16} cy={py + 16} r="14" fill="#a8a29e" stroke="#78716c" strokeWidth="3" />;
+          if (t === 'g') return <polygon key={key} points={`${px + 16},${py + 3} ${px + 29},${py + 16} ${px + 16},${py + 29} ${px + 3},${py + 16}`} fill="#22d3ee" stroke="#cffafe" strokeWidth="1.5" />;
+          if (t === 'e') return <rect key={key} x={px + 6} y={py + 4} width="20" height="28" fill="#facc15" stroke="#fef9c3" strokeWidth="2" />;
+          if (t === 'p')
+            return (
+              <g key={key}>
+                <rect x={px + 10} y={py + 15} width="12" height="10" fill="#2563eb" />
+                <circle cx={px + 16} cy={py + 11} r="5" fill="#fcd9b6" />
+                <path d={`M${px + 9.5},${py + 9} A6.5,6.5 0 0 1 ${px + 22.5},${py + 9} Z`} fill="#facc15" />
+                <rect x={px + 10} y={py + 25} width="4" height="6" fill="#1e293b" />
+                <rect x={px + 18} y={py + 25} width="4" height="6" fill="#1e293b" />
+              </g>
+            );
+          return null;
+        }),
+      )}
     </g>
   );
 }

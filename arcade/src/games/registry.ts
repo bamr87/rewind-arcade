@@ -5,6 +5,7 @@ import { jezzballManifest } from './jezzball';
 import { minesweeperManifest } from './minesweeper';
 import { pelletPanicManifest } from './pellet-panic';
 import { pongManifest } from './pong';
+import { rockfallManifest } from './rockfall';
 import { skifreeManifest } from './skifree';
 import { snakeManifest } from './snake';
 
@@ -17,6 +18,7 @@ export const GAMES: GameManifest[] = [
   minesweeperManifest,
   skifreeManifest,
   pelletPanicManifest,
+  rockfallManifest,
 ];
 
 export function getGame(id: string | undefined): GameManifest | undefined {
