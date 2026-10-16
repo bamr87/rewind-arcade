@@ -58,6 +58,23 @@ function run(game, seconds, dt = 1 / 60, each) {
   }
 }
 
+/** Run `fn` with Math.random replaced by a seeded mulberry32, so a CPU-driven check replays identically. */
+function seeded(seed, fn) {
+  const real = Math.random;
+  let s = seed >>> 0;
+  Math.random = () => {
+    s = (s + 0x6d2b79f5) >>> 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  try {
+    return fn();
+  } finally {
+    Math.random = real;
+  }
+}
+
 const DEFAULTS = { mode: 'two', ai: 70, rounds: 3, speed: 10, arena: 'medium' };
 
 /** Take player 2 off the grid, so player 1's movement can be measured alone. */
@@ -263,21 +280,30 @@ async function main() {
     {
       // Full matches at the 50 ms dt cap, with a simple wall-avoiding bot as P1:
       // every match ends, submits exactly once, and the HUD shows the badge.
+      // The CPU rolls Math.random, so the matches run under a fixed seed. The
+      // frame budget covers the longest decisive first-to-3 match: five rounds,
+      // each at most one cycle filling the medium arena (56×36 cells at 10
+      // cells/s) plus the READY (1.2 s) and round-end (1.6 s) pauses. A fixed
+      // 180 s cap was shorter than a legitimate 3-2 match and failed at random.
+      const roundSeconds = (56 * 36) / 10 + 1.2 + 1.6;
+      const maxFrames = Math.ceil((5 * roundSeconds) / 0.05);
       let ok = 0;
       const trials = 4;
       let detail = '';
-      for (let t = 0; t < trials; t++) {
-        const { game, h } = started(Gridlock, { mode: 'ai', ai: 30 + t * 20, rounds: 3 });
-        let frames = 0;
-        for (; frames < 20 * 60 * 3 && game.snapshot().phase !== 'over'; frames++) {
-          if (game.snapshot().phase === 'playing') botSteer(game);
-          game.update(0.05);
-          if (frames % 7 === 0) game.render();
+      seeded(0x6a1d, () => {
+        for (let t = 0; t < trials; t++) {
+          const { game, h } = started(Gridlock, { mode: 'ai', ai: 30 + t * 20, rounds: 3 });
+          let frames = 0;
+          for (; frames < maxFrames && game.snapshot().phase !== 'over'; frames++) {
+            if (game.snapshot().phase === 'playing') botSteer(game);
+            game.update(0.05);
+            if (frames % 7 === 0) game.render();
+          }
+          const s = game.snapshot();
+          if (s.phase === 'over' && h.submitted.length === 1 && Number.isInteger(h.submitted[0]) && h.submitted[0] >= 0 && h.hud.badge === 'VS CPU') ok++;
+          detail += ` ai=${30 + t * 20}: ${s.wins.join('-')} score=${s.score} phase=${s.phase} submitted=[${h.submitted}] badge=${h.hud.badge};`;
         }
-        const s = game.snapshot();
-        if (s.phase === 'over' && h.submitted.length === 1 && Number.isInteger(h.submitted[0]) && h.submitted[0] >= 0 && h.hud.badge === 'VS CPU') ok++;
-        detail += ` ai=${30 + t * 20}: ${s.wins.join('-')} score=${s.score};`;
-      }
+      });
       check('bot-matches', ok === trials, detail.trim());
     }
     {
