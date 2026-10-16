@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# The RETROPI_* variables set below are read by the sourced lib/*.sh code,
+# which shellcheck cannot follow from here (SC2034 false positives).
+# shellcheck disable=SC2034
 # EmulationStation integration. The layout facts here were verified against a
 # real ES-DE 3.4.1 install, which creates <home>/ES-DE and keeps its settings
 # in <home>/ES-DE/settings/ -- NOT in ~/.emulationstation.

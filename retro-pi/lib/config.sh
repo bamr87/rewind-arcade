@@ -44,6 +44,10 @@ config_sources() {
 }
 
 # config_load [--force] - build the flat cache when stale.
+# config_load takes an optional --force flag. The callers that pass it live in
+# cmd/*.sh, which shellcheck does not see when it checks this file, so SC2120
+# ("references arguments, but none are ever passed") is a false positive here.
+# shellcheck disable=SC2120
 config_load() {
   local force="${1:-}"
   local sources stale=0 src

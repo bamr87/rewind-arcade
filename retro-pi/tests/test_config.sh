@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# The RETROPI_* variables set below are read by the sourced lib/*.sh code,
+# which shellcheck cannot follow from here (SC2034 false positives).
+# shellcheck disable=SC2034
 # Configuration layering: defaults < local.yaml < RETROPI_* env vars.
 
 setup_sandbox() {
