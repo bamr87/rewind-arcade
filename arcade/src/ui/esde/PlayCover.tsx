@@ -10,7 +10,8 @@ export function PlayCover({ id, title, accent }: { id: string; title: string; ac
       {id === 'minesweeper' && <Mines />}
       {id === 'skifree' && <Ski />}
       {id === 'pellet-panic' && <Pellets />}
-      {!['pong', 'jezzball', 'breakout', 'snake', 'asteroids', 'minesweeper', 'skifree', 'pellet-panic'].includes(id) && (
+      {id === 'crate-shift' && <Crates />}
+      {!['pong', 'jezzball', 'breakout', 'snake', 'asteroids', 'minesweeper', 'skifree', 'pellet-panic', 'crate-shift'].includes(id) && (
         <rect width="240" height="320" fill={accent} />
       )}
       <rect x="0" y="248" width="240" height="72" fill="#000" opacity="0.55" />
@@ -141,6 +142,34 @@ function Pellets() {
       <path d="M150 74 q4 4 10 9 q2 2 0 4 l-6 6 q-4 3 -8 0 l-6 -6 q-2 -2 0 -4 q6 -5 10 -9 z" fill="#f43f5e" />
       <path d="M182 146 q4 4 10 9 q2 2 0 4 l-6 6 q-4 3 -8 0 l-6 -6 q-2 -2 0 -4 q6 -5 10 -9 z" fill="#22d3ee" />
       <path d="M56 152 q4 4 10 9 q2 2 0 4 l-6 6 q-4 3 -8 0 l-6 -6 q-2 -2 0 -4 q6 -5 10 -9 z" fill="#1d4ed8" />
+    </g>
+  );
+}
+
+function Crates() {
+  // A small warehouse: walls ring the floor, two crates are home, one is still out.
+  const wall = [
+    [24, 24, 192, 24], [24, 24, 24, 200], [192, 24, 24, 200], [24, 200, 192, 24], [96, 96, 24, 24], [144, 144, 24, 24],
+  ];
+  const crate = (x: number, y: number, home: boolean, key: string) => (
+    <g key={key}>
+      <rect x={x + 3} y={y + 3} width="18" height="18" fill={home ? '#b45309' : '#8b5a2b'} stroke={home ? '#fde68a' : '#5b3a1a'} strokeWidth="2" />
+      <path d={`M${x + 3} ${y + 3} L${x + 21} ${y + 21} M${x + 21} ${y + 3} L${x + 3} ${y + 21}`} stroke={home ? '#fde68a' : '#5b3a1a'} strokeWidth="2" />
+    </g>
+  );
+  return (
+    <g>
+      <rect width="240" height="320" fill="#120e0a" />
+      <rect x="48" y="48" width="144" height="152" fill="#211c16" />
+      {wall.map(([x, y, w, h], i) => (
+        <rect key={i} x={x} y={y} width={w} height={h} fill="#3a3128" stroke="#4a3f33" strokeWidth="2" />
+      ))}
+      <circle cx="156" cy="84" r="6" fill="none" stroke="#fbbf24" strokeWidth="2.5" />
+      {crate(48, 168, true, 'a')}
+      {crate(168, 48, true, 'b')}
+      {crate(120, 120, false, 'c')}
+      <circle cx="132" cy="156" r="8" fill="#38bdf8" />
+      <circle cx="132" cy="145" r="5" fill="#fde68a" />
     </g>
   );
 }
