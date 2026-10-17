@@ -98,7 +98,7 @@ Contributions are welcome via pull request. Use [Conventional Commits](https://w
 
 ## Changelog
 
-There is no CHANGELOG.md yet; changes are tracked in the [commit history](https://github.com/bamr87/rewind-arcade/commits/main).
+Notable changes are recorded in [CHANGELOG.md](CHANGELOG.md); the full record is in the [commit history](https://github.com/bamr87/rewind-arcade/commits/main).
 
 ## License
 
