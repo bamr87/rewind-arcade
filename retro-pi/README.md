@@ -1,5 +1,11 @@
 # retro-pi
 
+> Portable retro-gaming workspace for macOS and Raspberry Pi: declarative manifests drive EmulationStation and RetroArch.
+
+[![CI](https://github.com/bamr87/retro-pi/actions/workflows/ci.yml/badge.svg)](https://github.com/bamr87/retro-pi/actions/workflows/ci.yml) [![License](https://img.shields.io/github/license/bamr87/retro-pi)](LICENSE)
+
+## Overview
+
 A portable, packageable workspace for building, installing, maintaining and extending a retro gaming setup — one repository that works the same on **macOS**, a **Raspberry Pi** and **Debian/Ubuntu**, driving **EmulationStation** and **RetroArch**.
 
 NES, SNES, N64, Game Boy, Genesis/Mega Drive, Master System, Game Gear, SG-1000, Sega CD, 32X, Saturn, Dreamcast, PlayStation, PSP, Atari, PC Engine, Neo Geo, arcade, DOS and C64 ship configured — two dozen systems, and adding another is one YAML file.
@@ -123,6 +129,10 @@ bash and python3 — both already present on stock macOS and Raspberry Pi OS. No
 
 retro-pi ships no games and no firmware, and will not download either. It organizes and verifies files you supply. See [docs/legal.md](docs/legal.md).
 
+## Project structure
+
+See [How it fits together](#how-it-fits-together); `bin/` holds the `retropi` CLI, `platforms/` and `config/` the per-machine manifests, and `docs/` the full guide.
+
 ## Development
 
 ```sh
@@ -169,6 +179,19 @@ The Python configurations work as soon as the Python extension is installed. Ste
 - [Architecture](docs/architecture.md)
 - [Legal](docs/legal.md)
 
+## Contributing
+
+Contributions are welcome via pull request. Use [Conventional Commits](https://www.conventionalcommits.org/) and keep the CI checks green. See [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow. AI agents should start with [CLAUDE.md](CLAUDE.md).
+
+## Changelog
+
+There is no CHANGELOG.md yet; changes are tracked in the [commit history](https://github.com/bamr87/retro-pi/commits/main).
+
 ## License
 
 MIT for the tooling. Emulators, cores, BIOS images and games carry their own terms — see [LICENSE](LICENSE) and [docs/legal.md](docs/legal.md).
+
+---
+
+<!-- bamr87-portfolio-footer -->
+Part of the [bamr87 portfolio](https://github.com/bamr87) — browse every project on [Amr's GitHub profile](https://github.com/bamr87).
