@@ -10,8 +10,9 @@ export function PlayCover({ id, title, accent }: { id: string; title: string; ac
       {id === 'minesweeper' && <Mines />}
       {id === 'skifree' && <Ski />}
       {id === 'pellet-panic' && <Pellets />}
+      {id === 'silo-sentinel' && <Silos />}
       {id === 'touchdown' && <Lander />}
-      {!['pong', 'jezzball', 'breakout', 'snake', 'asteroids', 'minesweeper', 'skifree', 'pellet-panic', 'touchdown'].includes(id) && (
+      {!['pong', 'jezzball', 'breakout', 'snake', 'asteroids', 'minesweeper', 'skifree', 'pellet-panic', 'silo-sentinel', 'touchdown'].includes(id) && (
         <rect width="240" height="320" fill={accent} />
       )}
       <rect x="0" y="248" width="240" height="72" fill="#000" opacity="0.55" />
@@ -142,6 +143,30 @@ function Pellets() {
       <path d="M150 74 q4 4 10 9 q2 2 0 4 l-6 6 q-4 3 -8 0 l-6 -6 q-2 -2 0 -4 q6 -5 10 -9 z" fill="#f43f5e" />
       <path d="M182 146 q4 4 10 9 q2 2 0 4 l-6 6 q-4 3 -8 0 l-6 -6 q-2 -2 0 -4 q6 -5 10 -9 z" fill="#22d3ee" />
       <path d="M56 152 q4 4 10 9 q2 2 0 4 l-6 6 q-4 3 -8 0 l-6 -6 q-2 -2 0 -4 q6 -5 10 -9 z" fill="#1d4ed8" />
+    </g>
+  );
+}
+
+function Silos() {
+  return (
+    <g>
+      <rect width="240" height="320" fill="#04030f" />
+      <line x1="30" y1="0" x2="76" y2="200" stroke="#f87171" strokeWidth="1.5" opacity="0.75" />
+      <line x1="150" y1="0" x2="120" y2="150" stroke="#f87171" strokeWidth="1.5" opacity="0.75" />
+      <line x1="220" y1="0" x2="190" y2="120" stroke="#f87171" strokeWidth="1.5" opacity="0.75" />
+      <line x1="120" y1="226" x2="190" y2="120" stroke="#86efac" strokeWidth="1.5" />
+      <circle cx="120" cy="150" r="26" fill="#fb923c" opacity="0.9" />
+      <circle cx="120" cy="150" r="15" fill="#fde047" />
+      <circle cx="190" cy="120" r="12" fill="#fde047" opacity="0.9" />
+      <rect x="0" y="228" width="240" height="20" fill="#3f2a14" />
+      <path d="M8,228 L16,218 L32,218 L40,228 Z M104,228 L112,218 L128,218 L136,228 Z M200,228 L208,218 L224,218 L232,228 Z" fill="#a16207" />
+      {[52, 74, 152, 174].map((x) => (
+        <g key={x} fill="#22d3ee">
+          <rect x={x} y="220" width="6" height="8" />
+          <rect x={x + 7} y="214" width="6" height="14" />
+          <rect x={x + 14} y="218" width="6" height="10" />
+        </g>
+      ))}
     </g>
   );
 }
