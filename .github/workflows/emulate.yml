@@ -1,7 +1,10 @@
 name: emulate
 
 on:
+  # Branch pushes are covered by pull_request; without this filter every
+  # commit on a PR branch ran the whole workflow twice.
   push:
+    branches: [main]
     paths:
       - "emulate/**"
       - "bin/retropi"
@@ -12,6 +15,12 @@ on:
       - "bin/retropi"
       - ".github/workflows/emulate.yml"
   workflow_dispatch:
+
+# A newer commit on the same PR supersedes the in-flight run. Runs on main
+# are never cancelled, so every merge keeps its arm64 result.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   test:
