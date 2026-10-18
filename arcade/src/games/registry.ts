@@ -6,8 +6,10 @@ import { jezzballManifest } from './jezzball';
 import { minesweeperManifest } from './minesweeper';
 import { pelletPanicManifest } from './pellet-panic';
 import { pongManifest } from './pong';
+import { siloSentinelManifest } from './silo-sentinel';
 import { skifreeManifest } from './skifree';
 import { snakeManifest } from './snake';
+import { touchdownManifest } from './touchdown';
 
 export const GAMES: GameManifest[] = [
   pongManifest,
@@ -18,6 +20,8 @@ export const GAMES: GameManifest[] = [
   minesweeperManifest,
   skifreeManifest,
   pelletPanicManifest,
+  siloSentinelManifest,
+  touchdownManifest,
   gridlockManifest,
 ];
 
