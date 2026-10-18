@@ -11,6 +11,9 @@
     "emulatorjs": "node tools/fetch-emulatorjs.mjs",
     "play:skifree": "node tools/play-skifree.mjs",
     "play:pellet-panic": "node tools/play-pellet-panic.mjs",
+    "play:silo-sentinel": "node tools/play-silo-sentinel.mjs",
+    "play:touchdown": "node tools/play-touchdown.mjs",
+    "play:gridlock": "node tools/play-gridlock.mjs",
     "play:crate-shift": "node tools/play-crate-shift.mjs"
   },
   "dependencies": {

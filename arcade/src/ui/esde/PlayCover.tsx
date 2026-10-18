@@ -10,8 +10,11 @@ export function PlayCover({ id, title, accent }: { id: string; title: string; ac
       {id === 'minesweeper' && <Mines />}
       {id === 'skifree' && <Ski />}
       {id === 'pellet-panic' && <Pellets />}
+      {id === 'silo-sentinel' && <Silos />}
+      {id === 'touchdown' && <Lander />}
+      {id === 'gridlock' && <Cycles />}
       {id === 'crate-shift' && <Crates />}
-      {!['pong', 'jezzball', 'breakout', 'snake', 'asteroids', 'minesweeper', 'skifree', 'pellet-panic', 'crate-shift'].includes(id) && (
+      {!['pong', 'jezzball', 'breakout', 'snake', 'asteroids', 'minesweeper', 'skifree', 'pellet-panic', 'silo-sentinel', 'touchdown', 'gridlock', 'crate-shift'].includes(id) && (
         <rect width="240" height="320" fill={accent} />
       )}
       <rect x="0" y="248" width="240" height="72" fill="#000" opacity="0.55" />
@@ -142,6 +145,71 @@ function Pellets() {
       <path d="M150 74 q4 4 10 9 q2 2 0 4 l-6 6 q-4 3 -8 0 l-6 -6 q-2 -2 0 -4 q6 -5 10 -9 z" fill="#f43f5e" />
       <path d="M182 146 q4 4 10 9 q2 2 0 4 l-6 6 q-4 3 -8 0 l-6 -6 q-2 -2 0 -4 q6 -5 10 -9 z" fill="#22d3ee" />
       <path d="M56 152 q4 4 10 9 q2 2 0 4 l-6 6 q-4 3 -8 0 l-6 -6 q-2 -2 0 -4 q6 -5 10 -9 z" fill="#1d4ed8" />
+    </g>
+  );
+}
+
+function Silos() {
+  return (
+    <g>
+      <rect width="240" height="320" fill="#04030f" />
+      <line x1="30" y1="0" x2="76" y2="200" stroke="#f87171" strokeWidth="1.5" opacity="0.75" />
+      <line x1="150" y1="0" x2="120" y2="150" stroke="#f87171" strokeWidth="1.5" opacity="0.75" />
+      <line x1="220" y1="0" x2="190" y2="120" stroke="#f87171" strokeWidth="1.5" opacity="0.75" />
+      <line x1="120" y1="226" x2="190" y2="120" stroke="#86efac" strokeWidth="1.5" />
+      <circle cx="120" cy="150" r="26" fill="#fb923c" opacity="0.9" />
+      <circle cx="120" cy="150" r="15" fill="#fde047" />
+      <circle cx="190" cy="120" r="12" fill="#fde047" opacity="0.9" />
+      <rect x="0" y="228" width="240" height="20" fill="#3f2a14" />
+      <path d="M8,228 L16,218 L32,218 L40,228 Z M104,228 L112,218 L128,218 L136,228 Z M200,228 L208,218 L224,218 L232,228 Z" fill="#a16207" />
+      {[52, 74, 152, 174].map((x) => (
+        <g key={x} fill="#22d3ee">
+          <rect x={x} y="220" width="6" height="8" />
+          <rect x={x + 7} y="214" width="6" height="14" />
+          <rect x={x + 14} y="218" width="6" height="10" />
+        </g>
+      ))}
+    </g>
+  );
+}
+
+function Lander() {
+  return (
+    <g>
+      <rect width="240" height="320" fill="#03040a" />
+      {[[30, 30], [70, 60], [190, 24], [210, 90], [120, 40], [40, 110], [160, 120]].map(([x, y], i) => (
+        <rect key={i} x={x} y={y} width="2" height="2" fill="#64748b" />
+      ))}
+      <path d="M0,248 L0,200 L26,182 L44,206 L62,190 L104,190 L122,160 L146,178 L166,214 L196,214 L214,176 L240,196 L240,248 Z" fill="#0b1220" stroke="#94a3b8" strokeWidth="2" />
+      <line x1="62" y1="190" x2="104" y2="190" stroke="#fbbf24" strokeWidth="4" />
+      <line x1="166" y1="214" x2="196" y2="214" stroke="#fbbf24" strokeWidth="4" />
+      <text x="74" y="206" fill="#fbbf24" fontSize="11" fontWeight="800">×2</text>
+      <text x="172" y="230" fill="#fbbf24" fontSize="11" fontWeight="800">×4</text>
+      <g transform="translate(120 104) rotate(-14)" fill="none" stroke="#e2e8f0" strokeWidth="2">
+        <path d="M-10,-6 L-13,-15 L-6,-22 L6,-22 L13,-15 L10,-6 Z" />
+        <rect x="-13" y="-6" width="26" height="12" />
+        <path d="M-9,6 L-18,18 M9,6 L18,18 M-22,18 L-14,18 M14,18 L22,18" />
+        <path d="M-6,8 L0,30 L6,8" stroke="#fb923c" />
+      </g>
+    </g>
+  );
+}
+
+function Cycles() {
+  return (
+    <g>
+      <rect width="240" height="320" fill="#020617" />
+      {Array.from({ length: 13 }, (_, i) => (
+        <line key={`v${i}`} x1={i * 20} y1="0" x2={i * 20} y2="248" stroke="#38bdf8" strokeOpacity="0.08" />
+      ))}
+      {Array.from({ length: 13 }, (_, i) => (
+        <line key={`h${i}`} x1="0" y1={i * 20} x2="240" y2={i * 20} stroke="#38bdf8" strokeOpacity="0.08" />
+      ))}
+      <polyline points="20,200 20,60 120,60 120,90 104,90" fill="none" stroke="#22d3ee" strokeWidth="6" strokeLinejoin="miter" />
+      <polyline points="80,150 80,170 150,170" fill="none" stroke="#22d3ee" strokeWidth="6" />
+      <polyline points="220,40 220,130 170,130 170,210 60,210" fill="none" stroke="#fb923c" strokeWidth="6" />
+      <circle cx="150" cy="170" r="7" fill="#f8fafc" stroke="#22d3ee" strokeWidth="3" />
+      <circle cx="60" cy="210" r="7" fill="#f8fafc" stroke="#fb923c" strokeWidth="3" />
     </g>
   );
 }
