@@ -8,6 +8,7 @@ import { pongManifest } from './pong';
 import { siloSentinelManifest } from './silo-sentinel';
 import { skifreeManifest } from './skifree';
 import { snakeManifest } from './snake';
+import { touchdownManifest } from './touchdown';
 
 export const GAMES: GameManifest[] = [
   pongManifest,
@@ -19,6 +20,7 @@ export const GAMES: GameManifest[] = [
   skifreeManifest,
   pelletPanicManifest,
   siloSentinelManifest,
+  touchdownManifest,
 ];
 
 export function getGame(id: string | undefined): GameManifest | undefined {
