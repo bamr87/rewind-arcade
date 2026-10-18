@@ -3,6 +3,7 @@ import { asteroidsManifest } from './asteroids';
 import { breakoutManifest } from './breakout';
 import { gridlockManifest } from './gridlock';
 import { crateShiftManifest } from './crate-shift';
+import { flakShackManifest } from './flak-shack';
 import { jezzballManifest } from './jezzball';
 import { minesweeperManifest } from './minesweeper';
 import { pelletPanicManifest } from './pellet-panic';
@@ -25,6 +26,7 @@ export const GAMES: GameManifest[] = [
   touchdownManifest,
   gridlockManifest,
   crateShiftManifest,
+  flakShackManifest,
 ];
 
 export function getGame(id: string | undefined): GameManifest | undefined {

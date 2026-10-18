@@ -14,7 +14,8 @@ export function PlayCover({ id, title, accent }: { id: string; title: string; ac
       {id === 'touchdown' && <Lander />}
       {id === 'gridlock' && <Cycles />}
       {id === 'crate-shift' && <Crates />}
-      {!['pong', 'jezzball', 'breakout', 'snake', 'asteroids', 'minesweeper', 'skifree', 'pellet-panic', 'silo-sentinel', 'touchdown', 'gridlock', 'crate-shift'].includes(id) && (
+      {id === 'flak-shack' && <Flak />}
+      {!['pong', 'jezzball', 'breakout', 'snake', 'asteroids', 'minesweeper', 'skifree', 'pellet-panic', 'silo-sentinel', 'touchdown', 'gridlock', 'crate-shift', 'flak-shack'].includes(id) && (
         <rect width="240" height="320" fill={accent} />
       )}
       <rect x="0" y="248" width="240" height="72" fill="#000" opacity="0.55" />
@@ -238,6 +239,38 @@ function Crates() {
       {crate(120, 120, false, 'c')}
       <circle cx="132" cy="156" r="8" fill="#38bdf8" />
       <circle cx="132" cy="145" r="5" fill="#fde68a" />
+    </g>
+  );
+}
+
+function Flak() {
+  // CGA palette 1 only: black, cyan, magenta, white.
+  return (
+    <g>
+      <rect width="240" height="320" fill="#000000" />
+      <rect x="64" y="52" width="40" height="14" fill="#ff55ff" />
+      <rect x="44" y="57" width="20" height="4" fill="#ff55ff" />
+      <rect x="92" y="55" width="8" height="6" fill="#55ffff" />
+      <rect x="58" y="45" width="52" height="3" fill="#ffffff" />
+      <rect x="70" y="68" width="28" height="3" fill="#ffffff" />
+      <rect x="150" y="96" width="40" height="14" fill="#ff55ff" />
+      <rect x="190" y="101" width="20" height="4" fill="#ff55ff" />
+      <rect x="140" y="89" width="52" height="3" fill="#ffffff" />
+      <path d="M150 150 A 16 16 0 0 1 182 150 Z" fill="#55ffff" />
+      <line x1="152" y1="150" x2="164" y2="166" stroke="#ffffff" strokeWidth="1.5" />
+      <line x1="180" y1="150" x2="168" y2="166" stroke="#ffffff" strokeWidth="1.5" />
+      <rect x="162" y="166" width="8" height="12" fill="#55ffff" />
+      <rect x="58" y="170" width="6" height="10" fill="#55ffff" />
+      <rect x="0" y="232" width="240" height="3" fill="#ffffff" />
+      <rect x="28" y="220" width="8" height="12" fill="#55ffff" />
+      <rect x="40" y="220" width="8" height="12" fill="#55ffff" />
+      <rect x="196" y="220" width="8" height="12" fill="#55ffff" />
+      <line x1="120" y1="200" x2="146" y2="168" stroke="#ffffff" strokeWidth="6" />
+      <path d="M104 202 A 16 16 0 0 1 136 202 Z" fill="#ff55ff" />
+      <rect x="92" y="202" width="56" height="30" fill="#55ffff" />
+      <rect x="112" y="214" width="16" height="18" fill="#000000" />
+      <rect x="148" y="160" width="4" height="4" fill="#ffffff" />
+      <rect x="156" y="150" width="4" height="4" fill="#ffffff" />
     </g>
   );
 }
