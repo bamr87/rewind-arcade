@@ -1,5 +1,11 @@
 # Rewind Arcade
 
+> Retro gaming workspace: browser arcade recreations, console emulation via ES-DE, and a physical game catalog.
+
+[![License](https://img.shields.io/github/license/bamr87/rewind-arcade)](LICENSE) [![Live site](https://img.shields.io/badge/live-bamr87.github.io%2Frewind--arcade-2ea44f)](https://bamr87.github.io/rewind-arcade/)
+
+## Overview
+
 A **retro gaming workspace for every format**: play original recreations in the browser, emulate the consoles, and catalog the cartridges and discs on the shelf.
 
 Three pillars, one set of system ids.
@@ -85,3 +91,20 @@ make play          # arcade dev server
 ```
 
 Pillar-specific notes: [`arcade/CLAUDE.md`](arcade/CLAUDE.md), [`emulate/CLAUDE.md`](emulate/CLAUDE.md), [`catalog/CLAUDE.md`](catalog/CLAUDE.md).
+
+## Contributing
+
+Contributions are welcome via pull request. Use [Conventional Commits](https://www.conventionalcommits.org/) and keep the CI checks green. The fleet-wide workflow is described in the hub's [CONTRIBUTING.md](https://github.com/bamr87/bamr87/blob/main/CONTRIBUTING.md). AI agents should start with [AGENTS.md](AGENTS.md) (with [CLAUDE.md](CLAUDE.md) for Claude Code).
+
+## Changelog
+
+Notable changes are recorded in [CHANGELOG.md](CHANGELOG.md); the full record is in the [commit history](https://github.com/bamr87/rewind-arcade/commits/main).
+
+## License
+
+Released under the [MIT License](LICENSE).
+
+---
+
+<!-- bamr87-portfolio-footer -->
+Part of the [bamr87 portfolio](https://github.com/bamr87) — browse every project on [Amr's GitHub profile](https://github.com/bamr87).
