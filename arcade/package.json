@@ -12,7 +12,8 @@
     "play:skifree": "node tools/play-skifree.mjs",
     "play:pellet-panic": "node tools/play-pellet-panic.mjs",
     "play:silo-sentinel": "node tools/play-silo-sentinel.mjs",
-    "play:touchdown": "node tools/play-touchdown.mjs"
+    "play:touchdown": "node tools/play-touchdown.mjs",
+    "play:gridlock": "node tools/play-gridlock.mjs"
   },
   "dependencies": {
     "@fontsource-variable/jetbrains-mono": "^5.3.0",

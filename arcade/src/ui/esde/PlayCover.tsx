@@ -12,7 +12,8 @@ export function PlayCover({ id, title, accent }: { id: string; title: string; ac
       {id === 'pellet-panic' && <Pellets />}
       {id === 'silo-sentinel' && <Silos />}
       {id === 'touchdown' && <Lander />}
-      {!['pong', 'jezzball', 'breakout', 'snake', 'asteroids', 'minesweeper', 'skifree', 'pellet-panic', 'silo-sentinel', 'touchdown'].includes(id) && (
+      {id === 'gridlock' && <Cycles />}
+      {!['pong', 'jezzball', 'breakout', 'snake', 'asteroids', 'minesweeper', 'skifree', 'pellet-panic', 'silo-sentinel', 'touchdown', 'gridlock'].includes(id) && (
         <rect width="240" height="320" fill={accent} />
       )}
       <rect x="0" y="248" width="240" height="72" fill="#000" opacity="0.55" />
@@ -189,6 +190,25 @@ function Lander() {
         <path d="M-9,6 L-18,18 M9,6 L18,18 M-22,18 L-14,18 M14,18 L22,18" />
         <path d="M-6,8 L0,30 L6,8" stroke="#fb923c" />
       </g>
+    </g>
+  );
+}
+
+function Cycles() {
+  return (
+    <g>
+      <rect width="240" height="320" fill="#020617" />
+      {Array.from({ length: 13 }, (_, i) => (
+        <line key={`v${i}`} x1={i * 20} y1="0" x2={i * 20} y2="248" stroke="#38bdf8" strokeOpacity="0.08" />
+      ))}
+      {Array.from({ length: 13 }, (_, i) => (
+        <line key={`h${i}`} x1="0" y1={i * 20} x2="240" y2={i * 20} stroke="#38bdf8" strokeOpacity="0.08" />
+      ))}
+      <polyline points="20,200 20,60 120,60 120,90 104,90" fill="none" stroke="#22d3ee" strokeWidth="6" strokeLinejoin="miter" />
+      <polyline points="80,150 80,170 150,170" fill="none" stroke="#22d3ee" strokeWidth="6" />
+      <polyline points="220,40 220,130 170,130 170,210 60,210" fill="none" stroke="#fb923c" strokeWidth="6" />
+      <circle cx="150" cy="170" r="7" fill="#f8fafc" stroke="#22d3ee" strokeWidth="3" />
+      <circle cx="60" cy="210" r="7" fill="#f8fafc" stroke="#fb923c" strokeWidth="3" />
     </g>
   );
 }

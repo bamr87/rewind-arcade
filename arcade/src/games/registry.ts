@@ -1,6 +1,7 @@
 import type { GameManifest } from '../engine/types';
 import { asteroidsManifest } from './asteroids';
 import { breakoutManifest } from './breakout';
+import { gridlockManifest } from './gridlock';
 import { jezzballManifest } from './jezzball';
 import { minesweeperManifest } from './minesweeper';
 import { pelletPanicManifest } from './pellet-panic';
@@ -21,6 +22,7 @@ export const GAMES: GameManifest[] = [
   pelletPanicManifest,
   siloSentinelManifest,
   touchdownManifest,
+  gridlockManifest,
 ];
 
 export function getGame(id: string | undefined): GameManifest | undefined {
