@@ -16,7 +16,8 @@ export function PlayCover({ id, title, accent }: { id: string; title: string; ac
       {id === 'crate-shift' && <Crates />}
       {id === 'flak-shack' && <Flak />}
       {id === 'rockfall' && <Cave />}
-      {!['pong', 'jezzball', 'breakout', 'snake', 'asteroids', 'minesweeper', 'skifree', 'pellet-panic', 'silo-sentinel', 'touchdown', 'gridlock', 'crate-shift', 'flak-shack', 'rockfall'].includes(id) && (
+      {id === 'lode-digger' && <Lode />}
+      {!['pong', 'jezzball', 'breakout', 'snake', 'asteroids', 'minesweeper', 'skifree', 'pellet-panic', 'silo-sentinel', 'touchdown', 'gridlock', 'crate-shift', 'flak-shack', 'rockfall', 'lode-digger'].includes(id) && (
         <rect width="240" height="320" fill={accent} />
       )}
       <rect x="0" y="248" width="240" height="72" fill="#000" opacity="0.55" />
@@ -305,6 +306,68 @@ function Cave() {
           return null;
         }),
       )}
+    </g>
+  );
+}
+
+function Lode() {
+  const brick = (x: number, y: number, key: string) => (
+    <g key={key}>
+      <rect x={x} y={y} width="24" height="16" fill="#9a3412" />
+      <rect x={x} y={y + 7} width="24" height="2" fill="#431407" />
+      <rect x={x + 11} y={y} width="2" height="7" fill="#431407" />
+    </g>
+  );
+  const rows = [
+    { y: 88, from: 0, to: 10, skip: [6] },
+    { y: 168, from: 0, to: 10, skip: [2] },
+    { y: 232, from: 0, to: 10, skip: [] as number[] },
+  ];
+  return (
+    <g>
+      <rect width="240" height="320" fill="#06060f" />
+      {rows.flatMap((r) =>
+        Array.from({ length: r.to - r.from }, (_, i) => r.from + i)
+          .filter((i) => !r.skip.includes(i))
+          .map((i) => brick(i * 24, r.y, `${r.y}-${i}`)),
+      )}
+      {/* The dug hole, half refilled, with its beat outline. */}
+      <rect x="48" y="168" width="24" height="16" fill="#020205" />
+      <rect x="48" y="176" width="24" height="8" fill="#9a3412" />
+      <rect x="49" y="169" width="22" height="14" fill="none" stroke="#fde047" strokeWidth="2" />
+      {[
+        [150, 40, 88],
+        [150, 104, 168],
+        [30, 184, 232],
+      ].map(([x, y1, y2], i) => (
+        <g key={i} fill="#cbd5e1">
+          <rect x={x} y={y1} width="3" height={y2 - y1} />
+          <rect x={x + 15} y={y1} width="3" height={y2 - y1} />
+          {Array.from({ length: Math.floor((y2 - y1) / 8) }, (_, r) => (
+            <rect key={r} x={x} y={y1 + 4 + r * 8} width="18" height="2" />
+          ))}
+        </g>
+      ))}
+      <rect x="96" y="140" width="72" height="3" fill="#94a3b8" />
+      <path d="M100 84 L116 84 L113 76 L103 76 Z" fill="#facc15" />
+      <path d="M190 164 L206 164 L203 156 L193 156 Z" fill="#facc15" />
+      <path d="M120 228 L136 228 L133 220 L123 220 Z" fill="#facc15" />
+      <g fill="#38bdf8" stroke="#38bdf8" strokeWidth="3" strokeLinecap="round">
+        <circle cx="88" cy="141" r="5" stroke="none" />
+        <rect x="84" y="146" width="8" height="10" stroke="none" />
+        <line x1="86" y1="156" x2="82" y2="166" />
+        <line x1="90" y1="156" x2="95" y2="166" />
+      </g>
+      <g fill="#f43f5e" stroke="#f43f5e" strokeWidth="3" strokeLinecap="round">
+        <circle cx="60" cy="172" r="5" stroke="none" />
+        <rect x="56" y="176" width="8" height="5" stroke="none" />
+      </g>
+      <g fill="#f43f5e" stroke="#f43f5e" strokeWidth="3" strokeLinecap="round">
+        <circle cx="180" cy="61" r="5" stroke="none" />
+        <rect x="176" y="66" width="8" height="10" stroke="none" />
+        <line x1="178" y1="76" x2="174" y2="86" />
+        <line x1="182" y1="76" x2="187" y2="86" />
+      </g>
     </g>
   );
 }

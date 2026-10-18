@@ -5,6 +5,7 @@ import { gridlockManifest } from './gridlock';
 import { crateShiftManifest } from './crate-shift';
 import { flakShackManifest } from './flak-shack';
 import { jezzballManifest } from './jezzball';
+import { lodeDiggerManifest } from './lode-digger';
 import { minesweeperManifest } from './minesweeper';
 import { pelletPanicManifest } from './pellet-panic';
 import { pongManifest } from './pong';
@@ -29,6 +30,7 @@ export const GAMES: GameManifest[] = [
   crateShiftManifest,
   flakShackManifest,
   rockfallManifest,
+  lodeDiggerManifest,
 ];
 
 export function getGame(id: string | undefined): GameManifest | undefined {
