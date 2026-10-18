@@ -15,7 +15,8 @@
     "play:touchdown": "node tools/play-touchdown.mjs",
     "play:gridlock": "node tools/play-gridlock.mjs",
     "play:crate-shift": "node tools/play-crate-shift.mjs",
-    "play:flak-shack": "node tools/play-flak-shack.mjs"
+    "play:flak-shack": "node tools/play-flak-shack.mjs",
+    "play:rockfall": "node tools/play-rockfall.mjs"
   },
   "dependencies": {
     "@fontsource-variable/jetbrains-mono": "^5.3.0",

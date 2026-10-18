@@ -15,7 +15,8 @@ export function PlayCover({ id, title, accent }: { id: string; title: string; ac
       {id === 'gridlock' && <Cycles />}
       {id === 'crate-shift' && <Crates />}
       {id === 'flak-shack' && <Flak />}
-      {!['pong', 'jezzball', 'breakout', 'snake', 'asteroids', 'minesweeper', 'skifree', 'pellet-panic', 'silo-sentinel', 'touchdown', 'gridlock', 'crate-shift', 'flak-shack'].includes(id) && (
+      {id === 'rockfall' && <Cave />}
+      {!['pong', 'jezzball', 'breakout', 'snake', 'asteroids', 'minesweeper', 'skifree', 'pellet-panic', 'silo-sentinel', 'touchdown', 'gridlock', 'crate-shift', 'flak-shack', 'rockfall'].includes(id) && (
         <rect width="240" height="320" fill={accent} />
       )}
       <rect x="0" y="248" width="240" height="72" fill="#000" opacity="0.55" />
@@ -271,6 +272,39 @@ function Flak() {
       <rect x="112" y="214" width="16" height="18" fill="#000000" />
       <rect x="148" y="160" width="4" height="4" fill="#ffffff" />
       <rect x="156" y="150" width="4" height="4" fill="#ffffff" />
+    </g>
+  );
+}
+
+function Cave() {
+  // 7 × 8 tiles of 32: d = dirt, w = steel, b = boulder, g = gem, . = dug out, p = digger, e = exit.
+  const rows = ['wwwwwww', 'wdbdgdw', 'wd.bddw', 'wg.ddbw', 'wd..gdw', 'wbdp.dw', 'wddbgew', 'wwwwwww'];
+  return (
+    <g>
+      <rect width="240" height="320" fill="#0c0a09" />
+      {rows.flatMap((row, y) =>
+        row.split('').map((t, x) => {
+          const px = 8 + x * 32;
+          const py = 4 + y * 32;
+          const key = `${x}-${y}`;
+          if (t === 'd') return <rect key={key} x={px} y={py} width="32" height="32" fill="#7c2d12" />;
+          if (t === 'w') return <rect key={key} x={px} y={py} width="32" height="32" fill="#334155" stroke="#64748b" />;
+          if (t === 'b') return <circle key={key} cx={px + 16} cy={py + 16} r="14" fill="#a8a29e" stroke="#78716c" strokeWidth="3" />;
+          if (t === 'g') return <polygon key={key} points={`${px + 16},${py + 3} ${px + 29},${py + 16} ${px + 16},${py + 29} ${px + 3},${py + 16}`} fill="#22d3ee" stroke="#cffafe" strokeWidth="1.5" />;
+          if (t === 'e') return <rect key={key} x={px + 6} y={py + 4} width="20" height="28" fill="#facc15" stroke="#fef9c3" strokeWidth="2" />;
+          if (t === 'p')
+            return (
+              <g key={key}>
+                <rect x={px + 10} y={py + 15} width="12" height="10" fill="#2563eb" />
+                <circle cx={px + 16} cy={py + 11} r="5" fill="#fcd9b6" />
+                <path d={`M${px + 9.5},${py + 9} A6.5,6.5 0 0 1 ${px + 22.5},${py + 9} Z`} fill="#facc15" />
+                <rect x={px + 10} y={py + 25} width="4" height="6" fill="#1e293b" />
+                <rect x={px + 18} y={py + 25} width="4" height="6" fill="#1e293b" />
+              </g>
+            );
+          return null;
+        }),
+      )}
     </g>
   );
 }
