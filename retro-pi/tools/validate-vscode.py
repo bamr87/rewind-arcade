@@ -8,6 +8,12 @@ all surface as a confusing error at F5 time rather than as a broken build.
     tools/validate-vscode.py           # static checks only
     tools/validate-vscode.py --run     # also execute each launch configuration
     tools/validate-vscode.py --json    # machine readable summary
+    tools/validate-vscode.py --portable  # skip probes of this machine's tools
+
+`--portable` drops the one check that depends on the machine rather than the
+config: whether the local `bash` is new enough (>= 4) for the Bash Debug
+extension. CI and tests/run.sh use it because the suite deliberately also runs
+on stock macOS bash 3.2, where that probe can never pass.
 
 Exits non-zero when anything is wrong.
 """
@@ -104,7 +110,7 @@ def resolve(value: str, inputs: dict) -> str:
     return value
 
 
-def check_launch(doc, rep: Report) -> None:
+def check_launch(doc, rep: Report, probe_machine: bool = True) -> None:
     configs = doc.get("configurations", [])
     inputs = {i["id"]: i for i in doc.get("inputs", [])}
     if not configs:
@@ -140,7 +146,7 @@ def check_launch(doc, rep: Report) -> None:
         elif c.get("type") == "bashdb" and not os.access(prog, os.X_OK):
             rep.problem(f"[{name}] program not executable: {prog}")
 
-        if c.get("type") == "bashdb":
+        if c.get("type") == "bashdb" and probe_machine:
             _check_bash(name, c.get("pathBash", "bash"), rep)
 
     for iid, spec in inputs.items():
@@ -269,6 +275,8 @@ def main() -> int:
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--run", action="store_true", help="execute every launch configuration")
     ap.add_argument("--json", action="store_true", help="emit a machine readable summary")
+    ap.add_argument("--portable", action="store_true",
+                    help="skip checks that depend on this machine's tools (local bash version)")
     args = ap.parse_args()
 
     rep = Report()
@@ -278,7 +286,7 @@ def main() -> int:
     load("extensions.json", rep)
 
     if launch:
-        check_launch(launch, rep)
+        check_launch(launch, rep, probe_machine=not args.portable)
         check_inputs_match_repo(launch, rep)
     if tasks:
         check_tasks(tasks, rep)

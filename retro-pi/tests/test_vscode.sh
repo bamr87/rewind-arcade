@@ -14,7 +14,23 @@ test_validator_exists_and_is_executable() {
 test_vscode_config_passes_static_validation() {
   # Covers JSONC syntax, required fields, ${input:} references, program paths,
   # picker options matching real systems and test files, and task dependsOn.
-  assert_ok python3 "$VALIDATOR"
+  # --portable: this suite also runs on stock macOS bash 3.2, so it must not
+  # fail on the validator's local-bash-version probe (a machine check, not a
+  # config defect); test_validator_flags_old_bash covers that probe instead.
+  assert_ok python3 "$VALIDATOR" --portable
+}
+
+test_validator_flags_old_bash() {
+  # The default (developer) run still rejects a PATH bash older than 4, which
+  # the Bash Debug extension cannot use; --portable skips only that probe.
+  local fake rc=0
+  fake="$(mktemp -d "${TMPDIR:-/tmp}/retropi-oldbash.XXXXXX")"
+  printf '#!/bin/sh\necho 3\n' > "$fake/bash"
+  chmod +x "$fake/bash"
+  PATH="$fake:$PATH" assert_fails python3 "$VALIDATOR" || rc=1
+  PATH="$fake:$PATH" assert_ok python3 "$VALIDATOR" --portable || rc=1
+  rm -rf "$fake"
+  return $rc
 }
 
 test_all_config_files_are_valid_jsonc() {

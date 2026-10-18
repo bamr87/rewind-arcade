@@ -28,8 +28,13 @@ jobs:
       - name: Validate every manifest
         run: ./bin/retropi config validate
 
+      # --portable: the validator otherwise probes the local `bash` for the
+      # Bash Debug extension (needs bash >= 4), and a macOS runner's PATH bash
+      # is Apple's 3.2. That stock bash is exactly what this leg is meant to
+      # test, and the probe is a developer-machine check, not a config defect,
+      # so CI skips only that probe and runs every config check on both OSes.
       - name: Validate the .vscode run/debug configuration
-        run: python3 tools/validate-vscode.py
+        run: python3 tools/validate-vscode.py --portable
 
       - name: Run the test suite
         run: ./tests/run.sh
