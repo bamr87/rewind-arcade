@@ -17,7 +17,8 @@
     "play:crate-shift": "node tools/play-crate-shift.mjs",
     "play:flak-shack": "node tools/play-flak-shack.mjs",
     "play:rockfall": "node tools/play-rockfall.mjs",
-    "play:lode-digger": "node tools/play-lode-digger.mjs"
+    "play:lode-digger": "node tools/play-lode-digger.mjs",
+    "play:banana-barrage": "node tools/play-banana-barrage.mjs"
   },
   "dependencies": {
     "@fontsource-variable/jetbrains-mono": "^5.3.0",
