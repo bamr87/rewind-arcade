@@ -17,7 +17,8 @@ export function PlayCover({ id, title, accent }: { id: string; title: string; ac
       {id === 'flak-shack' && <Flak />}
       {id === 'rockfall' && <Cave />}
       {id === 'lode-digger' && <Lode />}
-      {!['pong', 'jezzball', 'breakout', 'snake', 'asteroids', 'minesweeper', 'skifree', 'pellet-panic', 'silo-sentinel', 'touchdown', 'gridlock', 'crate-shift', 'flak-shack', 'rockfall', 'lode-digger'].includes(id) && (
+      {id === 'blockfall' && <Well />}
+      {!['pong', 'jezzball', 'breakout', 'snake', 'asteroids', 'minesweeper', 'skifree', 'pellet-panic', 'silo-sentinel', 'touchdown', 'gridlock', 'crate-shift', 'flak-shack', 'rockfall', 'lode-digger', 'blockfall'].includes(id) && (
         <rect width="240" height="320" fill={accent} />
       )}
       <rect x="0" y="248" width="240" height="72" fill="#000" opacity="0.55" />
@@ -368,6 +369,34 @@ function Lode() {
         <line x1="178" y1="76" x2="174" y2="86" />
         <line x1="182" y1="76" x2="187" y2="86" />
       </g>
+    </g>
+  );
+}
+
+function Well() {
+  // A 10-wide well in 20 px cells: a stack with one gap, a T on its way down, and a phosphor burn.
+  const colors: Record<string, string> = { i: '#22d3ee', j: '#3b82f6', l: '#f97316', o: '#facc15', s: '#22c55e', t: '#a855f7', z: '#ef4444' };
+  const stack = ['..........', '.......o..', 'jj....zoo.', 'jss..zzllo', 'ssjjzzl.lo', 'iiiijjllll'];
+  const cell = (x: number, y: number, c: string, key: string) => (
+    <g key={key}>
+      <rect x={x + 1} y={y + 1} width="18" height="18" fill={c} />
+      <rect x={x + 1} y={y + 1} width="18" height="3" fill="#ffffff" opacity="0.35" />
+    </g>
+  );
+  return (
+    <g>
+      <rect width="240" height="320" fill="#05070d" />
+      <rect x="20" y="8" width="200" height="240" fill="#0b1020" stroke="#334155" strokeWidth="2" />
+      <rect x="20" y="132" width="200" height="12" fill="#4ade80" opacity="0.22" />
+      <rect x="20" y="137" width="200" height="2" fill="#bbf7d0" opacity="0.3" />
+      <rect x="20" y="112" width="200" height="12" fill="#4ade80" opacity="0.1" />
+      {stack.flatMap((row, r) =>
+        row.split('').map((t, c) => (t === '.' ? null : cell(20 + c * 20, 128 + r * 20, colors[t], `${r}-${c}`))),
+      )}
+      {[[100, 48], [120, 48], [140, 48], [120, 28]].map(([x, y], i) => cell(x, y, colors.t, `t${i}`))}
+      {[[100, 168], [120, 168], [140, 168], [120, 148]].map(([x, y], i) => (
+        <rect key={`g${i}`} x={x + 3} y={y + 3} width="14" height="14" fill="none" stroke="#a855f7" strokeWidth="2" opacity="0.5" />
+      ))}
     </g>
   );
 }
