@@ -1,0 +1,32 @@
+# Nintendo DS - retro-pi system manifest
+# Regenerate frontend entries after editing:  ./bin/retropi build
+id: nds
+name: "Nintendo DS"
+short_name: "NDS"
+manufacturer: "Nintendo"
+year: 2004
+aliases: []
+
+frontend:
+  platform: nds   # scraper/theme id understood by ES-DE and RetroPie
+  theme: nds
+
+# File types the frontend will show for this system.
+extensions: [".nds", ".zip", ".7z"]
+
+emulators:
+  default: melonds
+  list:
+    - id: melonds
+      type: libretro
+      core: melonds_libretro
+      display: "melonDS"
+    - id: desmume
+      type: libretro
+      core: desmume_libretro
+      display: "DeSmuME"
+
+bios: []
+
+notes: >-
+  Dual-screen layout is configured in the core options. Heavy on a Pi.

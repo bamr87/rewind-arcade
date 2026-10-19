@@ -1,0 +1,28 @@
+# Sega 32X - retro-pi system manifest
+# Regenerate frontend entries after editing:  ./bin/retropi build
+id: sega32x
+name: "Sega 32X"
+short_name: "32X"
+manufacturer: "Sega"
+year: 1994
+aliases: []
+
+frontend:
+  platform: sega32x   # scraper/theme id understood by ES-DE and RetroPie
+  theme: sega32x
+
+# File types the frontend will show for this system.
+extensions: [".32x", ".bin", ".md", ".zip"]
+
+emulators:
+  default: picodrive
+  list:
+    - id: picodrive
+      type: libretro
+      core: picodrive_libretro
+      display: "PicoDrive"
+
+bios: []
+
+notes: >-
+  PicoDrive is the only well-supported 32X core.

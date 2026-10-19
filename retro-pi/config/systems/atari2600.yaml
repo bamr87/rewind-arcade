@@ -1,0 +1,25 @@
+# Atari 2600 - retro-pi system manifest
+# Regenerate frontend entries after editing:  ./bin/retropi build
+id: atari2600
+name: "Atari 2600"
+short_name: "2600"
+manufacturer: "Atari"
+year: 1977
+aliases: []
+
+frontend:
+  platform: atari2600   # scraper/theme id understood by ES-DE and RetroPie
+  theme: atari2600
+
+# File types the frontend will show for this system.
+extensions: [".a26", ".bin", ".zip", ".7z"]
+
+emulators:
+  default: stella
+  list:
+    - id: stella
+      type: libretro
+      core: stella_libretro
+      display: "Stella"
+
+bios: []

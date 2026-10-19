@@ -1,0 +1,29 @@
+# MS-DOS - retro-pi system manifest
+# Regenerate frontend entries after editing:  ./bin/retropi build
+id: dos
+name: "MS-DOS"
+short_name: "DOS"
+manufacturer: "Microsoft"
+year: 1981
+aliases: [pc]
+
+frontend:
+  platform: dos   # scraper/theme id understood by ES-DE and RetroPie
+  theme: dos
+
+# File types the frontend will show for this system.
+extensions: [".zip", ".dosz", ".exe", ".com", ".bat", ".conf", ".m3u"]
+
+emulators:
+  default: dosbox-pure
+  list:
+    - id: dosbox-pure
+      type: libretro
+      core: dosbox_pure_libretro
+      display: "DOSBox Pure"
+
+bios: []
+
+notes: >-
+  DOSBox Pure runs games straight out of a .zip with no mounting or install
+  step.

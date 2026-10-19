@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    // Step-debugging for bin/retropi and the test suite (launch.json).
+    // Needs bash 4+; on macOS: brew install bash
+    "rogalmic.bash-debug",
+    // Inline shellcheck, matching what `make lint` and CI enforce.
+    "timonwong.shellcheck",
+    // Debugging lib/yamlite.py and the ROM generator.
+    "ms-python.python",
+    // Manifest editing in config/systems/.
+    "redhat.vscode-yaml"
+  ]
+}

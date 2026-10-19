@@ -1,0 +1,28 @@
+# Sony PlayStation Portable - retro-pi system manifest
+# Regenerate frontend entries after editing:  ./bin/retropi build
+id: psp
+name: "Sony PlayStation Portable"
+short_name: "PSP"
+manufacturer: "Sony"
+year: 2004
+aliases: []
+
+frontend:
+  platform: psp   # scraper/theme id understood by ES-DE and RetroPie
+  theme: psp
+
+# File types the frontend will show for this system.
+extensions: [".iso", ".cso", ".chd", ".pbp"]
+
+emulators:
+  default: ppsspp
+  list:
+    - id: ppsspp
+      type: libretro
+      core: ppsspp_libretro
+      display: "PPSSPP"
+
+bios: []
+
+notes: >-
+  Pi 4/5 handles many titles at 1x resolution; macOS can push higher.
