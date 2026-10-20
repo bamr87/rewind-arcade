@@ -18,7 +18,8 @@
     "play:flak-shack": "node tools/play-flak-shack.mjs",
     "play:rockfall": "node tools/play-rockfall.mjs",
     "play:lode-digger": "node tools/play-lode-digger.mjs",
-    "play:blockfall": "node tools/play-blockfall.mjs"
+    "play:blockfall": "node tools/play-blockfall.mjs",
+    "play:patience": "node tools/play-patience.mjs"
   },
   "dependencies": {
     "@fontsource-variable/jetbrains-mono": "^5.3.0",

@@ -18,7 +18,8 @@ export function PlayCover({ id, title, accent }: { id: string; title: string; ac
       {id === 'rockfall' && <Cave />}
       {id === 'lode-digger' && <Lode />}
       {id === 'blockfall' && <Well />}
-      {!['pong', 'jezzball', 'breakout', 'snake', 'asteroids', 'minesweeper', 'skifree', 'pellet-panic', 'silo-sentinel', 'touchdown', 'gridlock', 'crate-shift', 'flak-shack', 'rockfall', 'lode-digger', 'blockfall'].includes(id) && (
+      {id === 'patience' && <Felt />}
+      {!['pong', 'jezzball', 'breakout', 'snake', 'asteroids', 'minesweeper', 'skifree', 'pellet-panic', 'silo-sentinel', 'touchdown', 'gridlock', 'crate-shift', 'flak-shack', 'rockfall', 'lode-digger', 'blockfall', 'patience'].includes(id) && (
         <rect width="240" height="320" fill={accent} />
       )}
       <rect x="0" y="248" width="240" height="72" fill="#000" opacity="0.55" />
@@ -397,6 +398,35 @@ function Well() {
       {[[100, 168], [120, 168], [140, 168], [120, 148]].map(([x, y], i) => (
         <rect key={`g${i}`} x={x + 3} y={y + 3} width="14" height="14" fill="none" stroke="#a855f7" strokeWidth="2" opacity="0.5" />
       ))}
+    </g>
+  );
+}
+
+function Felt() {
+  // Four foundations up top, and a king's trail bouncing down across the felt.
+  const card = (x: number, y: number, label: string, red: boolean, key: string) => (
+    <g key={key}>
+      <rect x={x} y={y} width="40" height="56" rx="4" fill="#ffffff" stroke="#1f2937" />
+      <text x={x + 5} y={y + 15} fontSize="12" fontWeight="800" fill={red ? '#dc2626' : '#111827'}>{label}</text>
+    </g>
+  );
+  const trail = [[150, 40], [158, 74], [166, 112], [174, 156], [182, 192], [190, 178], [198, 168], [206, 162]];
+  return (
+    <g>
+      <rect width="240" height="320" fill="#0f6b3a" />
+      {card(14, 14, 'A♠', false, 'f0')}
+      {card(62, 14, 'A♥', true, 'f1')}
+      {card(110, 14, '2♦', true, 'f2')}
+      {trail.map(([x, y], i) => card(x - 20, y, 'K♣', false, `t${i}`))}
+      {[0, 1, 2].map((i) => (
+        <g key={`c${i}`}>
+          <rect x={20 + i * 48} y={96 + i * 6} width="40" height="56" rx="4" fill="#ffffff" stroke="#1f2937" />
+          <rect x={23 + i * 48} y={99 + i * 6} width="34" height="50" rx="2" fill="#1d4ed8" />
+        </g>
+      ))}
+      {card(20, 120, 'Q♥', true, 'q')}
+      {card(68, 132, 'J♣', false, 'j')}
+      {card(116, 144, '10♦', true, 'ten')}
     </g>
   );
 }
