@@ -55,7 +55,7 @@ Cartridges, discs, floppies, tapes, arcade PCBs, and original PC software. Ninte
 
 | You want to… | Use |
 |---|---|
-| Play Pong / JezzBall / Breakout / Snake / Asteroids / Minesweeper / SkiFree / Pellet Panic / Silo Sentinel / Touchdown / Gridlock / Crate Shift / Flak Shack / Rockfall / Lode Digger / Blockfall | `arcade/` |
+| Play Pong / JezzBall / Breakout / Snake / Asteroids / Minesweeper / SkiFree / Pellet Panic / Silo Sentinel / Touchdown / Gridlock / Crate Shift / Flak Shack / Rockfall / Lode Digger / Blockfall / Rogue's Hour | `arcade/` |
 | Load a dump in the browser | `arcade/` → `#/emulate` |
 | Browse a cartidx export | `arcade/` → `#/catalog` |
 | Boot a NES, PS1, or Dreamcast ROM on a Mac or Pi | `./bin/retropi install` then `build` |
@@ -64,7 +64,7 @@ Cartridges, discs, floppies, tapes, arcade PCBs, and original PC software. Ninte
 | Add a console | one YAML in `emulate/config/systems/` — [guide](emulate/docs/adding-systems.md) |
 | See every platform this repo knows | [docs/systems](docs/systems/README.md) |
 
-Emulate ships **38** console manifests with two dozen systems enabled in a fresh ES-DE frontend. ES-DE is the primary interface for the local ROM library; RetroArch and standalone emulators run the games. The browser console loader remains an optional, separate experience, not a desktop ES-DE replacement. Catalog identifies **8** cartridge families from dump bytes and accepts a wider shelf of platforms for inventory and prices. Arcade ships **16** original recreations, an in-browser console loader (`#/emulate`), a catalog browser (`#/catalog`), and a systems atlas (`#/systems`).
+Emulate ships **38** console manifests with two dozen systems enabled in a fresh ES-DE frontend. ES-DE is the primary interface for the local ROM library; RetroArch and standalone emulators run the games. The browser console loader remains an optional, separate experience, not a desktop ES-DE replacement. Catalog identifies **8** cartridge families from dump bytes and accepts a wider shelf of platforms for inventory and prices. Arcade ships **17** original recreations, an in-browser console loader (`#/emulate`), a catalog browser (`#/catalog`), and a systems atlas (`#/systems`).
 
 ## retro-pi (imported)
 
