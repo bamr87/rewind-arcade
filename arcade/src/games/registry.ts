@@ -1,5 +1,6 @@
 import type { GameManifest } from '../engine/types';
 import { asteroidsManifest } from './asteroids';
+import { blockfallManifest } from './blockfall';
 import { breakoutManifest } from './breakout';
 import { gridlockManifest } from './gridlock';
 import { crateShiftManifest } from './crate-shift';
@@ -31,6 +32,7 @@ export const GAMES: GameManifest[] = [
   flakShackManifest,
   rockfallManifest,
   lodeDiggerManifest,
+  blockfallManifest,
 ];
 
 export function getGame(id: string | undefined): GameManifest | undefined {
