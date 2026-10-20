@@ -1,0 +1,31 @@
+# Atari 7800 - retro-pi system manifest
+# Regenerate frontend entries after editing:  ./bin/retropi build
+id: atari7800
+name: "Atari 7800"
+short_name: "7800"
+manufacturer: "Atari"
+year: 1986
+aliases: []
+
+frontend:
+  platform: atari7800   # scraper/theme id understood by ES-DE and RetroPie
+  theme: atari7800
+
+# File types the frontend will show for this system.
+extensions: [".a78", ".bin", ".zip"]
+
+emulators:
+  default: prosystem
+  list:
+    - id: prosystem
+      type: libretro
+      core: prosystem_libretro
+      display: "ProSystem"
+
+# Checked by `retropi doctor --bios`. retro-pi never downloads BIOS files;
+# you must supply them from hardware you own.
+bios:
+  - file: "7800 BIOS (U).rom"
+    md5: 0763f1ffb006ddeaad5a1a58d04863c8
+    required: false
+    note: "Optional; needed for a few titles"

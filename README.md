@@ -66,6 +66,10 @@ Cartridges, discs, floppies, tapes, arcade PCBs, and original PC software. Ninte
 
 Emulate ships **38** console manifests with two dozen systems enabled in a fresh ES-DE frontend. ES-DE is the primary interface for the local ROM library; RetroArch and standalone emulators run the games. The browser console loader remains an optional, separate experience, not a desktop ES-DE replacement. Catalog identifies **8** cartridge families from dump bytes and accepts a wider shelf of platforms for inventory and prices. Arcade ships **16** original recreations, an in-browser console loader (`#/emulate`), a catalog browser (`#/catalog`), and a systems atlas (`#/systems`).
 
+## retro-pi (imported)
+
+[`retro-pi/`](retro-pi/) is the former [bamr87/retro-pi](https://github.com/bamr87/retro-pi) repository, imported here with its full history: the portable retro-gaming workspace for macOS and Raspberry Pi, whose declarative manifests drive EmulationStation and RetroArch. It is the hardware-side counterpart of `emulate/` and keeps its own README, `bin/retropi` and tests, run from inside `retro-pi/`. Its `ci.yml` does not run from this path and is kept as the reference for folding its checks (`retropi config validate`, `tests/run.sh`) into this repository's workflows.
+
 ## Documentation
 
 - [Getting started](docs/getting-started.md)

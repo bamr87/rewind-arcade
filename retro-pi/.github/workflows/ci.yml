@@ -1,0 +1,109 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  # macOS ships bash 3.2, Ubuntu ships bash 5.x. The tree must work on both,
+  # so both are first-class CI targets rather than one being an afterthought.
+  test:
+    name: test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Report shell and python
+        run: |
+          bash --version | head -1
+          python3 --version
+          python3 -c 'import yaml' 2>/dev/null && echo "PyYAML: present" || echo "PyYAML: absent"
+
+      - name: Validate every manifest
+        run: ./bin/retropi config validate
+
+      # --portable: the validator otherwise probes the local `bash` for the
+      # Bash Debug extension (needs bash >= 4), and a macOS runner's PATH bash
+      # is Apple's 3.2. That stock bash is exactly what this leg is meant to
+      # test, and the probe is a developer-machine check, not a config defect,
+      # so CI skips only that probe and runs every config check on both OSes.
+      - name: Validate the .vscode run/debug configuration
+        run: python3 tools/validate-vscode.py --portable
+
+      - name: Run the test suite
+        run: ./tests/run.sh
+
+      - name: Run the suite with the built-in YAML parser
+        # Forces the Raspberry Pi code path even where PyYAML is installed.
+        run: RETROPI_YAML_PURE=1 ./tests/run.sh
+
+      - name: CLI smoke test
+        run: |
+          ./bin/retropi --version
+          ./bin/retropi systems list
+          ./bin/retropi build --no-install
+          ./bin/retropi roms scan
+          ./bin/retropi package --name ci-artifact
+
+      - name: Verify the generated frontend config is valid XML
+        run: |
+          python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+          root = ET.parse('build/es_systems.xml').getroot()
+          systems = root.findall('system')
+          assert systems, "no systems generated"
+          for s in systems:
+              for tag in ('name', 'fullname', 'path', 'extension', 'platform'):
+                  assert (s.findtext(tag) or '').strip(), f"{s.findtext('name')}: missing {tag}"
+              assert s.findall('command'), f"{s.findtext('name')}: no launch command"
+          print(f"ok: {len(systems)} systems, all elements present")
+          PY
+
+      - name: Verify the portable archive unpacks and runs
+        run: |
+          mkdir -p /tmp/unpack && tar -xzf dist/ci-artifact.tar.gz -C /tmp/unpack
+          cd /tmp/unpack/ci-artifact
+          ./bin/retropi --version
+          ./bin/retropi systems list
+
+  lint:
+    name: shellcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install shellcheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+      - name: Lint
+        run: |
+          shellcheck -S warning -x -e SC2034 bin/retropi lib/*.sh cmd/*.sh platforms/*/*.sh tools/*.sh
+          shellcheck -S warning -x tests/run.sh tests/lib/*.sh tests/test_*.sh
+
+  # The real deployment target: 64-bit ARM Debian, no PyYAML.
+  raspberry-pi:
+    name: raspberry pi (linux/arm64)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - name: Build the Pi-like image
+        run: docker build --platform linux/arm64 -f docker/Dockerfile -t retropi-test .
+      - name: Run the suite on arm64
+        run: docker run --rm --platform linux/arm64 retropi-test
+
+  # Current Debian: bash 5.2, python 3.13, cores packaged under multiarch paths.
+  debian-trixie:
+    name: debian 13 trixie (linux/amd64)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the Debian 13 image
+        run: docker build --build-arg DEBIAN=trixie -f docker/Dockerfile -t retropi-test:trixie .
+      - name: Run the suite on Debian 13
+        run: docker run --rm retropi-test:trixie

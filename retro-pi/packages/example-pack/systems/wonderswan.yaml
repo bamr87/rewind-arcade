@@ -1,0 +1,27 @@
+# Bandai WonderSwan Color - retro-pi system manifest
+id: wonderswan
+name: "Bandai WonderSwan Color"
+short_name: "WSC"
+manufacturer: "Bandai"
+year: 1999
+aliases: [wsc]
+
+frontend:
+  platform: wonderswancolor
+  theme: wonderswancolor
+
+extensions: [".ws", ".wsc", ".pc2", ".zip", ".7z"]
+
+emulators:
+  default: beetle-wswan
+  list:
+    - id: beetle-wswan
+      type: libretro
+      core: mednafen_wswan_libretro
+      display: "Beetle WonderSwan"
+
+bios: []
+
+notes: >-
+  The WonderSwan is played in both horizontal and vertical orientations;
+  rotation is bound in the core options rather than per game.

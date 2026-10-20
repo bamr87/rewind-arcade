@@ -1,0 +1,29 @@
+# Commodore 64 - retro-pi system manifest
+# Regenerate frontend entries after editing:  ./bin/retropi build
+id: c64
+name: "Commodore 64"
+short_name: "C64"
+manufacturer: "Commodore"
+year: 1982
+aliases: []
+
+frontend:
+  platform: c64   # scraper/theme id understood by ES-DE and RetroPie
+  theme: c64
+
+# File types the frontend will show for this system.
+extensions: [".d64", ".t64", ".prg", ".crt", ".tap", ".m3u", ".zip"]
+
+emulators:
+  default: vice-x64
+  list:
+    - id: vice-x64
+      type: libretro
+      core: vice_x64_libretro
+      display: "VICE x64"
+    - id: vice-x64sc
+      type: libretro
+      core: vice_x64sc_libretro
+      display: "VICE x64sc (accuracy)"
+
+bios: []

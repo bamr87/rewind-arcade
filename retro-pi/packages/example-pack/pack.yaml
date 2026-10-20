@@ -1,0 +1,8 @@
+# retro-pi extension pack
+name: example-pack
+description: "Worked example: how to ship extra systems as a reusable pack"
+version: 0.1.0
+author: "retro-pi"
+
+# Systems this pack contributes. Each maps to systems/<name>.yaml in this pack.
+provides: [wonderswan]

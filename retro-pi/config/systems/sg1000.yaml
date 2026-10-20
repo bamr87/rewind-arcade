@@ -1,0 +1,34 @@
+# Sega SG-1000 - retro-pi system manifest
+# Regenerate frontend entries after editing:  ./bin/retropi build
+id: sg1000
+name: "Sega SG-1000"
+short_name: "SG-1000"
+manufacturer: "Sega"
+year: 1983
+aliases: [sg]
+
+frontend:
+  platform: sg-1000   # scraper/theme id understood by ES-DE and RetroPie
+  theme: sg-1000
+
+# File types the frontend will show for this system.
+extensions: [".sg", ".bin", ".zip", ".7z"]
+
+emulators:
+  default: genesis-plus-gx
+  list:
+    - id: genesis-plus-gx
+      type: libretro
+      core: genesis_plus_gx_libretro
+      display: "Genesis Plus GX"
+    - id: gearsystem
+      type: libretro
+      core: gearsystem_libretro
+      display: "Gearsystem"
+
+bios: []
+
+notes: >-
+  Sega's first cartridge console, and the hardware the Master System grew
+  out of. Genesis Plus GX covers it alongside Master System and Game Gear,
+  so no extra core is needed if you already run those.
