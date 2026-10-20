@@ -1,0 +1,36 @@
+# NEC PC Engine / TurboGrafx-16 - retro-pi system manifest
+# Regenerate frontend entries after editing:  ./bin/retropi build
+id: pcengine
+name: "NEC PC Engine / TurboGrafx-16"
+short_name: "PCE"
+manufacturer: "NEC"
+year: 1987
+aliases: [tg16, turbografx16]
+
+frontend:
+  platform: pcengine   # scraper/theme id understood by ES-DE and RetroPie
+  theme: pcengine
+
+# File types the frontend will show for this system.
+extensions: [".pce", ".cue", ".chd", ".sgx", ".zip"]
+
+emulators:
+  default: beetle-pce
+  list:
+    - id: beetle-pce
+      type: libretro
+      core: mednafen_pce_libretro
+      display: "Beetle PCE"
+    - id: beetle-pce-fast
+      type: libretro
+      core: mednafen_pce_fast_libretro
+      display: "Beetle PCE Fast"
+      platforms: [linux]
+
+# Checked by `retropi doctor --bios`. retro-pi never downloads BIOS files;
+# you must supply them from hardware you own.
+bios:
+  - file: "syscard3.pce"
+    md5: ff1a674273fe3540ccef576376407d1d
+    required: false
+    note: "Required for PC Engine CD titles only"

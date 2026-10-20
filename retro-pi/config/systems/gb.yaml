@@ -1,0 +1,33 @@
+# Nintendo Game Boy - retro-pi system manifest
+# Regenerate frontend entries after editing:  ./bin/retropi build
+id: gb
+name: "Nintendo Game Boy"
+short_name: "GB"
+manufacturer: "Nintendo"
+year: 1989
+aliases: []
+
+frontend:
+  platform: gb   # scraper/theme id understood by ES-DE and RetroPie
+  theme: gb
+
+# File types the frontend will show for this system.
+extensions: [".gb", ".zip", ".7z"]
+
+emulators:
+  default: gambatte
+  list:
+    - id: gambatte
+      type: libretro
+      core: gambatte_libretro
+      display: "Gambatte"
+    - id: sameboy
+      type: libretro
+      core: sameboy_libretro
+      display: "SameBoy"
+
+bios: []
+
+notes: >-
+  SameBoy is cycle-accurate and emulates the Game Boy Color's boot ROM
+  behavior.

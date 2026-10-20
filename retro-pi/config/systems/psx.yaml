@@ -1,0 +1,53 @@
+# Sony PlayStation - retro-pi system manifest
+# Regenerate frontend entries after editing:  ./bin/retropi build
+id: psx
+name: "Sony PlayStation"
+short_name: "PS1"
+manufacturer: "Sony"
+year: 1994
+aliases: [ps1, playstation]
+
+frontend:
+  platform: psx   # scraper/theme id understood by ES-DE and RetroPie
+  theme: psx
+
+# File types the frontend will show for this system.
+extensions: [".cue", ".chd", ".pbp", ".m3u", ".ccd", ".exe"]
+
+emulators:
+  default: swanstation
+  list:
+    - id: swanstation
+      type: libretro
+      core: swanstation_libretro
+      display: "SwanStation"
+    - id: beetle-psx
+      type: libretro
+      core: mednafen_psx_libretro
+      display: "Beetle PSX"
+      platforms: [macos]
+    - id: pcsx-rearmed
+      type: libretro
+      core: pcsx_rearmed_libretro
+      display: "PCSX-ReARMed (fast)"
+      platforms: [linux]
+
+# Checked by `retropi doctor --bios`. retro-pi never downloads BIOS files;
+# you must supply them from hardware you own.
+bios:
+  - file: "scph5501.bin"
+    md5: 490f666e1afb15b7362b406ed1cea246
+    required: true
+    note: "US BIOS"
+  - file: "scph5500.bin"
+    md5: 8dd7d5296a650fac7319bce665a6a53c
+    required: false
+    note: "JP BIOS"
+  - file: "scph5502.bin"
+    md5: 32736f17079d0b2b7024407c39bd3050
+    required: false
+    note: "EU BIOS"
+
+notes: >-
+  Use .chd or .pbp for multi-disc games; .m3u playlists handle disc
+  swapping.
