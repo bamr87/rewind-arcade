@@ -3,6 +3,7 @@
   "private": true,
   "description": "Retro gaming monorepo: play, emulate, catalog",
   "scripts": {
+    "postinstall": "npm install --prefix arcade --no-audit --no-fund",
     "dev": "npm run dev --prefix arcade",
     "build": "npm run build --prefix arcade",
     "preview": "npm run preview --prefix arcade"
