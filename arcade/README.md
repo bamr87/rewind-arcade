@@ -55,8 +55,10 @@ its own `design` resolution and implements `update(dt)` / `render()` plus whatev
 2. Export a `GameManifest` (title, art, description, and a **config schema**) from
    `src/games/<your-game>/index.ts`.
 3. Add the manifest to the `GAMES` array in `src/games/registry.ts`.
+4. Give it a cover in `src/ui/esde/PlayCover.tsx`: add a branch `{id === '<your-game>' && <… />}` **and** add the id to the fallback-exclusion array below the branches. A game left out of that file gets the generic fallback cover.
+5. Optional: a headless bot in `tools/play-<your-game>.mjs` with a matching `play:<your-game>` script in `package.json`, as SkiFree and the games after it have.
 
-That's it. The arcade card, routing, HUD, the settings drawer, high-score tracking and pause are all derived from the manifest automatically — no other file needs to change. Snake and Minesweeper exist mainly to prove this seam: they share zero code with JezzBall — or with each other — yet reuse the entire shell. Minesweeper is turn-based rather than animated, which shows the loop is happy to drive a game where nothing moves on its own.
+That's it. The arcade card, routing, HUD, the settings drawer, high-score tracking and pause are all derived from the manifest automatically — no engine or UI file needs to change beyond the cover. Snake and Minesweeper exist mainly to prove this seam: they share zero code with JezzBall — or with each other — yet reuse the entire shell. Minesweeper is turn-based rather than animated, which shows the loop is happy to drive a game where nothing moves on its own.
 
 ### The config schema
 
@@ -81,6 +83,9 @@ Steer a snake with the arrow keys / **WASD** (or swipe on touch), eat apples to 
 
 ### Asteroids (1979)
 Thrust, turn, and shoot the rocks. **F** / **K** fires (Space is pause). Edges wrap; big rocks split.
+
+### SkiFree (1991)
+An original downhill run in the spirit of the Windows entertainment-pack classic. Steer with ← → / **A D**, or let the mouse or a finger lean you. Hold ↓ / **S** to tuck for speed and ↑ / **W** to snowplow and slow down. A tree or rock wipes you out, and you get back up. Pass the marker and the yeti comes after you. Settings: tree density (2–10), yeti distance (1000–4000 m), and ski speed (180–340). `npm run play:skifree` drives the game headlessly.
 
 ### Pellet Panic (1980)
 An original maze chase: eat every pellet while four chasers hunt you. Rook chases you directly, Lark ambushes four tiles ahead, Moth flanks off Rook's position, and Wisp backs off when it gets close. They alternate scatter and chase phases. A power pellet turns them blue, so they reverse, slow down, and can be eaten for 200 / 400 / 800 / 1600. **Every level is a freshly generated, left-right-mirrored maze** with side tunnels, a central pen, and no dead ends. Steer with the arrows / **WASD** (or swipe). A turn pressed early is taken at the next opening. Settings: lives, chaser speed, fright time, and a maze seed (0 = new mazes every game). `npm run play:pellet-panic` checks the generator over 500 seeds (symmetric, connected, dead-end free, deterministic) and drives the game's rules headlessly.
@@ -157,7 +162,7 @@ During a recreation: **Space / Enter** pause or confirm, **Esc / P** pause. The 
 
 Plug one in and press a button — browsers keep a pad hidden until it is used. It drives the whole frontend: the d-pad or left stick moves, **A** selects, **B** goes back, **Start** opens the main menu, **Y** opens the command palette, and the shoulders jump ten rows. The pages that are not a carousel (lobby, catalog, atlas, Hall of Fame, settings) have no wheel to steer, so there the d-pad moves a focus ring to the nearest button in that direction; the keyboard's arrow keys still just scroll.
 
-Every recreation plays from the pad: the d-pad and stick are the arrow keys, **Start** pauses, and each game binds its own action buttons — fire in Asteroids, serve in Breakout, rotate the wall in JezzBall, flag in Minesweeper. Pong seats two pads, one per paddle. JezzBall and Minesweeper still want a pointer for the part that aims.
+Every recreation plays from the pad: the d-pad and stick are the arrow keys, **Start** pauses, and each game binds its own action buttons — fire in Asteroids, serve in Breakout, rotate the wall in JezzBall, flag in Minesweeper, tuck (south) and snowplow (north) in SkiFree. Pong seats two pads, one per paddle. JezzBall and Minesweeper still want a pointer for the part that aims.
 
 Settings → Gamepad has a live button read-out for checking a mapping, a rumble switch, and a layout choice: **Xbox**, **Nintendo** (A on the right confirms) or **PlayStation** (✕ confirms). The layout changes both the glyphs shown and which button confirms, so the prompts match the controller in your hands.
 
