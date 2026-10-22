@@ -62,4 +62,4 @@ A retro gaming workspace with three pillars sharing one set of system ids: Play 
 
 ## 8. Links
 
-- [README.md](README.md) · [AGENTS.md](AGENTS.md) · [CHANGELOG.md](CHANGELOG.md) · [docs/README.md](docs/README.md) · [docs/architecture.md](docs/architecture.md)
+- [README.md](README.md) · [AGENTS.md](AGENTS.md) · [Backlog: GitHub Issues](https://github.com/bamr87/rewind-arcade/issues) · [CHANGELOG.md](CHANGELOG.md) · [docs/README.md](docs/README.md) · [docs/architecture.md](docs/architecture.md)
