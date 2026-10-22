@@ -17,9 +17,10 @@ export function PlayCover({ id, title, accent }: { id: string; title: string; ac
       {id === 'flak-shack' && <Flak />}
       {id === 'rockfall' && <Cave />}
       {id === 'lode-digger' && <Lode />}
+      {id === 'banana-barrage' && <Skyline />}
       {id === 'blockfall' && <Well />}
       {id === 'rogues-hour' && <Dungeon />}
-      {!['pong', 'jezzball', 'breakout', 'snake', 'asteroids', 'minesweeper', 'skifree', 'pellet-panic', 'silo-sentinel', 'touchdown', 'gridlock', 'crate-shift', 'flak-shack', 'rockfall', 'lode-digger', 'blockfall', 'rogues-hour'].includes(id) && (
+      {!['pong', 'jezzball', 'breakout', 'snake', 'asteroids', 'minesweeper', 'skifree', 'pellet-panic', 'silo-sentinel', 'touchdown', 'gridlock', 'crate-shift', 'flak-shack', 'rockfall', 'lode-digger', 'banana-barrage', 'blockfall', 'rogues-hour'].includes(id) && (
         <rect width="240" height="320" fill={accent} />
       )}
       <rect x="0" y="248" width="240" height="72" fill="#000" opacity="0.55" />
@@ -370,6 +371,51 @@ function Lode() {
         <line x1="178" y1="76" x2="174" y2="86" />
         <line x1="182" y1="76" x2="187" y2="86" />
       </g>
+    </g>
+  );
+}
+
+function Skyline() {
+  // A night skyline, a gorilla on each end roof, a banana mid-arc and a fresh crater.
+  const towers: [number, number, string][] = [
+    [0, 150, '#0e7490'], [34, 120, '#b91c1c'], [80, 178, '#6b7280'], [118, 96, '#0e7490'],
+    [156, 160, '#b91c1c'], [192, 128, '#6b7280'],
+  ];
+  const ape = (x: number, y: number, key: string) => (
+    <g key={key} fill="#d97706">
+      <rect x={x - 6} y={y - 20} width="12" height="7" />
+      <rect x={x - 8} y={y - 13} width="16" height="8" />
+      <rect x={x - 7} y={y - 5} width="5" height="5" />
+      <rect x={x + 2} y={y - 5} width="5" height="5" />
+      <rect x={x - 12} y={y - 13} width="4" height="8" />
+      <rect x={x + 8} y={y - 22} width="4" height="10" />
+    </g>
+  );
+  return (
+    <g>
+      <rect width="240" height="320" fill="#0b1a3a" />
+      <circle cx="120" cy="40" r="16" fill="#facc15" />
+      <rect x="113" y="35" width="3" height="3" fill="#0b1a3a" />
+      <rect x="124" y="35" width="3" height="3" fill="#0b1a3a" />
+      <path d="M113 45 Q120 51 127 45" stroke="#0b1a3a" strokeWidth="2" fill="none" />
+      {towers.map(([x, top, c], i) => {
+        const w = (towers[i + 1]?.[0] ?? 240) - x - 2;
+        return (
+          <g key={i}>
+            <rect x={x} y={top} width={w} height={248 - top} fill={c} />
+            {Array.from({ length: Math.floor((236 - top) / 16) }, (_, r) =>
+              Array.from({ length: Math.floor((w - 6) / 10) }, (_, k) => (
+                <rect key={`${r}-${k}`} x={x + 5 + k * 10} y={top + 6 + r * 16} width="4" height="7" fill={(r + k + i) % 3 ? '#fde047' : '#1f2937'} />
+              )),
+            )}
+          </g>
+        );
+      })}
+      <circle cx="140" cy="160" r="14" fill="#0b1a3a" />
+      {ape(56, 120, 'l')}
+      {ape(214, 128, 'r')}
+      <path d="M64 100 Q120 20 168 70" stroke="#e2e8f0" strokeWidth="1.5" strokeDasharray="3 5" fill="none" />
+      <path d="M164 66 a6 6 0 1 0 8 8" stroke="#fde047" strokeWidth="3" fill="none" />
     </g>
   );
 }
