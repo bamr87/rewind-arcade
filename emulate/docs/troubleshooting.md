@@ -1,5 +1,7 @@
 # Troubleshooting
 
+> Symptoms, causes and fixes for the failures seen in practice, starting from `./bin/retropi doctor`.
+
 Start with `./bin/retropi doctor`. It checks the whole chain and ends with the exact commands to fix what it found.
 
 ## A system does not appear in the frontend
@@ -84,8 +86,7 @@ On Apple Silicon the usual cause is an x86_64 RetroArch (the Homebrew cask) runn
 ## Disc-based games (PS1, Sega CD, Saturn, Dreamcast)
 
 - Required BIOS missing? `./bin/retropi bios check`
-- Loading the wrong file? Point the frontend at the `.cue` or `.chd`, never the
-  `.bin`.
+- Loading the wrong file? Point the frontend at the `.cue` or `.chd`, never the `.bin`.
 - Multi-disc games want an `.m3u` playlist listing each disc.
 
 ## BIOS is present in bios/ but the core says it cannot find one

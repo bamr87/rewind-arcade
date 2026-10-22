@@ -1,5 +1,7 @@
 # Architecture
 
+> How the three pillars share system ids and stay decoupled, what each pillar owns, and the steps for adding a game, a console or a platform.
+
 Rewind Arcade is three programs that agree on names, not a single process.
 
 ```

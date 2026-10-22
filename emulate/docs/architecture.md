@@ -1,5 +1,7 @@
 # Architecture
 
+> How retro-pi is built and why: the manifest-driven idea, the layout, the design rules, the YAML parser, configuration and emulator resolution, the frontend contract and testing.
+
 ## The idea
 
 Everything about a console lives in one YAML manifest. The tooling reads manifests and generates whatever the frontend and emulator need. Adding a system is adding a file; nothing branches on console names in code.

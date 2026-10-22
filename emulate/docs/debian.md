@@ -1,5 +1,7 @@
 # Debian and Ubuntu
 
+> Running retro-pi on Debian 12/13 and the distributions built from them — desktop, laptop or a server over SSH — including apt cores, the frontend AppImage and running with no display.
+
 retro-pi runs on Debian 12 (bookworm) and 13 (trixie), and on the distributions built from them: Ubuntu, Linux Mint, Raspberry Pi OS. The Raspberry Pi guide covers board tuning; this one covers a desktop PC, a laptop, or a server you reach over SSH.
 
 Verified end to end on Debian 13 (trixie), x86_64: RetroArch 1.20 from apt, 30 cores from the buildbot, ES-DE 3.4.1, a game rendered and screenshotted with no display attached.

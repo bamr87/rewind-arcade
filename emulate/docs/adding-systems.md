@@ -1,5 +1,7 @@
 # Adding a system
 
+> How to add a console as one YAML manifest in `config/systems/` — scaffold it, fill the format, find the core name, validate it — with no code changes.
+
 A system is one YAML file in `config/systems/`. No code changes.
 
 ## Scaffold it

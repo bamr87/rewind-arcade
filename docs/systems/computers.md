@@ -1,6 +1,6 @@
 # Computers
 
-Microcomputers and the adventure runtime that outlived several of them.
+> DOS, the Commodore 64 and Amiga, and ScummVM: the microcomputers and the adventure runtime that outlived several of them.
 
 ## MS-DOS (`dos`)
 

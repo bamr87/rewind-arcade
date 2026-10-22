@@ -1,5 +1,7 @@
 # Matching
 
+> How every title join in the catalog works — normalisation, tiers, gates and precedence in `TitleIndex` — and the traps each rule was written to avoid.
+
 Every join here is a title comparison: a ROM to its rating, its price, its sales record, a cartridge on the shelf; an unhashable dump to a DAT name. All of them go through `TitleIndex` in `matching.py`, because when each join had its own copy of the rules the copies drifted, and each drift attached a wrong number to a cartridge.
 
 ## Normalisation

@@ -1,5 +1,7 @@
 # BIOS / firmware
 
+> Where to put the firmware some systems need, dumped from your own hardware; the repository never ships or downloads it.
+
 Some systems need firmware dumped from the original hardware. Put those files here, either flat or one subdirectory deep (`bios/dc/dc_boot.bin` also works).
 
 ```sh

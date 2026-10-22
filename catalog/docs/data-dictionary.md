@@ -1,5 +1,7 @@
 # Data dictionary
 
+> Every column of every catalog output — CSV files, SQLite tables and views — as defined in `schema.py`.
+
 Every column of every output. The authoritative definition is `src/cartridge_index/schema.py`; `tests/test_docs.py` fails if a column is missing here.
 
 ## Games: `workspace/games.csv`, table `games`
