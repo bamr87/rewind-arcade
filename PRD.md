@@ -1,8 +1,8 @@
 # PRD — Rewind Arcade
 
-> Product requirements for [`bamr87/rewind-arcade`](https://github.com/bamr87/rewind-arcade).
-> Derived from the README, agent docs, config and code in this repo. Anything not
-> stated in those sources is marked **TBD**; success metrics are proposals.
+> The product requirements for Rewind Arcade: problem, users, goals and non-goals, features, requirements and proposed success measures.
+
+Derived from the README, agent docs, config and code in [`bamr87/rewind-arcade`](https://github.com/bamr87/rewind-arcade). Anything not stated in those sources is marked **TBD**; success metrics are proposals.
 
 ## 1. Overview / problem
 

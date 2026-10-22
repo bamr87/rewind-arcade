@@ -1,5 +1,7 @@
 # Troubleshooting
 
+> Symptoms, causes and fixes for the failures seen in practice, starting from `./bin/retropi doctor`.
+
 Start with `./bin/retropi doctor`. It checks the whole chain and ends with the exact commands to fix what it found.
 
 ## A system does not appear in the frontend

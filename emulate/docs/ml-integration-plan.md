@@ -1,5 +1,7 @@
 # Driving retro-pi's emulators from a reinforcement learning loop
 
+> A reviewed, not-yet-implemented plan for driving retro-pi's emulators from a reinforcement learning loop as an optional extension pack, without breaking the bash + python3 core.
+
 **Status:** plan, reviewed 2026-09-11. No code written yet. **Scope:** what an ML layer for *this repository* looks like — not a general RL tutorial.
 
 ---
@@ -23,7 +25,7 @@ The last row is the one that matters. It is addressed first, below, because it g
 
 ## Decision 1 — where the code lives
 
-`CLAUDE.md` is unambiguous: two runtime dependencies, bash and python3, no pip packages. `lib/yamlite.py` exists specifically so that PyYAML is not required. An RL stack is torch + gymnasium + stable-baselines3 + a native emulator extension — roughly 2 GB of wheels. That cannot go in the core tree.
+`AGENTS.md` is unambiguous: two runtime dependencies, bash and python3, no pip packages. `lib/yamlite.py` exists specifically so that PyYAML is not required. An RL stack is torch + gymnasium + stable-baselines3 + a native emulator extension — roughly 2 GB of wheels. That cannot go in the core tree.
 
 So it doesn't. **The ML layer is an extension pack with its own virtualenv**, using the mechanism `retropi extend pack` already scaffolds:
 

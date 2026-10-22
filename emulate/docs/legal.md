@@ -1,5 +1,7 @@
 # Legal notes
 
+> What retro-pi distributes, what it downloads on your instruction, what it will never download, and what stays your responsibility.
+
 retro-pi is a configuration and automation tool. It ships no games, no BIOS images and no emulator binaries.
 
 ## What this project distributes

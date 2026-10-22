@@ -1,5 +1,7 @@
 # Raspberry Pi
 
+> Board-by-board setup and tuning, coexisting with RetroPie, external ROM storage, the Mac-to-Pi workflow, autostart and controllers.
+
 ## Supported boards
 
 | Board | Architecture | Comfortable through | Notes |

@@ -1,5 +1,7 @@
 # Systems
 
+> How a console family module turns one file read into identification, validation and naming, what each system learned the hard way, and how to add one.
+
 Each console family is one module in `src/cartridge_index/systems/`. A system turns a file into three things in a single read:
 
 | | |

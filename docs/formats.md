@@ -1,5 +1,7 @@
 # Formats
 
+> Cartridge, disc, floppy, tape, PCB and software: how each kind of media is treated as a first-class field next to the system id.
+
 Retro software arrived on more than cartridges. This repo treats **media** as a first-class field next to the system id.
 
 | Media | What it is | Typical extensions | Examples |

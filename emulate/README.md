@@ -1,5 +1,7 @@
 # Emulate — retro-pi
 
+> The emulation pillar: one tree that installs, configures and maintains ES-DE, RetroArch and libretro cores on macOS, Raspberry Pi and Debian from declarative per-console manifests.
+
 The **emulate** pillar of [Rewind Arcade](../README.md): a portable, packageable workspace for building, installing, maintaining and extending a retro gaming setup — one tree that works the same on **macOS**, a **Raspberry Pi** and **Debian/Ubuntu**, driving **EmulationStation** and **RetroArch**.
 
 NES, SNES, N64, Game Boy, Genesis/Mega Drive, Master System, Game Gear, SG-1000, Sega CD, 32X, Saturn, Dreamcast, PlayStation, PSP, Atari, PC Engine, Neo Geo, arcade, DOS and C64 ship configured — two dozen systems, and adding another is one YAML file.

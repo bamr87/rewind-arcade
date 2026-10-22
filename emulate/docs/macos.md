@@ -1,5 +1,7 @@
 # macOS
 
+> Setting up on Apple Silicon and Intel Macs: the frontend, the Rosetta core-architecture trap, Gatekeeper, where files live, bash 3.2 and ROMs on an external drive.
+
 ## Setup
 
 ```sh

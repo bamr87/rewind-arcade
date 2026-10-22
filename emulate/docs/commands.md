@@ -1,5 +1,7 @@
 # Command reference
 
+> Every `retropi` command, flag and helper script, grouped into setup, content and maintenance, plus the global flags and make targets.
+
 Every command takes `--help`. Global flags work on either side of the subcommand: `retropi -v doctor` and `retropi doctor -v` are the same.
 
 | Global flag | Effect |

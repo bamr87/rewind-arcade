@@ -1,5 +1,7 @@
 # Play — Rewind Arcade
 
+> The browser pillar: an ES-DE-style frontend with original game recreations, an in-browser console loader for dumps you own, and a browser for cartidx catalog exports, all static with no backend.
+
 The **play** pillar of [Rewind Arcade](../README.md): an **ES-DE-style frontend** in the browser — system carousel, gamelist, then launch. Recreations, dumps you own, and a cartidx catalog share the same ids. No backend. Collection data and dumps stay on your machine; the production build never ships them.
 
 **▶ Play it: <https://bamr87.github.io/rewind-arcade/>**

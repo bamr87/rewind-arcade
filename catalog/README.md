@@ -1,5 +1,7 @@
 # Catalog — cartridge-index
 
+> The catalog pillar: the titles you track, the cartridges on the shelf and optional dump file references, identified and priced in one SQLite catalog with a browser for analytics.
+
 The **catalog** pillar of [Rewind Arcade](../README.md): a library and index for a retro game collection — the titles you track, the cartridges on the shelf, and optional dump file references, as one SQLite catalog with a browser for analytics.
 
 ```sh

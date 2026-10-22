@@ -1,6 +1,8 @@
 # Nintendo
 
-Home consoles, handhelds, and the odd dual-red visor. Ids follow emulate. Catalog inventory accepts every row here; dump identification today covers NES, SNES, and N64.
+> NES through Switch, the Game Boy line and the Virtual Boy: home consoles, handhelds, and the odd dual-red visor.
+
+Ids follow emulate. Catalog inventory accepts every row here; dump identification today covers NES, SNES, and N64.
 
 ## NES (`nes`)
 

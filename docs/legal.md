@@ -1,5 +1,7 @@
 # Legal
 
+> What this repository ships, what it downloads, and what it refuses to (games, BIOS images, dumps).
+
 This repository is tooling and original software. It is not a ROM site.
 
 ## What it ships
