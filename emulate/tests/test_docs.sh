@@ -83,7 +83,7 @@ test_every_lib_module_is_described_in_the_architecture() {
   for f in "$REPO_ROOT"/lib/*.sh "$REPO_ROOT"/lib/*.py; do
     name="$(basename "$f")"
     grep -q "$name" "$DOCS/architecture.md" || missing="$missing $name"
-    grep -q "$name" "$REPO_ROOT/CLAUDE.md"   || missing="$missing $name(CLAUDE.md)"
+    grep -q "$name" "$REPO_ROOT/AGENTS.md"   || missing="$missing $name(AGENTS.md)"
   done
   assert_eq "" "$missing" "lib modules undocumented:$missing"
 }
