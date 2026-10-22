@@ -122,9 +122,7 @@ Both parsers must produce identical output — `RETROPI_YAML_PURE=1` forces the 
 
 ## Conventions
 
-- Generated output is disposable; configuration is the source of truth. Never
-  hand-edit anything in `build/`.
-- User-facing messages go to stderr via `info`/`step`/`ok`/`warn`/`die`; data
-  meant for piping goes to stdout.
+- Generated output is disposable; configuration is the source of truth. Never hand-edit anything in `build/`.
+- User-facing messages go to stderr via `info`/`step`/`ok`/`warn`/`die`; data meant for piping goes to stdout.
 - Respect `--dry-run`: mutations go through `run` or check `$RETROPI_DRY_RUN`.
 - Back up before overwriting anything outside the repo (`backup_file`).

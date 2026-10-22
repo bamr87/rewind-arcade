@@ -22,8 +22,7 @@ The catalog pillar of Rewind Arcade (cartridge-index): titles you track, a physi
 
 These exist because duplicated copies drifted and each drift was a silent bug:
 
-- **Columns** live in `schema.py`. CSV, SQLite and the web page all read it.
-  `tests/test_web.py` fails if the page reads a field the schema does not export.
+- **Columns** live in `schema.py`. CSV, SQLite and the web page all read it. `tests/test_web.py` fails if the page reads a field the schema does not export.
 - **Title matching** lives in `matching.py`. Do not write a second normaliser.
 - **Reference paths** live in `sources/__init__.py`.
 - **Naming and copy roles** live in `stages/tiers.py`; a dump's `slug` and `plan_tier` describe it in the catalog, not a destination on disk.

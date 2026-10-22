@@ -20,12 +20,9 @@ Retro setups rot. You tune a Pi for a year, the SD card dies, and the knowledge 
 
 retro-pi keeps the *setup* — not the games — as version-controlled, declarative configuration:
 
-- **Declarative.** A console is one YAML manifest. The tooling generates the
-  frontend and emulator config from it.
-- **Portable.** The same repo bootstraps a Mac and a Pi, choosing the right
-  cores, paths and binaries for each.
-- **Packageable.** `retropi package` makes a ~60 KB archive that rebuilds the
-  whole setup anywhere.
+- **Declarative.** A console is one YAML manifest. The tooling generates the frontend and emulator config from it.
+- **Portable.** The same repo bootstraps a Mac and a Pi, choosing the right cores, paths and binaries for each.
+- **Packageable.** `retropi package` makes a ~60 KB archive that rebuilds the whole setup anywhere.
 - **Honest about content.** It never downloads games or BIOS images.
 
 ## What it does

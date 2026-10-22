@@ -37,9 +37,7 @@ Identification tries the whole file, then the payload, then the alternates. A fi
 
 1. Create `systems/<family>.py` with a `System` subclass: `id` (use retro-pi's),
 `label`, `exts`, `dat` (the libretro-database file stem), `launchbox` (platform name), `vgchartz` (console code or `None`), `price_platforms`.
-2. Implement `inspect(data) -> Inspection`: set the payload, call `flag()` for
-   problems and `note()` for benign facts, put header facts in `facts`.
+2. Implement `inspect(data) -> Inspection`: set the payload, call `flag()` for problems and `note()` for benign facts, put header facts in `facts`.
 3. Register it in `systems/__init__.py`.
 4. Add a synthetic image to `tests/romgen.py` and cases to `tests/test_systems.py`.
-5. Check `tests.test_systems.Registry` still passes: no two systems may claim
-   the same extension.
+5. Check `tests.test_systems.Registry` still passes: no two systems may claim the same extension.

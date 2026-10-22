@@ -262,17 +262,10 @@ Each phase has an exit criterion. Do not start the next one until it is met.
 
 Checked 2026-09-11 against upstream sources:
 
-- [stable-retro](https://github.com/Farama-Foundation/stable-retro) — module
-  name `retro`, `python -m retro.import`, Python 3.10–3.14.
-- [gym-super-mario-bros on PyPI](https://pypi.org/project/gym-super-mario-bros/)
-  — 9.1.0, released 2026-06-10, Gymnasium-native, Python ≥ 3.13.
-- [Gymnasium observation wrappers](https://gymnasium.farama.org/api/wrappers/observation_wrappers/)
-  — `GrayscaleObservation` since v1.0.0.
-- [SB3 Atari wrappers](https://stable-baselines3.readthedocs.io/en/master/common/atari_wrappers.html)
-  — `WarpFrame`, `ClipRewardEnv` current.
-- [RetroArch PR #17407](https://github.com/libretro/RetroArch/pull/17407) —
-  merged 2025-01-21; experimental, off by default, Windows + Linux x86.
-- [CuLE](https://github.com/NVlabs/cule) — the real GPU emulation project;
-  Atari, CUDA. No evidence for "NeSLE".
-- Local: `python3 -VV` → 3.14.7; `tests/test_manifests.sh` asserts required
-  manifest keys only and tolerates unknown ones.
+- [stable-retro](https://github.com/Farama-Foundation/stable-retro) — module name `retro`, `python -m retro.import`, Python 3.10–3.14.
+- [gym-super-mario-bros on PyPI](https://pypi.org/project/gym-super-mario-bros/) — 9.1.0, released 2026-06-10, Gymnasium-native, Python ≥ 3.13.
+- [Gymnasium observation wrappers](https://gymnasium.farama.org/api/wrappers/observation_wrappers/) — `GrayscaleObservation` since v1.0.0.
+- [SB3 Atari wrappers](https://stable-baselines3.readthedocs.io/en/master/common/atari_wrappers.html) — `WarpFrame`, `ClipRewardEnv` current.
+- [RetroArch PR #17407](https://github.com/libretro/RetroArch/pull/17407) — merged 2025-01-21; experimental, off by default, Windows + Linux x86.
+- [CuLE](https://github.com/NVlabs/cule) — the real GPU emulation project; Atari, CUDA. No evidence for "NeSLE".
+- Local: `python3 -VV` → 3.14.7; `tests/test_manifests.sh` asserts required manifest keys only and tolerates unknown ones.

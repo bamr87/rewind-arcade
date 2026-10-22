@@ -54,8 +54,7 @@ The **engine** owns everything reusable — the render loop, input, pause (and a
 
 1. Create `src/games/<your-game>/game.ts` with a class implementing `GameInstance` — it declares
 its own `design` resolution and implements `update(dt)` / `render()` plus whatever input hooks it needs. It receives a `GameContext` for canvas, config, audio, HUD, overlays and scores.
-2. Export a `GameManifest` (title, art, description, and a **config schema**) from
-   `src/games/<your-game>/index.ts`.
+2. Export a `GameManifest` (title, art, description, and a **config schema**) from `src/games/<your-game>/index.ts`.
 3. Add the manifest to the `GAMES` array in `src/games/registry.ts`.
 4. Give it a cover in `src/ui/esde/PlayCover.tsx`: add a branch `{id === '<your-game>' && <… />}` **and** add the id to the fallback-exclusion array below the branches. A game left out of that file gets the generic fallback cover.
 5. Optional: a headless bot in `tools/play-<your-game>.mjs` with a matching `play:<your-game>` script in `package.json`, as SkiFree and the games after it have.

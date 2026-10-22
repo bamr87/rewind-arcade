@@ -26,10 +26,8 @@ Rewind Arcade is a static, backend-free React 19 + TypeScript + Vite site: a plu
 The central design constraint: **`src/engine/` and `src/ui/` know nothing about any specific game, and a game in `src/games/<id>/` never imports React, the router, the DOM shell, or another game.** The whole contract is `src/engine/types.ts`:
 
 - A game exports a `GameManifest` (id, art, copy, `config` schema, `create()`).
-- `create(context)` returns a `GameInstance` — a class that declares its own fixed
-  `design` resolution and implements `update(dt)` / `render()` plus optional input hooks.
-- The instance's only channel back to the host is the `GameContext`: a 2D canvas
-context, the resolved config, the audio bus, `setHud`, `setOverlay`, `submitScore`, `getBest`.
+- `create(context)` returns a `GameInstance` — a class that declares its own fixed `design` resolution and implements `update(dt)` / `render()` plus optional input hooks.
+- The instance's only channel back to the host is the `GameContext`: a 2D canvas context, the resolved config, the audio bus, `setHud`, `setOverlay`, `submitScore`, `getBest`.
 
 Everything user-visible is *derived* from the manifest: the lobby card (`src/ui/GamesGrid.tsx`), routing (`src/App.tsx`), the HUD (`src/ui/Hud.tsx`, driven by the `HudModel` a game pushes via `setHud`), all menu/win/lose/pause panels (`src/ui/Overlay.tsx`, from the declarative `OverlayModel`), and the settings drawer (`src/ui/ConfigPanel.tsx`, generated from the `ConfigField[]` schema). Adding a game is one directory plus one entry in `GAMES` in `src/games/registry.ts`, plus a cover branch and fallback-exclusion entry in `src/ui/esde/PlayCover.tsx` — no engine or other UI file changes. Snake and Minesweeper exist mainly to keep this seam honest: they share zero code with JezzBall or each other (tick-based grid, turn-based deduction, continuous physics) yet reuse the entire shell.
 
@@ -37,31 +35,21 @@ Everything user-visible is *derived* from the manifest: the lobby card (`src/ui/
 
 `src/engine/useGameEngine.ts` is the only bridge between the plug-in contract and React/the DOM. A single `useEffect` (deps: `manifest`, `config`, `sessionKey`) is where a `GameInstance` is born and dies; it owns the canvas, the one `requestAnimationFrame` loop, DPI/`ResizeObserver` scaling of the design box, pointer/wheel/key listeners, and auto-pause on blur or tab hide. Consequences to keep in mind:
 
-- **Games read config only in their constructor.** Config reactivity works purely
-because a changed config rebuilds the session. `GamePage` creates a new config object on every change, so *any* setting restarts the running game — the `restart: true` flag on `ConfigField` is currently declarative only and never consulted by the engine.
-- **Keys are split into two classes.** `Space`/`Enter`/`Escape`/`KeyP` are system keys
-handled by the host (pause, and confirming the overlay's primary button) and are *not* forwarded to the game. Everything else goes to `onKey`. Don't bind a system key inside a game.
+- **Games read config only in their constructor.** Config reactivity works purely because a changed config rebuilds the session. `GamePage` creates a new config object on every change, so *any* setting restarts the running game — the `restart: true` flag on `ConfigField` is currently declarative only and never consulted by the engine.
+- **Keys are split into two classes.** `Space`/`Enter`/`Escape`/`KeyP` are system keys handled by the host (pause, and confirming the overlay's primary button) and are *not* forwarded to the game. Everything else goes to `onKey`. Don't bind a system key inside a game.
 - `dt` is clamped to 50 ms, and `render()` runs even while paused.
-- The optional third argument, `{ onScore }`, lets the host observe every `submitScore`
-  without touching the game contract. `GamePage` uses it for play history and record toasts.
-- HUD buttons use `IconButton noFocus` so a click never leaves focus on a button, where
-  Space would both pause through the engine and re-click the button.
-- Pointer coordinates are converted to the game's design space before dispatch, so game
-  code never sees CSS pixels or DPR.
+- The optional third argument, `{ onScore }`, lets the host observe every `submitScore` without touching the game contract. `GamePage` uses it for play history and record toasts.
+- HUD buttons use `IconButton noFocus` so a click never leaves focus on a button, where Space would both pause through the engine and re-click the button.
+- Pointer coordinates are converted to the game's design space before dispatch, so game code never sees CSS pixels or DPR.
 - **A pad reaches a game as key codes.** `GameManifest.pad` (and `pad2` for a second player) maps a button *position* to a code the game already handles in `onKey`, so no engine file knows what any game does with it; directions default to the arrows, which is why every game was playable from a pad before any of them declared a binding. Start stays with the host for pause, and while a panel is up the pad drives the panel instead of the game.
 
 ### Shared services
 
-- `src/engine/storage.ts` — every bit of persistence (best scores, per-game config
-overrides, global mute) funnels through this crash-proof `localStorage` wrapper under the `rewind-arcade:` prefix; private-mode/quota failures degrade silently. Loading a config drops saved keys that no longer exist in the schema or whose type changed.
-- `src/engine/audio.ts` — one shared Web Audio synth, no asset files: games build SFX
-out of `tone()`/`arp()`. `ensure()` is called on first input to satisfy autoplay policies; mute is global and persisted.
-- `src/engine/util.ts` — `cfgInt`/`cfgNum`/`cfgBool`/`cfgStr` are the standard way a
-  game reads `GameConfig` values with a typed fallback; also `clamp`, `fmt`, `shade`.
-- `src/profile/store.ts` — host-side play history (sessions, seconds, last 24 scores,
-favorites) behind `useSyncExternalStore`, persisted through `storage`. Best scores stay in the engine's `best:<id>` keys; profile export/import carries them along. Games never see this store.
-- `src/settings/store.ts` — frontend preferences. They are applied as `data-phosphor`,
-`data-motion`, and `data-ambient` on `<html>` so CSS reacts without React. Mute is not here; `audio.subscribe` plus `useMuted()` (`src/ui/hooks.ts`) keep every mute button in sync. `apply()` also pushes the three pad preferences into `engine/gamepad.ts`, which is how engine code honours them without importing the frontend.
+- `src/engine/storage.ts` — every bit of persistence (best scores, per-game config overrides, global mute) funnels through this crash-proof `localStorage` wrapper under the `rewind-arcade:` prefix; private-mode/quota failures degrade silently. Loading a config drops saved keys that no longer exist in the schema or whose type changed.
+- `src/engine/audio.ts` — one shared Web Audio synth, no asset files: games build SFX out of `tone()`/`arp()`. `ensure()` is called on first input to satisfy autoplay policies; mute is global and persisted.
+- `src/engine/util.ts` — `cfgInt`/`cfgNum`/`cfgBool`/`cfgStr` are the standard way a game reads `GameConfig` values with a typed fallback; also `clamp`, `fmt`, `shade`.
+- `src/profile/store.ts` — host-side play history (sessions, seconds, last 24 scores, favorites) behind `useSyncExternalStore`, persisted through `storage`. Best scores stay in the engine's `best:<id>` keys; profile export/import carries them along. Games never see this store.
+- `src/settings/store.ts` — frontend preferences. They are applied as `data-phosphor`, `data-motion`, and `data-ambient` on `<html>` so CSS reacts without React. Mute is not here; `audio.subscribe` plus `useMuted()` (`src/ui/hooks.ts`) keep every mute button in sync. `apply()` also pushes the three pad preferences into `engine/gamepad.ts`, which is how engine code honours them without importing the frontend.
 - `src/engine/gamepad.ts` — the only `requestAnimationFrame` poll of the Gamepad API, because the API has no button events and two pollers would act on one press twice. It emits press/release/repeat events (auto-repeat and stick hysteresis live there), polls only while something subscribes, and releases everything held when it stops so no game is left thrusting. Buttons are named by position (`south`/`east`, never A/B) since which position confirms is the user's layout preference — ask `padRoles()` and `padGlyph()` rather than hard-coding a letter. `suspendPad()` hands the pad to an emulator iframe, which polls the same device itself.
 - `src/esde/spatial.ts` — pad navigation for the pages that are plain DOM: it focuses the nearest focusable element in the direction pressed, so a new page is navigable as soon as it renders. Deliberately pad-only — hijacking a keyboard's arrow keys would break scrolling — and it draws its ring from `[data-pad-focus]` because `:focus-visible` never fires for programmatic focus.
 
@@ -85,7 +73,5 @@ Art is always hotlinked, never bundled or downloaded. `src/esde/covers.ts` is th
 
 ### Notes
 
-- `legacy/jezzball-standalone.html` is the preserved original single-file version. It is
-  not built or imported; don't try to keep it in sync with `src/`.
-- `dist/` and `tsconfig.tsbuildinfo` are gitignored build outputs; a stale `dist/` may
-  sit in the working tree from an earlier build.
+- `legacy/jezzball-standalone.html` is the preserved original single-file version. It is not built or imported; don't try to keep it in sync with `src/`.
+- `dist/` and `tsconfig.tsbuildinfo` are gitignored build outputs; a stale `dist/` may sit in the working tree from an earlier build.
