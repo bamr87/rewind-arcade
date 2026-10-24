@@ -1,6 +1,6 @@
 # Sega
 
-One living-room lineage from SG-1000 through Dreamcast, plus the Game Gear.
+> One living-room lineage from SG-1000 through Dreamcast, plus the Game Gear.
 
 ## SG-1000 (`sg1000`)
 

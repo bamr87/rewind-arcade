@@ -1,6 +1,6 @@
 # example-pack
 
-A worked example of a retro-pi extension pack: a reusable bundle of system manifests you can share or keep in a separate repo.
+> A worked example of a retro-pi extension pack: a reusable bundle of system manifests you can share or keep in a separate repo.
 
 ## Layout
 

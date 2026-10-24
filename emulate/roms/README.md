@@ -1,5 +1,7 @@
 # ROMs
 
+> Where game files go: one folder per system id, created by `retropi build`; the repository never ships or downloads them.
+
 Game files go in per-system folders here — `roms/nes/`, `roms/snes/` and so on. Folder names come from the system `id`; `./bin/retropi systems list` prints them.
 
 ```sh

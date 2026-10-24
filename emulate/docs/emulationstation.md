@@ -1,5 +1,7 @@
 # ES-DE (EmulationStation Desktop Edition)
 
+> Installing and managing ES-DE, the primary desktop ROM frontend: where its files go, gamelists, themes, settings, controllers and how to verify it worked.
+
 ES-DE is Rewind Arcade's primary desktop ROM frontend, backed by RetroArch and optional standalone emulators. The default `retropi install` installs ES-DE with the emulator stack. retro-pi manages its system definitions and gamelists; settings are merged only on request. The browser arcade and its console loader remain separate, optional experiences.
 
 ```sh

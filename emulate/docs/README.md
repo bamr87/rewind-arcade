@@ -1,5 +1,7 @@
 # Documentation
 
+> The index of the emulate pillar's manuals: start here, per-platform guides, and the deeper references.
+
 ## Start here
 
 | Document | What it covers |
@@ -25,6 +27,7 @@
 | [architecture.md](architecture.md) | how the pieces fit and why they are shaped that way |
 | [troubleshooting.md](troubleshooting.md) | symptoms, causes, fixes |
 | [legal.md](legal.md) | what this project ships, downloads, and refuses to |
+| [ml-integration-plan.md](ml-integration-plan.md) | the reviewed plan (not built) for driving the emulators from a reinforcement learning loop |
 | [../CONTRIBUTING.md](../CONTRIBUTING.md) | working on retro-pi itself |
 | [../../docs/systems/README.md](../../docs/systems/README.md) | every platform in the Rewind Arcade monorepo |
 

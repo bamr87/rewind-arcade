@@ -1,5 +1,7 @@
 # Getting started
 
+> Play, emulate and catalog from a fresh clone: the three entry points, in order, and what each needs on your machine.
+
 Three entry points, depending on whether you want to play in a browser, boot real console software, or index a collection.
 
 ## Play (browser)

@@ -1,5 +1,7 @@
 # Arcade and everything else
 
+> Arcade PCB romsets, Neo Geo and Neo Geo Pocket, PC Engine, ColecoVision, Intellivision, Vectrex, 3DO, WonderSwan and the original Xbox: aliases, default cores and what the catalog can do with each.
+
 ## Arcade (`arcade`)
 
 PCB romsets. Aliases: `mame`, `fbneo`. Default: FinalBurn Neo; MAME 2003-Plus as alternative. Romsets are version-specific — the two cores do not share a set. Catalog tracks arcade as a platform on a shelf; it does not identify MAME zips the way it identifies iNES.

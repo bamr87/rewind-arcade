@@ -1,5 +1,7 @@
 # Getting started
 
+> Five minutes from a fresh clone to a working frontend, step by step, then the everyday loop and how to move the setup to another machine.
+
 Five minutes from a fresh clone to a working frontend.
 
 ## 1. Check the machine

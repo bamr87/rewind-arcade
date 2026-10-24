@@ -1,6 +1,6 @@
 # Atari
 
-VCS through Jaguar, plus the 8-bit computers and the Lynx.
+> VCS through Jaguar, plus the 8-bit computers and the Lynx.
 
 ## Atari 2600 (`atari2600`)
 

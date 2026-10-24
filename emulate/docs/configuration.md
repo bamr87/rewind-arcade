@@ -1,5 +1,7 @@
 # Configuration
 
+> The configuration layers and how they merge, the keys worth knowing, per-system emulator overrides, and how to regenerate and validate.
+
 ## Layers
 
 Later layers win:

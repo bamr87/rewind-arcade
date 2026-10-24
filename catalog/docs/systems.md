@@ -1,5 +1,7 @@
 # Systems
 
+> How a console family module turns one file read into identification, validation and naming, what each system learned the hard way, and how to add one.
+
 Each console family is one module in `src/cartridge_index/systems/`. A system turns a file into three things in a single read:
 
 | | |
@@ -35,9 +37,7 @@ Identification tries the whole file, then the payload, then the alternates. A fi
 
 1. Create `systems/<family>.py` with a `System` subclass: `id` (use retro-pi's),
 `label`, `exts`, `dat` (the libretro-database file stem), `launchbox` (platform name), `vgchartz` (console code or `None`), `price_platforms`.
-2. Implement `inspect(data) -> Inspection`: set the payload, call `flag()` for
-   problems and `note()` for benign facts, put header facts in `facts`.
+2. Implement `inspect(data) -> Inspection`: set the payload, call `flag()` for problems and `note()` for benign facts, put header facts in `facts`.
 3. Register it in `systems/__init__.py`.
 4. Add a synthetic image to `tests/romgen.py` and cases to `tests/test_systems.py`.
-5. Check `tests.test_systems.Registry` still passes: no two systems may claim
-   the same extension.
+5. Check `tests.test_systems.Registry` still passes: no two systems may claim the same extension.

@@ -67,15 +67,29 @@ catalog-systems: ## List dump-capable catalog systems
 # --- quality ------------------------------------------------------------------
 
 .PHONY: test
-test: ## Run emulate + catalog test suites
+test: ## Run emulate + catalog test suites, then the generated-docs checks
 	@$(MAKE) -C emulate test
 	@$(MAKE) -C catalog test
+	@$(MAKE) docs-check
 
 .PHONY: check
-check: ## Arcade build + emulate check + catalog check
+check: ## Arcade build + emulate check + catalog check + generated-docs checks
 	npm run build --prefix arcade
 	@$(MAKE) -C emulate check
 	@$(MAKE) -C catalog check
+	@$(MAKE) docs-check
+
+# --- docs ---------------------------------------------------------------------
+
+.PHONY: docs
+docs: ## Regenerate the systems table and the docs index from their sources
+	python3 tools/gen_systems_table.py
+	python3 tools/docs_index.py --write
+
+.PHONY: docs-check
+docs-check: ## Fail when a generated doc is stale (systems table, docs index)
+	python3 tools/gen_systems_table.py --check
+	python3 tools/docs_index.py --check
 
 .PHONY: ci
 ci: ## Run GitHub workflow jobs on this host (see ./bin/ci --help)

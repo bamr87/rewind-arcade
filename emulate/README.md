@@ -1,5 +1,7 @@
 # Emulate — retro-pi
 
+> The emulation pillar: one tree that installs, configures and maintains ES-DE, RetroArch and libretro cores on macOS, Raspberry Pi and Debian from declarative per-console manifests.
+
 The **emulate** pillar of [Rewind Arcade](../README.md): a portable, packageable workspace for building, installing, maintaining and extending a retro gaming setup — one tree that works the same on **macOS**, a **Raspberry Pi** and **Debian/Ubuntu**, driving **EmulationStation** and **RetroArch**.
 
 NES, SNES, N64, Game Boy, Genesis/Mega Drive, Master System, Game Gear, SG-1000, Sega CD, 32X, Saturn, Dreamcast, PlayStation, PSP, Atari, PC Engine, Neo Geo, arcade, DOS and C64 ship configured — two dozen systems, and adding another is one YAML file.
@@ -18,12 +20,9 @@ Retro setups rot. You tune a Pi for a year, the SD card dies, and the knowledge 
 
 retro-pi keeps the *setup* — not the games — as version-controlled, declarative configuration:
 
-- **Declarative.** A console is one YAML manifest. The tooling generates the
-  frontend and emulator config from it.
-- **Portable.** The same repo bootstraps a Mac and a Pi, choosing the right
-  cores, paths and binaries for each.
-- **Packageable.** `retropi package` makes a ~60 KB archive that rebuilds the
-  whole setup anywhere.
+- **Declarative.** A console is one YAML manifest. The tooling generates the frontend and emulator config from it.
+- **Portable.** The same repo bootstraps a Mac and a Pi, choosing the right cores, paths and binaries for each.
+- **Packageable.** `retropi package` makes a ~60 KB archive that rebuilds the whole setup anywhere.
 - **Honest about content.** It never downloads games or BIOS images.
 
 ## What it does

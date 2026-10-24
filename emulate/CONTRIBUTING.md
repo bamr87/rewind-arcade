@@ -1,5 +1,7 @@
 # Contributing
 
+> How to work on the emulate pillar: the bash 3.2 and python3-only constraints, the pre-commit checks including `make test-linux`, adding a console or a command, and the shell gotchas already met.
+
 ## The constraints that shape everything
 
 **bash 3.2.** macOS still ships it, and `#!/usr/bin/env bash` resolves to it there. No associative arrays, no `mapfile`/`readarray`, no `${var^^}`, no `&>>`.
@@ -15,7 +17,7 @@ make check        # lint, config validation, .vscode validation, tests
 make test-linux   # the Raspberry Pi code path: bash 5.x, no PyYAML, arm64
 ```
 
-Both matter. A surprising number of bugs in this repo were invisible on macOS and obvious in the container, or the reverse — see the "bash version differences" section of [CLAUDE.md](CLAUDE.md).
+Both matter. A surprising number of bugs in this repo were invisible on macOS and obvious in the container, or the reverse — see the "bash version differences" section of [AGENTS.md](AGENTS.md).
 
 ## Adding a console
 

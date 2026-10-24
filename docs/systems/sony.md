@@ -1,6 +1,6 @@
 # Sony
 
-Optical discs, then a handheld that is also a disc (UMD), then a cart-based Vita.
+> The PlayStation family: optical discs, then a handheld that is also a disc (UMD), then a cart-based Vita.
 
 ## PlayStation (`psx`)
 
