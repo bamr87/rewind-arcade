@@ -14,6 +14,7 @@ import { pelletPanicManifest } from './pellet-panic';
 import { pongManifest } from './pong';
 import { siloSentinelManifest } from './silo-sentinel';
 import { rockfallManifest } from './rockfall';
+import { roguesHourManifest } from './rogues-hour';
 import { skifreeManifest } from './skifree';
 import { snakeManifest } from './snake';
 import { touchdownManifest } from './touchdown';
@@ -37,6 +38,7 @@ export const GAMES: GameManifest[] = [
   bananaBarrageManifest,
   blockfallManifest,
   patienceManifest,
+  roguesHourManifest,
 ];
 
 export function getGame(id: string | undefined): GameManifest | undefined {

@@ -20,7 +20,8 @@ export function PlayCover({ id, title, accent }: { id: string; title: string; ac
       {id === 'banana-barrage' && <Skyline />}
       {id === 'blockfall' && <Well />}
       {id === 'patience' && <Felt />}
-      {!['pong', 'jezzball', 'breakout', 'snake', 'asteroids', 'minesweeper', 'skifree', 'pellet-panic', 'silo-sentinel', 'touchdown', 'gridlock', 'crate-shift', 'flak-shack', 'rockfall', 'lode-digger', 'banana-barrage', 'blockfall', 'patience'].includes(id) && (
+      {id === 'rogues-hour' && <Dungeon />}
+      {!['pong', 'jezzball', 'breakout', 'snake', 'asteroids', 'minesweeper', 'skifree', 'pellet-panic', 'silo-sentinel', 'touchdown', 'gridlock', 'crate-shift', 'flak-shack', 'rockfall', 'lode-digger', 'banana-barrage', 'blockfall', 'patience', 'rogues-hour'].includes(id) && (
         <rect width="240" height="320" fill={accent} />
       )}
       <rect x="0" y="248" width="240" height="72" fill="#000" opacity="0.55" />
@@ -444,6 +445,39 @@ function Well() {
       {[[100, 168], [120, 168], [140, 168], [120, 148]].map(([x, y], i) => (
         <rect key={`g${i}`} x={x + 3} y={y + 3} width="14" height="14" fill="none" stroke="#a855f7" strokeWidth="2" opacity="0.5" />
       ))}
+    </g>
+  );
+}
+
+function Dungeon() {
+  // Two rooms joined by a corridor in glyph cells: the right room is lit, the left one remembered (dim).
+  const rows = [
+    '------',
+    '|....|',
+    '|.*..+####',
+    '|....|   #',
+    '------   #',
+    '         #  ------',
+    '         ###+..K.|',
+    '            |.@..|',
+    '            |..!>|',
+    '            ------',
+  ];
+  const lit: Record<string, string> = { '@': '#fde047', K: '#86efac', '*': '#facc15', '!': '#f472b6', '>': '#f8fafc', '+': '#d97706', '.': '#57534e' };
+  return (
+    <g fontFamily="'Press Start 2P', monospace" fontSize="11" textAnchor="middle">
+      <rect width="240" height="320" fill="#05040a" />
+      <circle cx="186" cy="174" r="70" fill="#eab308" opacity="0.07" />
+      {rows.flatMap((row, y) =>
+        row.split('').map((ch, x) =>
+          ch === ' ' ? null : (
+            <text key={`${x}-${y}`} x={18 + x * 12} y={48 + y * 20} fill={x >= 12 ? (lit[ch] ?? '#a8a29e') : '#334155'}>
+              {ch}
+            </text>
+          ),
+        ),
+      )}
+      <text x="120" y="24" fill="#94a3b8" fontSize="8">DAILY · 9:59 LEFT</text>
     </g>
   );
 }
