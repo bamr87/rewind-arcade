@@ -40,7 +40,7 @@ jobs:
       run:
         working-directory: emulate
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Report shell and python
         run: |
@@ -105,7 +105,7 @@ jobs:
       run:
         working-directory: emulate
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install shellcheck
         run: sudo apt-get update && sudo apt-get install -y shellcheck
       - name: Lint
@@ -126,9 +126,9 @@ jobs:
       run:
         working-directory: emulate
     steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-qemu-action@v3
-      - uses: docker/setup-buildx-action@v3
+      - uses: actions/checkout@v7
+      - uses: docker/setup-qemu-action@v4
+      - uses: docker/setup-buildx-action@v4
       - name: Build the Pi-like image
         run: docker build --platform linux/arm64 -f docker/Dockerfile -t retropi-test .
       - name: Run the suite on arm64
@@ -141,7 +141,7 @@ jobs:
       run:
         working-directory: emulate
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Build the Debian 13 image
         run: docker build --build-arg DEBIAN=trixie -f docker/Dockerfile -t retropi-test:trixie .
       - name: Run the suite on Debian 13
