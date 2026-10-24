@@ -26,10 +26,12 @@ New here? [getting-started.md](getting-started.md) takes you from a fresh clone 
 | Document | What it covers |
 | --- | --- |
 | [`docs/architecture.md`](architecture.md) | How the three pillars share system ids and stay decoupled, what each pillar owns, and the steps for adding a game, a console or a platform. |
+| [`docs/constitution.md`](constitution.md) | The rules every change to this repo must satisfy, whoever makes it — a human or an AI agent. Agents read this before [AGENTS.md](../AGENTS.md) conventions, the [PRD](../PRD.md), or the [feature catalog](../features/features.yml). Ratified… |
 | [`docs/formats.md`](formats.md) | Cartridge, disc, floppy, tape, PCB and software: how each kind of media is treated as a first-class field next to the system id. |
 | [`docs/getting-started.md`](getting-started.md) | Play, emulate and catalog from a fresh clone: the three entry points, in order, and what each needs on your machine. |
 | [`docs/legal.md`](legal.md) | What this repository ships, what it downloads, and what it refuses to (games, BIOS images, dumps). |
 | [`docs/adr/`](adr/README.md) | The index and format of rewind-arcade's architecture decisions — the choices that are hard to reverse, recorded in the PR that makes them. |
+| [`docs/amendments/`](amendments/README.md) | The append-only log of changes to [the constitution](constitution.md). |
 | [`docs/systems/`](systems/README.md) | Every platform id this monorepo knows and which pillar supports it, generated from `systems/registry.yaml`, with links to the per-family encyclopedia pages. |
 
 <!-- AUTO:docs-index:end -->

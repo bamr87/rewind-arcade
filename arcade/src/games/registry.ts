@@ -9,6 +9,7 @@ import { flakShackManifest } from './flak-shack';
 import { jezzballManifest } from './jezzball';
 import { lodeDiggerManifest } from './lode-digger';
 import { minesweeperManifest } from './minesweeper';
+import { patienceManifest } from './patience';
 import { pelletPanicManifest } from './pellet-panic';
 import { pongManifest } from './pong';
 import { siloSentinelManifest } from './silo-sentinel';
@@ -35,6 +36,7 @@ export const GAMES: GameManifest[] = [
   lodeDiggerManifest,
   bananaBarrageManifest,
   blockfallManifest,
+  patienceManifest,
 ];
 
 export function getGame(id: string | undefined): GameManifest | undefined {
