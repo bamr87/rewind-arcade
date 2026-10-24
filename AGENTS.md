@@ -86,3 +86,7 @@ One line per prose paragraph; do not hard-wrap. Tables, lists, headings and code
 ## Tests that encode the map
 
 Emulate `tests/test_docs.sh` asserts every command is in `emulate/docs/commands.md` and every internal link in that tree resolves. Catalog `tests/test_docs.py` asserts every CLI command appears as `cartidx <cmd>` in `catalog/README.md` and every schema column is in `catalog/docs/data-dictionary.md`. Do not "clean up" those strings.
+
+## Governance
+
+Read [`docs/constitution.md`](docs/constitution.md) before changing anything: it is the highest-precedence rule set here and wins over this file when they disagree. It changes only through a numbered record in [`docs/amendments/`](docs/amendments/), ratified by the maintainer merging the PR; agents propose, never merge. Every user-facing feature has a stable id in [`features/features.yml`](features/features.yml) with `status`, location and the PRD requirement ids it serves; the PRD's "Feature catalog" block is generated from it (`python3 <bamr87/bamr87>/tools/governance_lint.py prd-sync . --write`; check with `… check .`). Never hand-edit that block or `CHANGELOG.md`.

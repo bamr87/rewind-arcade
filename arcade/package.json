@@ -20,6 +20,7 @@
     "play:lode-digger": "node tools/play-lode-digger.mjs",
     "play:banana-barrage": "node tools/play-banana-barrage.mjs",
     "play:blockfall": "node tools/play-blockfall.mjs",
+    "play:patience": "node tools/play-patience.mjs",
     "play:rogues-hour": "node tools/play-rogues-hour.mjs"
   },
   "dependencies": {
