@@ -16,6 +16,7 @@ New here? [getting-started.md](getting-started.md) takes you from a fresh clone 
 | --- | --- |
 | [`AGENTS.md`](../AGENTS.md) | A three-pillar retro gaming monorepo: play browser recreations (`arcade/`), emulate consoles with ES-DE and RetroArch (`emulate/`), and catalog the physical collection (`catalog/`), all on one set of system ids. |
 | [`CHANGELOG.md`](../CHANGELOG.md) | Release history: the notable changes in each version, newest first. |
+| [`SECURITY.md`](../SECURITY.md) | Supported versions and how to report a vulnerability privately. |
 | [`PRD.md`](../PRD.md) | The product requirements for Rewind Arcade: problem, users, goals and non-goals, features, requirements and proposed success measures. |
 | [`arcade/`](../arcade/README.md) | The browser pillar: an ES-DE-style frontend with original game recreations, an in-browser console loader for dumps you own, and a browser for cartidx catalog exports, all static with no backend. |
 | [`catalog/`](../catalog/README.md) | The catalog pillar: the titles you track, the cartridges on the shelf and optional dump file references, identified and priced in one SQLite catalog with a browser for analytics. |
@@ -31,7 +32,7 @@ New here? [getting-started.md](getting-started.md) takes you from a fresh clone 
 | [`docs/getting-started.md`](getting-started.md) | Play, emulate and catalog from a fresh clone: the three entry points, in order, and what each needs on your machine. |
 | [`docs/legal.md`](legal.md) | What this repository ships, what it downloads, and what it refuses to (games, BIOS images, dumps). |
 | [`docs/adr/`](adr/README.md) | The index and format of rewind-arcade's architecture decisions — the choices that are hard to reverse, recorded in the PR that makes them. |
-| [`docs/amendments/`](amendments/README.md) | The append-only log of changes to [the constitution](constitution.md). |
+| [`docs/amendments/`](amendments/README.md) | The append-only log of numbered amendments to rewind-arcade's constitution, with each record's status and what it affects. |
 | [`docs/systems/`](systems/README.md) | Every platform id this monorepo knows and which pillar supports it, generated from `systems/registry.yaml`, with links to the per-family encyclopedia pages. |
 
 <!-- AUTO:docs-index:end -->
