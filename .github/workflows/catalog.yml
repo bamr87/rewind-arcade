@@ -1,7 +1,11 @@
 name: catalog
 
 on:
+  # Branch pushes are covered by pull_request; without this filter every
+  # commit on a PR branch ran the whole workflow twice (the same fix
+  # emulate.yml already carries).
   push:
+    branches: [main]
     paths:
       - "catalog/**"
       - "bin/cartidx"
@@ -13,9 +17,15 @@ on:
       - ".github/workflows/catalog.yml"
   workflow_dispatch:
 
+# A newer commit on the same branch supersedes the in-flight run.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: catalog

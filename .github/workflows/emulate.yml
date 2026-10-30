@@ -26,6 +26,10 @@ jobs:
   test:
     name: test (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    # The suite runs in minutes. Without a cap, the hang this pillar documents
+    # (a captured subprocess that blocks on stdin) holds a runner for GitHub's
+    # 6-hour default before anyone is billed the bad news.
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -98,51 +102,81 @@ jobs:
           ./bin/retropi --version
           ./bin/retropi systems list
 
-  lint:
-    name: shellcheck
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: emulate
-    steps:
-      - uses: actions/checkout@v7
-      - name: Install shellcheck
-        run: sudo apt-get update && sudo apt-get install -y shellcheck
-      - name: Lint
+      # Was a separate `lint` job. Billing rounds every job up to a whole
+      # minute, so ~30 seconds of shellcheck on its own runner cost a full
+      # minute on every push and pull request (plus its own checkout and an
+      # apt install). It now reuses the checkout this job already did.
+      # Linux only, as before: the apt install has no macOS equivalent.
+      # Last in the job so a lint finding never hides a test result.
+      - name: Lint (shellcheck)
+        if: runner.os != 'macOS'
         run: |
+          command -v shellcheck >/dev/null || { sudo apt-get update && sudo apt-get install -y shellcheck; }
           shellcheck -S warning -x -e SC2034 bin/retropi lib/*.sh cmd/*.sh platforms/*/*.sh tools/*.sh
           shellcheck -S warning -x -e SC2034 tests/run.sh tests/lib/*.sh tests/test_*.sh
 
   raspberry-pi:
     name: raspberry pi (linux/arm64)
-    # Only on pushes to main and manual dispatch. The arm64 image builds and
-    # runs under QEMU emulation (~30 min/run), the largest minute consumer in
-    # this workflow, and private-repo minutes are capped (bamr87/bamr87#268).
-    # To check a branch before merging:
+    # Still only on pushes to main and manual dispatch, as when this job cost
+    # ~32 minutes a run. To check a branch before merging:
     #   gh workflow run emulate.yml -R bamr87/rewind-arcade --ref <branch>
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
+    # A NATIVE arm64 runner, free for public repositories, instead of QEMU on
+    # an amd64 one. Emulation was this workflow's whole cost: in run
+    # 40143911318 the suite took 1831s of the job's 1950s, against 88s for the
+    # same suite on amd64 — a ~21x emulation tax. Native arm64 removes it and
+    # tests the real architecture, so the signal gets stronger, not weaker.
+    # If this label is ever unavailable, the fallback is `ubuntu-latest` plus
+    # `docker/setup-qemu-action` and `--platform linux/arm64` on both steps.
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: emulate
     steps:
       - uses: actions/checkout@v7
-      - uses: docker/setup-qemu-action@v4
       - uses: docker/setup-buildx-action@v4
+      # `platforms:` is a no-op on a native arm64 host, but it is the thing
+      # this job exists to assert — leave it, so a runner swap back to amd64
+      # fails loudly instead of quietly testing the wrong architecture.
+      # The Actions layer cache keeps the `apt-get install` layer, which sits
+      # above `COPY . /retropi` and so only changes with the Dockerfile or the
+      # base image, out of the per-commit build. `docker build` cannot read
+      # that cache; buildx can.
       - name: Build the Pi-like image
-        run: docker build --platform linux/arm64 -f docker/Dockerfile -t retropi-test .
+        uses: docker/build-push-action@v7
+        with:
+          context: emulate
+          file: emulate/docker/Dockerfile
+          platforms: linux/arm64
+          tags: retropi-test:arm64
+          load: true
+          cache-from: type=gha,scope=emulate-arm64
+          cache-to: type=gha,mode=max,scope=emulate-arm64
       - name: Run the suite on arm64
-        run: docker run --rm --platform linux/arm64 retropi-test
+        run: docker run --rm --platform linux/arm64 retropi-test:arm64
 
   debian-trixie:
     name: debian 13 trixie (linux/amd64)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: emulate
     steps:
       - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v4
+      # Same layer cache as the arm64 job, in its own scope so the two
+      # architectures never evict each other.
       - name: Build the Debian 13 image
-        run: docker build --build-arg DEBIAN=trixie -f docker/Dockerfile -t retropi-test:trixie .
+        uses: docker/build-push-action@v7
+        with:
+          context: emulate
+          file: emulate/docker/Dockerfile
+          build-args: DEBIAN=trixie
+          tags: retropi-test:trixie
+          load: true
+          cache-from: type=gha,scope=emulate-trixie
+          cache-to: type=gha,mode=max,scope=emulate-trixie
       - name: Run the suite on Debian 13
         run: docker run --rm retropi-test:trixie
