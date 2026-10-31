@@ -7,5 +7,6 @@
     "dev": "npm run dev --prefix arcade",
     "build": "npm run build --prefix arcade",
     "preview": "npm run preview --prefix arcade"
-  }
+  },
+  "version": "0.2.0"
 }
