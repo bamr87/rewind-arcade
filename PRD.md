@@ -81,6 +81,7 @@ Every user-facing capability has a stable id in the feature catalog [`features/f
 ## 7. Roadmap / open questions
 
 - Release cadence and which pillar is primary: TBD
+- Idea (not scheduled): emulate and build the arcade on a Raspberry Pi. Develop on a Mac in a generic ARM VM (QEMU or UTM on Apple Silicon, e.g. `qemu-system-aarch64 -M virt -accel hvf -cpu host`) running Raspberry Pi OS 64-bit (2026-10-06, Debian 13 Trixie) with a generic Debian arm64 kernel, then deploy to real Pi hardware. Model note: Pi 3 and Pi 4 have closer-to-board QEMU models (`raspi3b`, `raspi4b`; slower and limited, Pi 4 capped at 2 GiB with no PCIe/Ethernet), and no free tool emulates the Pi 5 board. On any model, GPIO (arcade controls), camera and GPU need real hardware, and the VM usually runs faster than a real Pi, so performance must be validated on the device. Sources: [QEMU Raspberry Pi boards](https://www.qemu.org/docs/master/system/arm/raspi.html), [Raspberry Pi OS](https://www.raspberrypi.com/software/operating-systems/), [UTM #7608](https://github.com/utmapp/UTM/pull/7608).
 
 ## 8. Links
 
