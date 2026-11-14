@@ -181,6 +181,8 @@ _fe_gamelist() {
 
     local dryflag=""
     [[ "$dry" == "1" ]] && dryflag="--dry-run"
+    # Titles, ratings and credits a `roms import --metadata` stored.
+    [[ -f "$(import_metadata_dir)/$id.json" ]] && args="$args --metadata $(import_metadata_dir)/$id.json"
     # shellcheck disable=SC2086
     line="$(python3 "$RETROPI_ROOT/lib/gamelist.py" "$id" "$romdir" "$out" $args $dryflag)" || {
       warn "$id: gamelist generation failed"; continue; }

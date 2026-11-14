@@ -12,7 +12,14 @@ their relative entries, so a rebuild does not append a duplicate. A game whose
 file has disappeared is reported but left alone.
 
     lib/gamelist.py <system_id> <rom_dir> <out_xml> [--ext .nes --ext .zip]
+                    [--metadata <system.json>]
     lib/gamelist.py --clean-name "Legend of Zelda, The (USA) (Rev 1).nes"
+
+--metadata is a JSON object {rom file name: {name, desc, rating, releasedate,
+genre, developer, publisher, players}}, as `retropi roms import --metadata`
+writes it. It fills fields an entry does not have yet; the only value it
+replaces is a name this script derived from the filename itself. Anything
+scraped or typed in stays.
 """
 from __future__ import annotations
 
@@ -39,11 +46,36 @@ _ARTICLE = re.compile(r"^(.*?),\s*(The|A|An|Le|La|Les|Los|Las|Der|Die|Das|Il|El|
 
 _MULTISPACE = re.compile(r"\s{2,}")
 
+# Slug names ("adventures-of-batman-and-robin-the.smc") carry no spaces or
+# tags; words are hyphen- or underscore-separated, lower case.
+_SLUG = re.compile(r"^[a-z0-9]+(?:[-_][a-z0-9']+)+$")
+_SMALL = {"a", "an", "and", "as", "at", "but", "by", "for", "in", "of", "on",
+          "or", "the", "to", "vs", "with"}
+_ROMAN = re.compile(r"^(?:i{1,3}|iv|v|vi{1,3}|ix|x)$")
+
+
+def _unslug(stem: str) -> str:
+    """"adventures-of-batman-and-robin-the" -> "Adventures of Batman and Robin, The"."""
+    words = re.split(r"[-_]", stem)
+    out = []
+    for i, w in enumerate(words):
+        if _ROMAN.match(w):
+            out.append(w.upper())
+        elif i and w in _SMALL and i != len(words) - 1:
+            out.append(w)
+        else:
+            out.append(w[:1].upper() + w[1:])
+    if len(out) > 1 and out[-1] in ("The", "A", "An"):
+        return " ".join(out[:-1]) + ", " + out[-1]
+    return " ".join(out)
+
 
 def clean_name(filename: str) -> str:
     """Filename -> display title."""
     name = os.path.basename(filename)
     name = os.path.splitext(name)[0]
+    if _SLUG.match(name):
+        name = _unslug(name)
     name = name.replace("_", " ")
     name = _TAG.sub("", name)
     name = _MULTISPACE.sub(" ", name).strip()
@@ -173,38 +205,88 @@ def indent(elem, level=0):
         elem.tail = pad
 
 
+# Gamelist fields metadata may fill, in ES-DE's order.
+META_FIELDS = ("name", "desc", "rating", "releasedate", "developer",
+               "publisher", "genre", "players")
+
+
+def _set_name(game, title: str) -> None:
+    node = game.find("name")
+    if node is None:
+        node = ET.SubElement(game, "name")
+    node.text = title
+    srt = sort_name(title)
+    node = game.find("sortname")
+    if srt != title:
+        if node is None:
+            node = ET.SubElement(game, "sortname")
+        node.text = srt
+    elif node is not None:
+        game.remove(node)
+
+
+def apply_metadata(game, fields: dict, derived: str) -> bool:
+    """Fill what the entry lacks; replace only a filename-derived name."""
+    changed = False
+    title = (fields.get("name") or "").strip()
+    current = (game.findtext("name") or "").strip()
+    if title and title != current and current in ("", derived):
+        _set_name(game, title)
+        changed = True
+    for field in META_FIELDS[1:]:
+        val = fields.get(field)
+        if val in (None, "") or (game.findtext(field) or "").strip():
+            continue
+        ET.SubElement(game, field).text = str(val)
+        changed = True
+    return changed
+
+
+def load_metadata(path: str | None) -> dict:
+    if not path or not os.path.exists(path):
+        return {}
+    import json
+    with open(path, encoding="utf-8") as fh:
+        data = json.load(fh)
+    return data if isinstance(data, dict) else {}
+
+
 def generate(system_id: str, rom_dir: str, out_xml: str,
-             extensions: list[str], dry_run: bool = False) -> dict:
+             extensions: list[str], dry_run: bool = False,
+             metadata: dict | None = None) -> dict:
     if not os.path.isdir(rom_dir):
         return {"system": system_id, "added": 0, "kept": 0, "missing": 0, "total": 0}
 
+    metadata = metadata or {}
     roms = find_roms(rom_dir, extensions)
     root, existing = load_existing(out_xml, rom_dir)
 
-    added = kept = 0
+    added = kept = updated = 0
     for rom in roms:
+        derived = clean_name(title_source(os.path.join(rom_dir, rom)))
+        fields = metadata.get(rom) or metadata.get(os.path.basename(rom)) or {}
         if rom in existing:
             kept += 1
+            if fields and apply_metadata(existing[rom], fields, derived):
+                updated += 1
             continue
         game = ET.SubElement(root, "game")
         ET.SubElement(game, "path").text = f"./{rom}"
-        title = clean_name(title_source(os.path.join(rom_dir, rom)))
-        ET.SubElement(game, "name").text = title
-        srt = sort_name(title)
-        if srt != title:
-            ET.SubElement(game, "sortname").text = srt
+        _set_name(game, derived)
+        if fields:
+            apply_metadata(game, fields, derived)
         added += 1
 
     present = set(roms)
     missing = [p for p in existing if p not in present]
 
-    if not dry_run and (added or not os.path.exists(out_xml)):
+    if not dry_run and (added or updated or not os.path.exists(out_xml)):
         os.makedirs(os.path.dirname(out_xml), exist_ok=True)
         indent(root)
         ET.ElementTree(root).write(out_xml, encoding="UTF-8", xml_declaration=True)
 
     return {"system": system_id, "added": added, "kept": kept,
-            "missing": len(missing), "total": len(roms)}
+            "missing": len(missing), "total": len(roms), "updated": updated}
 
 
 def main() -> int:
@@ -215,6 +297,7 @@ def main() -> int:
     ap.add_argument("out_xml", nargs="?")
     ap.add_argument("--ext", action="append", default=[], dest="extensions")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--metadata", help="JSON of per-file fields to fill (see above)")
     ap.add_argument("--clean-name", help="show the title derived from a filename")
     ap.add_argument("--title-for", help="show the title derived from a file on disk, "
                                         "looking inside single-ROM archives")
@@ -234,8 +317,12 @@ def main() -> int:
         ap.error("at least one --ext is required")
 
     r = generate(args.system, args.rom_dir, args.out_xml,
-                 args.extensions, args.dry_run)
-    print(f"{r['system']}\t{r['total']}\t{r['added']}\t{r['kept']}\t{r['missing']}")
+                 args.extensions, args.dry_run, load_metadata(args.metadata))
+    line = f"{r['system']}\t{r['total']}\t{r['added']}\t{r['kept']}\t{r['missing']}"
+    # A sixth column, entries metadata changed, only when metadata was given.
+    if args.metadata:
+        line += f"\t{r.get('updated', 0)}"
+    print(line)
     return 0
 
 

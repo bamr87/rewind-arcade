@@ -96,10 +96,14 @@ systems disable <id>...  remove from config/local.yaml
 ```
 roms scan                 count games per system, write build/inventory.tsv
 roms list [system]        list games
-roms import <archive>     import a collection laid out one folder per console
-    --dry-run             show the plan, extract nothing
+roms import <archive|dir> import a collection laid out one folder per console
+    --dry-run             show the plan, change nothing
     --overwrite           replace games already present
     --map "Folder=id"     force a folder to a system (repeatable)
+  directories only:
+    --copy                copy instead of linking in place
+    --metadata <csv>      titles, ratings, year, genre, credits for the gamelist
+    --all-folders         include "_" holding folders
 roms add <file>...        file individual games
     --system <id>         force the target system
     --move                move instead of copy
@@ -109,6 +113,8 @@ roms find <text>          search by name
 ```
 
 `add` resolves the system from the file extension and refuses to guess when the extension is ambiguous — `.zip` and `.bin` belong to a dozen systems each. `import` uses the archive's folder names instead, which is the only reliable signal for a bulk collection.
+
+Given a directory (an external drive, a share), `import` links each game into `roms/<system>/` and leaves the collection exactly as it is; re-running it is a sync that follows moved games and prunes links to removed ones. The details are in [getting-started.md](getting-started.md#5-add-games).
 
 `verify` exits non-zero when anything is corrupt or missing, so it works in a cron job.
 
