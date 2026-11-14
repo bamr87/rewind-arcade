@@ -83,6 +83,8 @@ def main() -> int:
                     help="sample from the policy instead of taking its top action")
     ap.add_argument("--video", help="MP4 of the first --video-episodes episodes")
     ap.add_argument("--video-episodes", type=int, default=3)
+    ap.add_argument("--video-only", choices=["flag", "death", "timeout"],
+                    help="film only episodes that end this way (up to --video-episodes)")
     ap.add_argument("--label", help="caption prefix for the video (default: the mode)")
     ap.add_argument("--json", help="write the summary and every episode here")
     ap.add_argument("--seed", type=int, default=1000)
@@ -98,10 +100,12 @@ def main() -> int:
     t0 = time.time()
     results, clips = [], []
     for ep in range(args.episodes):
-        rec = bool(args.video) and ep < args.video_episodes
+        rec = bool(args.video) and len(clips) < args.video_episodes
         r = rollout(env, model, deterministic=not args.stochastic, seed=args.seed + ep, record=rec)
         if rec:
-            clips.append((r.pop("recording"), caption_for(f"{label} EP {ep + 1}", r)))
+            frames = r.pop("recording")
+            if args.video_only is None or r["end"] == args.video_only:
+                clips.append((frames, caption_for(f"{label} EP {ep + 1}", r)))
         results.append(r)
 
     summary = summarize(results)

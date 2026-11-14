@@ -82,3 +82,15 @@ Checked against the primary sources on 2026-11-13; numbers not in the source are
 - uvipen, [Super-mario-bros-PPO-pytorch](https://github.com/uvipen/Super-mario-bros-PPO-pytorch): PPO reported clearing 31 of 32 levels, with per-level learning rates; training time not reported.
 
 No peer-reviewed PPO/DQN result with a full budget table for NES SMB 1-1 on game reward was found, so how many frames 1-1 takes here is an open measurement: plan for 10-50 million frames before judging a configuration.
+
+## Measured here
+
+One seed, these defaults, 32 envs, 10 million steps (40 million frames), 2 h 34 min on an RX 9070 XT. Each figure is 100 episodes with sticky actions on.
+
+| Policy | Flag rate | Mean furthest x |
+|---|---|---|
+| Uniform random | 0% | 664 |
+| Final model, top action | 78% | 3,099 |
+| Final model, sampled actions | 98% | 3,116 |
+
+The first flags appeared at 1.5 million steps (37% sampled, 0% top action). Of the top-action policy's 22 misses, 19 reach the end of the level and stall, most often on the ground against the block at the foot of the flagpole, pressing right without jumping, until the 400-step no-progress limit ends the episode. A single seed is an anecdote, not a result: run more before comparing configurations.

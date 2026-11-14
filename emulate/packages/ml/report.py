@@ -35,6 +35,7 @@ def load(name: str) -> dict:
     return {"name": name, "run": run, "rows": rows,
             "settings": opt(f"{name}/settings.json") or {},
             "final": opt(f"{name}/final-eval.json"),
+            "highlights": opt(f"{name}/highlights.json") or [],
             "random": opt("baselines/random.json"),
             "random_video": os.path.exists(os.path.join(HERE, "runs", "baselines", "random.mp4")),
             "log_mtime": os.path.getmtime(os.path.join(run, "progress.jsonl"))}
@@ -136,12 +137,26 @@ def page(d: dict) -> str:
         f'<td>{r["stochastic"]["max_x_mean"]:,.0f}</td><td>{r["stochastic"]["max_x_best"]:,}</td><td>{r["stochastic"]["flag_rate"]:.0%}</td>'
         f'<td>{r["wall_s"] / 60:.0f} min</td></tr>' for r in rows)
 
+    hl = []
+    for h in d["highlights"]:
+        ev = json.load(open(os.path.join(d["run"], h["eval"]))) if h.get("eval") else None
+        stats = ""
+        if ev:
+            es = ev["summary"]
+            stats = (f'<p class="hlstats">{es["episodes"]} episodes, {esc(ev["policy"])} actions, sticky actions on: '
+                     f'flag rate <b>{es["flag_rate"]:.0%}</b> ({es["ends"]["flag"]} of {es["episodes"]}), '
+                     f'furthest x mean <b>{es["max_x_mean"]:,.0f}</b>, best {es["max_x_best"]:,}.</p>')
+        video = (f'<video class="wide" src="{esc(h["video"])}" controls muted playsinline preload="metadata"></video>'
+                 if h.get("video") else "")
+        hl.append(f'<section><h2>{esc(h["title"])}</h2><p>{esc(h.get("note", ""))}</p>{stats}{video}</section>')
+    highlight_block = "".join(hl)
     final_block = ""
     if final:
         fs = final["summary"]
         final_block = (f'<section><h2>Final evaluation</h2><p>{fs["episodes"]} episodes with sticky actions, the policy\'s top action each step: '
                        f'flag rate <b>{fs["flag_rate"]:.0%}</b>, furthest x mean <b>{fs["max_x_mean"]:,.0f}</b> '
-                       f'(median {fs["max_x_median"]:,.0f}, best {fs["max_x_best"]:,}); endings {esc(fs["ends"])}.</p>'
+                       f'(median {fs["max_x_median"]:,.0f}, best {fs["max_x_best"]:,}); endings: {fs["ends"]["flag"]} at the flag, {fs["ends"]["death"]} deaths, '
+                       f'{fs["ends"]["timeout"]} stalled (no new ground for 400 steps).</p>'
                        + ('<video class="wide" src="videos/final-eval.mp4" controls muted playsinline preload="metadata"></video>'
                           if os.path.exists(os.path.join(d["run"], "videos", "final-eval.mp4")) else "")
                        + '</section>')
@@ -198,6 +213,7 @@ p {{ max-width: 68ch; margin: 0; }}
 .clip {{ margin: 0; background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; display: grid; }}
 .clip video, video.wide {{ width: 100%; display: block; background: #000; image-rendering: pixelated; }}
 video.wide {{ max-width: 768px; border-radius: 6px; margin-top: 12px; }}
+.hlstats {{ margin-top: 6px; font-size: 14px; }}
 figcaption {{ padding: 8px 10px 10px; display: grid; gap: 1px; font-size: 12px; color: var(--muted); }}
 figcaption b {{ color: var(--ink); font: 600 13px var(--f-data); }}
 .tablebox {{ overflow-x: auto; background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; }}
@@ -225,6 +241,7 @@ pre {{ background: var(--panel); border: 1px solid var(--rule); border-radius: 6
   <span><i style="background:var(--brick)"></i>sampled actions (mean of {sto.get('episodes', 0)})</span>
   <span><i style="background:var(--base)"></i>random policy</span></div>
 </section>
+{highlight_block}
 {final_block}
 <section>
   <h2>Film strip</h2>
