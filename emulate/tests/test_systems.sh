@@ -176,6 +176,31 @@ test_install_hints_match_the_package_manager() {
   RETROPI_PKG="pacman"; assert_eq "fuse2" "$(appimage_fuse_package)"
 }
 
+test_steamos_never_installs_into_the_root() {
+  # SteamOS ships pacman but a read-only root: hints point elsewhere and
+  # pkg_install refuses instead of running sudo pacman.
+  RETROPI_PKG="steamos"
+  assert_contains "$(pkg_install_hint xvfb)" "read-only"
+  # pkg_install dies (exits), so run it in a subshell.
+  if ( pkg_install xvfb ) >/dev/null 2>&1; then
+    _fail_assert "pkg_install ran on SteamOS"
+  fi
+}
+
+test_steamos_is_labelled_and_tagged() {
+  RETROPI_OS="linux"; RETROPI_ARCH="x86_64"; RETROPI_IS_PI=0; RETROPI_IS_STEAMOS=1
+  assert_contains "$(platform_label)" "(SteamOS)"
+  assert_contains "$(platform_tags)" "steamos"
+  RETROPI_IS_STEAMOS=0
+}
+
+test_retroarch_appimage_url_uses_the_stable_buildbot() {
+  export RETROPI_RETROARCH_BIN="/nonexistent/retroarch" RETROPI_RETROARCH_VERSION="1.22.2"
+  RETROPI_OS="linux"; RETROPI_ARCH="x86_64"
+  assert_eq "https://buildbot.libretro.com/stable/1.22.2/linux/x86_64/RetroArch.7z" "$(retroarch_linux_url)"
+  unset RETROPI_RETROARCH_BIN RETROPI_RETROARCH_VERSION
+}
+
 test_display_detection() {
   RETROPI_OS="macos"
   assert_ok platform_has_display
@@ -438,4 +463,13 @@ test_folder_name_matching_ignores_case_and_punctuation() {
 test_unknown_folder_name_does_not_match() {
   assert_fails system_match "Some Console That Does Not Exist"
   assert_fails system_match ""
+}
+
+test_steamos_input_defaults() {
+  RETROPI_IS_STEAMOS=1
+  assert_eq "udev" "$(default_joypad_driver)"
+  assert_contains "$(steam_desktop_keys)" "input_exit_emulator"
+  RETROPI_IS_STEAMOS=0
+  assert_eq "" "$(default_joypad_driver)"
+  assert_eq "" "$(steam_desktop_keys)"
 }

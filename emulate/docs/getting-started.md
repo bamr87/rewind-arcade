@@ -18,6 +18,7 @@ Five minutes from a fresh clone to a working frontend.
 ./platforms/macos/bootstrap.sh          # macOS
 ./platforms/raspberrypi/bootstrap.sh    # Raspberry Pi OS
 ./platforms/debian/bootstrap.sh         # Debian, Ubuntu (add --headless on a server)
+./platforms/steamos/bootstrap.sh        # SteamOS (add --steam for Game Mode shortcuts)
 ```
 
 This installs the OS-level dependencies (python3, curl, unzip, rsync) and RetroArch. It is safe to re-run.

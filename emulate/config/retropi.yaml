@@ -63,6 +63,9 @@ emulation:
   # Applied to generated retroarch launch commands.
   fullscreen: true
   verbose_logging: false
+  # Start every game with RetroArch's audio muted (toggle in-game with F9, or
+  # `retropi dev mute` for a dev run).
+  mute: false
   # Pass retro-pi's paths to RetroArch at launch with --appendconfig instead of
   # editing its own retroarch.cfg. Deterministic across builds that keep their
   # config in different places, and it never overwrites your settings.
@@ -143,6 +146,16 @@ saves:
   # Keep saves outside the ROM tree so ROMs stay a pure, re-syncable mirror.
   centralize: true
   auto_save_state: false
+  # RetroArch's keyboard binds: auto clears the ones Steam's Desktop Layout
+  # types for a controller (SteamOS), true keeps them all, false clears them
+  # everywhere. Without this a pad in Desktop Mode also presses Enter, the
+  # arrows and Escape - player 1 Start, D-pad and quit.
+  keyboard: auto
+  # Give player 1 to this controller whenever it is connected: a name as the
+  # system reports it ("Xbox Wireless Controller") or vid:pid in hex
+  # ("045e:0b22"). For a machine where another device - Steam's virtual pad,
+  # which is silent in SteamOS Desktop Mode - would otherwise take port 1.
+  player1_device: ""
   rewind_enabled: true
 
 # ------------------------------------------------------------------- sync ----

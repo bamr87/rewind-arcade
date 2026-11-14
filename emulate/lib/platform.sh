@@ -31,26 +31,35 @@ detect_platform() {
     RETROPI_DISTRO="$(. /etc/os-release && printf '%s' "${ID:-}")"
   fi
 
+  # SteamOS ships pacman, but its root filesystem is read-only and replaced
+  # on every OS update, so nothing may be installed there. retro-pi installs
+  # into $HOME instead (AppImages), and RETROPI_PKG says so.
+  RETROPI_IS_STEAMOS=0
+  [[ "$RETROPI_DISTRO" == "steamos" ]] && RETROPI_IS_STEAMOS=1
+
   # Package manager.
-  if have brew;   then RETROPI_PKG="brew"
+  if [[ "$RETROPI_IS_STEAMOS" == "1" ]]; then RETROPI_PKG="steamos"
+  elif have brew; then RETROPI_PKG="brew"
   elif have apt-get; then RETROPI_PKG="apt"
   elif have dnf;  then RETROPI_PKG="dnf"
   elif have pacman; then RETROPI_PKG="pacman"
   else RETROPI_PKG="none"; fi
 
-  export RETROPI_OS RETROPI_ARCH RETROPI_IS_PI RETROPI_PI_MODEL RETROPI_DISTRO RETROPI_PKG
+  export RETROPI_OS RETROPI_ARCH RETROPI_IS_PI RETROPI_PI_MODEL RETROPI_DISTRO RETROPI_IS_STEAMOS RETROPI_PKG
 }
 
 platform_label() {
   local label="$RETROPI_OS/$RETROPI_ARCH"
   [[ "$RETROPI_IS_PI" == "1" ]] && label="$label (${RETROPI_PI_MODEL:-Raspberry Pi})"
+  [[ "${RETROPI_IS_STEAMOS:-0}" == "1" ]] && label="$label (SteamOS)"
   printf '%s' "$label"
 }
 
-# platform_tags - tags a manifest can filter emulators on (macos, linux, pi, arm64).
+# platform_tags - tags a manifest can filter emulators on (macos, linux, pi, steamos, arm64).
 platform_tags() {
   local tags="$RETROPI_OS $RETROPI_ARCH"
   [[ "$RETROPI_IS_PI" == "1" ]] && tags="$tags pi"
+  [[ "${RETROPI_IS_STEAMOS:-0}" == "1" ]] && tags="$tags steamos"
   printf '%s' "$tags"
 }
 
@@ -64,6 +73,7 @@ pkg_install() {
     apt)    run sudo apt-get install -y --no-install-recommends "$@" ;;
     dnf)    run sudo dnf install -y "$@" ;;
     pacman) run sudo pacman -S --needed --noconfirm "$@" ;;
+    steamos) die "SteamOS keeps its root filesystem read-only; not installing: $* (use a Flatpak or AppImage)" ;;
     *)      die "no supported package manager found; install manually: $*" ;;
   esac
 }
@@ -82,6 +92,7 @@ pkg_install_hint() {
     apt)    printf 'sudo apt-get install -y %s' "$1" ;;
     dnf)    printf 'sudo dnf install -y %s' "$1" ;;
     pacman) printf 'sudo pacman -S %s' "$1" ;;
+    steamos) printf '%s is not in this SteamOS image; the root is read-only, so use a Flatpak or AppImage' "$1" ;;
     *)      printf 'install %s with your package manager' "$1" ;;
   esac
 }
@@ -282,6 +293,9 @@ retroarch_bin() {
   if [[ "$RETROPI_OS" == "macos" && -x "/Applications/RetroArch.app/Contents/MacOS/RetroArch" ]]; then
     printf '%s' "/Applications/RetroArch.app/Contents/MacOS/RetroArch"; return
   fi
+  if [[ "$RETROPI_OS" == "linux" && -x "$(retroarch_appimage_path)" ]]; then
+    retroarch_appimage_path; return
+  fi
   if [[ -x /opt/retropie/emulators/retroarch/bin/retroarch ]]; then
     printf '%s' "/opt/retropie/emulators/retroarch/bin/retroarch"; return
   fi
@@ -378,6 +392,56 @@ controller_profile_drivers() {
   return 0
 }
 
+# default_joypad_driver - RetroArch joypad driver when controls.joypad_driver
+# is auto; empty means RetroArch's own default. On SteamOS that default can be
+# sdl2, whose bundled SDL cannot see Bluetooth Xbox pads, while every profile
+# retro-pi ships is a udev one.
+default_joypad_driver() {
+  [[ "${RETROPI_IS_STEAMOS:-0}" == "1" ]] && printf 'udev'
+  return 0
+}
+
+# steam_desktop_keys - keys Steam's Desktop Layout types when a controller is
+# used outside a Steam game (SteamOS Desktop Mode, Steam in the background).
+# RetroArch reads them as keyboard input on top of the pad itself: Enter is
+# player 1 Start, the arrows the D-pad, Space fast-forward, Escape quit.
+# Prints the RetroArch keyboard binds to clear; nothing where Steam is absent.
+steam_desktop_keys() {
+  [[ "${RETROPI_IS_STEAMOS:-0}" == "1" ]] || return 0
+  printf '%s\n' input_exit_emulator input_toggle_fast_forward \
+    input_player1_start input_player1_select input_player1_up input_player1_down \
+    input_player1_left input_player1_right input_player1_gun_start input_player1_gun_select
+}
+
+# --- sandboxes ------------------------------------------------------------------
+# An editor installed as a Flatpak (VS Code on SteamOS) runs its terminals,
+# tasks and debug sessions inside the Flatpak sandbox: no host RetroArch, no
+# host libraries for the cores, a different /tmp. Commands that launch or drive
+# emulators hop to the host session instead.
+
+# platform_sandboxed - true inside a Flatpak sandbox that can reach the host.
+platform_sandboxed() {
+  [[ -f /.flatpak-info ]] && have flatpak-spawn
+}
+
+# host_reexec <retropi args...> - re-run this retropi invocation on the host
+# when sandboxed; returns (does nothing) otherwise or once already there.
+host_reexec() {
+  [[ "${RETROPI_ON_HOST:-0}" == "1" ]] && return 0
+  platform_sandboxed || return 0
+  local args v
+  args=("--env=RETROPI_ON_HOST=1" "--directory=$PWD")
+  for v in DISPLAY WAYLAND_DISPLAY XDG_RUNTIME_DIR XDG_SESSION_TYPE \
+           RETROPI_DRY_RUN RETROPI_ASSUME_YES RETROPI_VERBOSE; do
+    [[ -n "${!v:-}" ]] && args[${#args[@]}]="--env=$v=${!v}"
+  done
+  for v in $(compgen -e | grep '^RETROPI_' || true); do
+    args[${#args[@]}]="--env=$v=${!v}"
+  done
+  debug "sandboxed: re-running on the host"
+  exec flatpak-spawn --host --watch-bus "${args[@]}" "$RETROPI_ROOT/bin/retropi" "$@"
+}
+
 # --- audio ---------------------------------------------------------------------
 # RetroArch (pulse driver) and ES-DE (SDL) both play to the sound server's
 # default output, so choosing an output means changing that default. Linux with
@@ -466,6 +530,62 @@ retroarch_macos_url() {
   fi
   [[ -n "$ver" ]] || return 1
   printf 'https://buildbot.libretro.com/stable/%s/apple/osx/universal/RetroArch_Metal.dmg' "$ver"
+}
+
+# --- Linux: RetroArch AppImage ----------------------------------------------
+# Where packages cannot be installed (SteamOS's read-only root), RetroArch comes
+# from libretro's stable buildbot as an AppImage in ~/Applications, next to
+# ES-DE's. The archive also carries a "<AppImage>.home" directory of assets,
+# shaders and controller profiles. It is NOT installed beside the AppImage:
+# the AppImage runtime treats such a directory as a portable $HOME, which would
+# move RetroArch's config away from ~/.config/retroarch. Its contents are merged
+# into the real config directory instead, never overwriting the user's files.
+
+# retroarch_appimage_path - where retro-pi installs the RetroArch AppImage.
+retroarch_appimage_path() { printf '%s' "$HOME/Applications/RetroArch.AppImage"; }
+
+# _stable_version - newest version directory on the libretro stable buildbot.
+_stable_version() {
+  _http_get "https://buildbot.libretro.com/stable/" 2>/dev/null \
+    | grep -oE 'href="/stable/[0-9.]+/"' \
+    | sed 's|href="/stable/||; s|/"||' | sort -t. -k1,1n -k2,2n -k3,3n | tail -1
+}
+
+# retroarch_linux_url - latest stable RetroArch archive (AppImage inside).
+retroarch_linux_url() {
+  local ver="${RETROPI_RETROARCH_VERSION:-}" path
+  path="$(buildbot_path)" || return 1
+  [[ -n "$ver" ]] || ver="$(_stable_version)"
+  [[ -n "$ver" ]] || return 1
+  printf 'https://buildbot.libretro.com/stable/%s/%s/RetroArch.7z' "$ver" "$path"
+}
+
+# install_retroarch_appimage <RetroArch.7z> - unpack the AppImage into
+# ~/Applications and merge the bundled assets into the config directory.
+install_retroarch_appimage() {
+  local archive="$1" tmp img home dest cfg
+  need 7z "required to unpack RetroArch.7z"
+  tmp="$(mktemp -d "${TMPDIR:-/tmp}/retropi-ra.XXXXXX")"
+  if ! 7z x -y -o"$tmp" "$archive" >/dev/null; then
+    rm -rf "$tmp"; error "could not unpack $archive"; return 1
+  fi
+  img="$(find "$tmp" -maxdepth 2 -name '*.AppImage' -type f | head -1)"
+  if [[ -z "$img" ]]; then
+    rm -rf "$tmp"; error "no AppImage inside $archive"; return 1
+  fi
+  dest="$(retroarch_appimage_path)"
+  ensure_dir "$(dirname "$dest")"
+  cp "$img" "$dest" && chmod +x "$dest"
+  home="$img.home/.config/retroarch"
+  if [[ -d "$home" ]]; then
+    cfg="$(retroarch_config_dir)"
+    ensure_dir "$cfg"
+    step "merging bundled assets into $cfg"
+    # -n: never replace a file the user (or an earlier install) already has.
+    cp -Rn "$home"/. "$cfg"/ 2>/dev/null || true
+  fi
+  rm -rf "$tmp"
+  printf '%s' "$dest"
 }
 
 # _http_get <url> - fetch to stdout.

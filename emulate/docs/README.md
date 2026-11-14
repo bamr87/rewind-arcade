@@ -17,6 +17,7 @@
 | [macos.md](macos.md) | Apple Silicon and Intel, the Rosetta trap, where files live |
 | [raspberry-pi.md](raspberry-pi.md) | board-by-board tuning, RetroPie coexistence, the Mac-to-Pi workflow |
 | [debian.md](debian.md) | Debian and Ubuntu desktops and servers, apt cores, running with no display |
+| [steamos.md](steamos.md) | SteamOS PCs and handhelds: AppImages in your home, Game Mode shortcuts beside Steam |
 | [emulationstation.md](emulationstation.md) | installing and managing the frontend, gamelists, themes |
 
 ## Going further
