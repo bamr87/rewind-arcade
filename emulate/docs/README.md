@@ -24,11 +24,12 @@
 
 | Document | What it covers |
 |---|---|
+| [development.md](development.md) | the run/debug harness: live and headless seams into a game, fast-forward, scripting, ML |
 | [adding-systems.md](adding-systems.md) | adding a console — one YAML file, no code |
 | [architecture.md](architecture.md) | how the pieces fit and why they are shaped that way |
 | [troubleshooting.md](troubleshooting.md) | symptoms, causes, fixes |
 | [legal.md](legal.md) | what this project ships, downloads, and refuses to |
-| [ml-integration-plan.md](ml-integration-plan.md) | the reviewed plan (not built) for driving the emulators from a reinforcement learning loop |
+| [ml-integration-plan.md](ml-integration-plan.md) | the plan for driving the emulators from a reinforcement learning loop, and what was built |
 | [../CONTRIBUTING.md](../CONTRIBUTING.md) | working on retro-pi itself |
 | [../../docs/systems/README.md](../../docs/systems/README.md) | every platform in the Rewind Arcade monorepo |
 

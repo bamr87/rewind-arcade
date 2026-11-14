@@ -1,0 +1,90 @@
+# Super Mario Bros. (NES), World 1-1 - a retro-pi ML environment definition.
+#
+# A game is data, not code: retroenv.py reads this file and nothing in it is
+# Mario-specific. Sources for every number are in packages/ml/README.md
+# ("Research basis"); the RAM map is gym-super-mario-bros' (Kauten), cross-
+# checked against Data Crystal's SMB RAM map.
+
+name: smb-1-1
+system: nes
+# FCEUmm, not the system default (Nestopia): it is the core this env was
+# verified on, and it loads dumps with junk header bytes that Nestopia rejects.
+emulator: fceumm
+# Relative to retro-pi's roms/<system>/; any SMB1 cartridge works. This one is
+# the Super Mario Bros. / Duck Hunt multicart, whose menu the boot script clears.
+rom: super-mario-bros-duck-hunt.nes
+
+# From power-on to the first controllable frame of 1-1. The resulting state is
+# the episode start (plus random no-ops, below). `until` waits on a condition
+# over `vars`, failing after max_frames.
+boot:
+  - wait: 200
+  - press: start          # multicart menu: Super Mario Bros.
+    frames: 5
+  - wait: 195
+  - press: start          # SMB title screen: 1 player game
+    frames: 5
+  - until: "mode == 1 and state == 8 and world == 0 and stage == 0"
+    max_frames: 2000
+
+# RAM variables (hex addresses into the 2 KB NES RAM). `bcd` reads
+# consecutive decimal digits, most significant first.
+vars:
+  page:        {addr: 0x006D}
+  screen_x:    {addr: 0x0086}
+  y_viewport:  {addr: 0x00B5}     # > 1: below the screen, i.e. falling into a pit
+  state:       {addr: 0x000E}     # 0x08 normal, 0x0B dying, 0x06 dead
+  float_state: {addr: 0x001D}     # 3: sliding down the flagpole
+  mode:        {addr: 0x0770}     # 1 normal play, 2 end of world, 3 game over
+  world:       {addr: 0x075F}
+  stage:       {addr: 0x075C}
+  lives:       {addr: 0x075A}
+  time:        {addr: 0x07F8, bcd: 3}
+  enemy0:      {addr: 0x0016}
+  enemy1:      {addr: 0x0017}
+  enemy2:      {addr: 0x0018}
+  enemy3:      {addr: 0x0019}
+  enemy4:      {addr: 0x001A}
+
+# Derived values, evaluated in order; each may use vars and earlier derived
+# names, `prev` (the previous step's values) and the helpers clip/min/max/abs.
+derive:
+  x: "page * 256 + screen_x"
+  dying: "state in (0x0B, 0x06) or y_viewport > 1"
+  # A flagpole slide, not a vine: an enemy slot holds the flag object (0x31).
+  flag: "float_state == 3 and 0x31 in (enemy0, enemy1, enemy2, enemy3, enemy4)"
+  # Furthest x so far this episode; progress pays only for new ground, and a
+  # jump of more than 5 pixels in one step (a death or pipe teleport) pays 0.
+  max_x: "max(x, prev.max_x) if abs(x - prev.x) <= 5 * 4 else prev.max_x"
+
+# Reward terms, summed, then clipped to [-clip, clip] and divided by `scale`.
+reward:
+  progress: "max_x - prev.max_x"
+  clock: "min(time - prev.time, 0)"
+  death: "-15 if dying and not prev.dying else 0"
+  flag: "15 if flag and not prev.flag else 0"
+reward_clip: 15
+reward_scale: 15
+
+# Episode ends (terminated) when any of these hold; truncated after
+# max_steps, or after stall_steps steps without a new max_x.
+done:
+  - dying
+  - flag
+  - "mode != 1"
+max_steps: 3000
+stall_steps: 400
+
+# Discrete actions an agent chooses between: SIMPLE_MOVEMENT. RetroPad names;
+# NES A is RetroPad a (jump), NES B is RetroPad b (run).
+actions:
+  - []
+  - [right]
+  - [right, a]
+  - [right, b]
+  - [right, a, b]
+  - [a]
+  - [left]
+
+# Info reported on every step (and by evaluate.py).
+info: [x, max_x, world, stage, lives, time, flag]

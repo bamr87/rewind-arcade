@@ -237,6 +237,42 @@ clean [--all]         remove generated files (--all: also cached downloads)
 
 `clean` never touches ROMs, BIOS files or saves.
 
+## Development
+
+### `dev`
+
+```
+dev run <system> [rom] | <rom>   a game under the dev profile (windowed, logged,
+    --emulator <id> --fullscreen --frames <n>    command port + Network RetroPad)
+    --speed <n> --mute
+dev frontend [args]              ES-DE windowed with --debug logging
+dev logs                         follow the RetroArch and ES-DE logs
+dev status | pause | resume | step [n] | ff | mute   drive the running game
+dev peek <addr> [len] | poke <addr> <byte>... | watch <addr> [len]
+dev press <btn+btn> [frames] | hold <btns> | release
+dev screenshot | reset | save-state | load-state | msg <text> | send <CMD> | repl
+dev headless <system> [rom] [--emulator <id>] [--frames n] [--press ...]
+    [--peek ADDR:LEN] [--png f] [--bench] [--procs n]
+dev check                        what the harness needs, and what is missing
+```
+
+The run/debug harness, with two seams into a game: the live one drives the RetroArch that `dev run` started (its network command port and Network RetroPad), and the headless one runs the same libretro core with no window, as fast as it can. Inside a Flatpak editor (VS Code on SteamOS) every `dev` command re-runs itself on the host. The full guide is [development.md](development.md).
+
+### `ml`
+
+```
+ml setup [--rocm|--cuda]   create packages/ml/.venv (CPU PyTorch by default)
+ml check [game]            validate a game definition: API, random rollout, speed
+ml games                   list game definitions (packages/ml/games/*.yaml)
+ml train [options]         PPO on a game (default smb-1-1)
+ml eval <model.zip>|--random [--episodes n] [--gif f]
+ml board                   TensorBoard over packages/ml/runs
+ml report [run]            the run's evidence as one HTML page (curves, videos)
+ml python <args>           the pack's Python, for your own scripts
+```
+
+Dispatches into the optional pack in [`packages/ml/`](../packages/ml/README.md), whose stack lives in its own virtualenv; without it every subcommand but `setup` says how to install it. The core never imports it.
+
 ## Helper scripts
 
 These sit outside the CLI because they are development and launch aids rather than part of the managed workflow.

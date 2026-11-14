@@ -66,6 +66,34 @@
       "justMyCode": false
     },
 
+    {
+      // A REPL against the game `retropi dev run` started: peek, poke, step,
+      // press. Breakpoints in lib/racmd.py work.
+      "name": "Dev: REPL against the running game (racmd)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/lib/racmd.py",
+      "args": ["repl"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "justMyCode": false
+    },
+    {
+      // The headless libretro host on the NES test cartridge: step into the
+      // ctypes callbacks. Generates the cartridge first.
+      "name": "Dev: headless host on the NES test ROM (retrohost)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/lib/retrohost.py",
+      "args": ["${userHome}/.config/retroarch/cores/fceumm_libretro.so",
+               "${workspaceFolder}/roms/nes/retropi-test.nes",
+               "--frames", "120", "--png", "${workspaceFolder}/screenshots/retrohost.png"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "preLaunchTask": "generate NES test ROM"
+    },
+
     // ------------------------------------------------------------- bash ----
     {
       "name": "retropi: doctor",
@@ -131,6 +159,16 @@
       "terminalKind": "integrated"
     },
     {
+      "name": "retropi: dev check",
+      "type": "bashdb",
+      "request": "launch",
+      "program": "${workspaceFolder}/bin/retropi",
+      "args": ["dev", "check"],
+      "cwd": "${workspaceFolder}",
+      "pathBash": "bash",
+      "terminalKind": "integrated"
+    },
+    {
       "name": "Tests: one file",
       "type": "bashdb",
       "request": "launch",
@@ -171,7 +209,7 @@
       "description": "Which test file?",
       "default": "yamlite",
       "options": [
-        "yamlite", "config", "systems", "build", "cli", "manifests", "fixtures"
+        "yamlite", "config", "systems", "build", "cli", "manifests", "fixtures", "dev"
       ]
     }
   ]

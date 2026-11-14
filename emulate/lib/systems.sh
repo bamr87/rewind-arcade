@@ -244,6 +244,9 @@ launch_command() {
         local overlays
         overlays="$(build_dir)/retroarch-retropi.cfg"
         [[ "$(cfg display.region full)" == "full" ]] || overlays="$overlays|$(build_dir)/retroarch-display.cfg"
+        # One more overlay for this launch only (`retropi dev run` adds its
+        # dev profile here); the frontend never sets it.
+        [[ -n "${RETROPI_EXTRA_OVERLAY:-}" ]] && overlays="$overlays|$RETROPI_EXTRA_OVERLAY"
         extra="$extra --appendconfig \"$overlays\""
       fi
       printf '"%s" -L "%s"%s %%ROM%%' "$bin" "$(core_path "$core")" "$extra"

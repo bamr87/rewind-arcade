@@ -23,7 +23,9 @@ lib/
   frontend.sh        EmulationStation: detection, layout, install, gamelists
   gamelist.py        gamelist.xml generation (title cleaning, metadata merge)
   es_settings.py     es_settings.xml merge
-  romimport.py       bulk import from folder-per-console archives
+  romimport.py       bulk import from folder-per-console archives and directories
+  racmd.py           client for a running RetroArch: commands, memory, Network RetroPad
+  retrohost.py       headless libretro host: drive a core frame by frame from Python
   yamlite.py         dependency-free YAML reader
 cmd/<name>.sh        one file per subcommand, defines cmd_<name>()
 config/

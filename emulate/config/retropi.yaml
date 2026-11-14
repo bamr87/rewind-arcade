@@ -123,6 +123,21 @@ audio:
   # apply` and by `frontend session start`. Linux/PipeWire.
   output: ""
 
+# -------------------------------------------------------------------- dev ----
+# `retropi dev`: the run/debug harness (docs/development.md).
+dev:
+  # RetroArch's network command port (pause, step, read/write memory) and the
+  # first Network RetroPad port (player N listens on pad_port + N - 1). Both
+  # are bound to the whole machine by RetroArch, so keep them firewalled.
+  port: 55355
+  pad_port: 55400
+  # Window size for `dev run` and `dev frontend` (WIDTHxHEIGHT).
+  window: "1280x960"
+  # Fast-forward speed for `dev ff` and `dev run --speed`; 0 is unlimited.
+  speed: 0
+  # Start dev runs muted (`dev run --mute` for one run; `dev mute` toggles).
+  mute: false
+
 # --------------------------------------------------------------- controls ----
 controls:
   # Write a shared RetroArch autoconfig + hotkeys so both machines behave alike.
@@ -131,6 +146,16 @@ controls:
   # linuxraw reads /dev/input/js*, which stays readable when the session was
   # not started from a local login (udev needs /dev/input/event* access).
   joypad_driver: auto
+  # RetroArch's keyboard binds: auto clears the ones Steam's Desktop Layout
+  # types for a controller (SteamOS), true keeps them all, false clears them
+  # everywhere. Without this a pad in Desktop Mode also presses Enter, the
+  # arrows and Escape - player 1 Start, D-pad and quit.
+  keyboard: auto
+  # Give player 1 to this controller whenever it is connected: a name as the
+  # system reports it ("Xbox Wireless Controller") or vid:pid in hex
+  # ("045e:0b22"). For a machine where another device - Steam's virtual pad,
+  # which is silent in SteamOS Desktop Mode - would otherwise take port 1.
+  player1_device: ""
   # Hotkey combos (RetroArch names). "nul" disables a binding.
   hotkey_enable: "select"
   hotkeys:
@@ -146,16 +171,6 @@ saves:
   # Keep saves outside the ROM tree so ROMs stay a pure, re-syncable mirror.
   centralize: true
   auto_save_state: false
-  # RetroArch's keyboard binds: auto clears the ones Steam's Desktop Layout
-  # types for a controller (SteamOS), true keeps them all, false clears them
-  # everywhere. Without this a pad in Desktop Mode also presses Enter, the
-  # arrows and Escape - player 1 Start, D-pad and quit.
-  keyboard: auto
-  # Give player 1 to this controller whenever it is connected: a name as the
-  # system reports it ("Xbox Wireless Controller") or vid:pid in hex
-  # ("045e:0b22"). For a machine where another device - Steam's virtual pad,
-  # which is silent in SteamOS Desktop Mode - would otherwise take port 1.
-  player1_device: ""
   rewind_enabled: true
 
 # ------------------------------------------------------------------- sync ----

@@ -1,0 +1,9 @@
+# The ML stack, installed into packages/ml/.venv by setup.sh - never into the
+# core tree, which stays bash + the Python standard library.
+# torch is installed by setup.sh first, from the CPU or ROCm index it picks.
+gymnasium>=1.0
+numpy>=2.0
+stable-baselines3>=2.4
+tensorboard>=2.17
+pillow>=10.0      # GIF previews of evaluation episodes
+pyyaml>=6.0
