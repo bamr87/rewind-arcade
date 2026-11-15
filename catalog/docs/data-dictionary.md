@@ -17,7 +17,7 @@ One row per system and title. This is the library.
 | `media` | text | cartridge, disc, floppy, pcb, directory, console, or accessory |
 | `region` | text | No-Intro region, when identified |
 | `serial` | text | product code, from No-Intro or libretro metadata |
-| `genre` | text | genre |
+| `genre` | text | genres, `; `-separated, in one vocabulary across sources (e.g. "Role-Playing", "Beat 'em Up") |
 | `developer` | text | developer |
 | `publisher` | text | publisher |
 | `year` | integer | release year |
@@ -28,7 +28,7 @@ One row per system and title. This is the library.
 | `release_date` | text | first release: `YYYY-MM-DD` from LaunchBox, else `YYYY-MM` from libretro's year and month |
 | `release_type` | text | LaunchBox release type: Released, Unreleased, Homebrew, and so on |
 | `origin` | text | country of origin, from libretro metadata |
-| `esrb` | text | ESRB rating |
+| `esrb` | text | ESRB rating, always the full form ("E - Everyone", "K-A - Kids to Adults") whichever source supplied it |
 | `overview` | text | description, from LaunchBox |
 | `video_url` | text | a gameplay video, from LaunchBox |
 | `launchbox_id` | integer | LaunchBox Games Database id |
@@ -101,13 +101,13 @@ Optional. Paths, hashes and identification for dumps that still sit on your driv
 | `checksum` | text | checksum stored in the cartridge header |
 | `region_code` | text | region stored in the cartridge header (Genesis, SMS, Game Gear) |
 | `byte_order` | text | N64 dump format before normalisation: z64, v64, n64 |
-| `genre` | text | genre |
+| `genre` | text | genres, `; `-separated, in one vocabulary across sources (e.g. "Role-Playing", "Beat 'em Up") |
 | `developer` | text | developer |
 | `publisher` | text | publisher |
 | `year` | integer | release year |
 | `franchise` | text | series, from libretro metadata |
 | `max_players` | integer | maximum simultaneous players |
-| `esrb` | text | ESRB rating |
+| `esrb` | text | ESRB rating, always the full form ("E - Everyone", "K-A - Kids to Adults") whichever source supplied it |
 | `cooperative` | text | LaunchBox co-op flag |
 | `wikipedia_url` | text | Wikipedia article |
 | `meta_source` | text | `libretro` when libretro metadata supplied fields |
@@ -182,7 +182,7 @@ Every inventory column above, plus:
 | `rom_slugs` | text | their slugs |
 | `rating_bayesian` | number | rating shrunk toward the system mean by vote count; sort and group on this |
 | `rating_tier` | text | `S - classic` >= 4.25, `A - great` >= 3.90, `B - good` >= 3.50, `C - average` >= 3.00, else `D - weak` |
-| `genre` | text | genre |
+| `genre` | text | genres, `; `-separated, in one vocabulary across sources (e.g. "Role-Playing", "Beat 'em Up") |
 | `year` | integer | release year |
 | `link_match` | text | matching tier used to link to the ROMs |
 
