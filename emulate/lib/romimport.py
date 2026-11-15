@@ -230,7 +230,7 @@ def _rating(value: str) -> str | None:
 # Catalog column -> gamelist field. The first column present wins.
 META_COLUMNS = {
     "name": ("display_name", "name", "title"),
-    "desc": ("desc", "description", "summary"),
+    "desc": ("desc", "description", "summary", "overview"),
     "rating": ("rating_bayesian", "rating", "community_rating"),
     "year": ("year", "release_year"),
     "releasedate": ("releasedate", "release_date"),
@@ -238,7 +238,19 @@ META_COLUMNS = {
     "developer": ("developer",),
     "publisher": ("publisher",),
     "players": ("max_players", "players"),
+    # Facets for `frontend collections`; the gamelist ignores these, except
+    # esrb, which also sets ES-DE's kidgame flag.
+    "franchise": ("franchise",),
+    "tier": ("rating_tier",),
+    "cooperative": ("cooperative",),
+    "esrb": ("esrb",),
+    "ident": ("ident",),
+    "release_type": ("release_type",),
+    "nointro": ("nointro_name",),
 }
+
+# ESRB ratings ES-DE's kid mode should show (Everyone, Early Childhood, Kids to Adults).
+KID_RATINGS = ("E - ", "EC - ", "K-A - ")
 
 
 def load_metadata(csv_path: str, source: str) -> dict:
@@ -275,6 +287,8 @@ def load_metadata(csv_path: str, source: str) -> dict:
                                                  if val.replace(".", "", 1).isdigit() else None)
                 elif field == "players":
                     val = val.split(".")[0]
+                elif field == "esrb" and val.startswith(KID_RATINGS):
+                    fields.setdefault("kidgame", "true")
                 if val:
                     fields.setdefault(field, val)
             if fields:

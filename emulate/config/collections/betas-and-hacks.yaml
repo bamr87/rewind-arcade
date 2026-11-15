@@ -1,0 +1,13 @@
+# Unreleased builds and modified games: betas, prototypes, demos, samples, hacks,
+# fan translations, unlicensed and pirate carts, homebrew. Found in the file name
+# (retro-pi's slugs keep the dump's tags as words), the No-Intro name, or the
+# release type LaunchBox records.
+name: "Betas & Hacks"
+match:
+  any:
+    - field: file
+      regex: "(^|[-_ .(])(beta|proto|prototype|demo|sample|hack|hacked|translation|translated|t-eng|eng|unl|unlicensed|pirate|homebrew|aftermarket)([-_ .)]|$)"
+    - field: nointro
+      regex: "\\((Beta|Proto|Demo|Sample|Hack|Unl|Pirate|Aftermarket|Homebrew)[ )]"
+    - field: release_type
+      in: [Unreleased, Homebrew]

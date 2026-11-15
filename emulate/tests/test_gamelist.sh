@@ -327,3 +327,23 @@ test_metadata_fills_new_entries_and_replaces_only_derived_names() {
   assert_not_contains "$content" "Catalog Beta"
   assert_contains "$content" "<genre>Puzzle</genre>"
 }
+
+test_metadata_refreshes_what_it_wrote_and_never_an_edit() {
+  : > "$GLSB/roms/alpha-probe.nes"
+  : > "$GLSB/roms/beta-probe.nes"
+  printf '{"alpha-probe.nes": {"genre": "Role-playing (RPG)"},
+           "beta-probe.nes": {"genre": "Shoot'"'"'em Up"}}' > "$GLSB/meta.json"
+  GL nes "$GLSB/roms" "$GLSB/out/gamelist.xml" --ext .nes --metadata "$GLSB/meta.json" >/dev/null
+  assert_contains "$(cat "$GLSB/applied/meta.json")" "Role-playing (RPG)" "what was written is recorded"
+  # Someone corrects beta in the frontend; then the catalog cleans its vocabulary.
+  sed -i.bak "s|<genre>Shoot'em Up</genre>|<genre>Mine</genre>|" "$GLSB/out/gamelist.xml"
+  printf '{"alpha-probe.nes": {"genre": "Role-Playing", "kidgame": "true"},
+           "beta-probe.nes": {"genre": "Shoot '"'"'em Up"}}' > "$GLSB/meta.json"
+  GL nes "$GLSB/roms" "$GLSB/out/gamelist.xml" --ext .nes --metadata "$GLSB/meta.json" >/dev/null
+  local content
+  content="$(cat "$GLSB/out/gamelist.xml")"
+  assert_contains "$content" "<genre>Role-Playing</genre>"
+  assert_not_contains "$content" "Role-playing (RPG)"
+  assert_contains "$content" "<kidgame>true</kidgame>"
+  assert_contains "$content" "<genre>Mine</genre>"
+}

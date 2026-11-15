@@ -26,6 +26,7 @@ lib/
   romimport.py       bulk import from folder-per-console archives and directories
   racmd.py           client for a running RetroArch: commands, memory, Network RetroPad
   retrohost.py       headless libretro host: drive a core frame by frame from Python
+  collections_gen.py custom collections (Top Rated, Genre, Decade, Series, ...) from import metadata
   yamlite.py         dependency-free YAML reader
 cmd/<name>.sh        one file per subcommand, defines cmd_<name>()
 config/

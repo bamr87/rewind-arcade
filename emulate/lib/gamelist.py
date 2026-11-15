@@ -207,7 +207,7 @@ def indent(elem, level=0):
 
 # Gamelist fields metadata may fill, in ES-DE's order.
 META_FIELDS = ("name", "desc", "rating", "releasedate", "developer",
-               "publisher", "genre", "players")
+               "publisher", "genre", "players", "kidgame")
 
 
 def _set_name(game, title: str) -> None:
@@ -225,21 +225,40 @@ def _set_name(game, title: str) -> None:
         game.remove(node)
 
 
-def apply_metadata(game, fields: dict, derived: str) -> bool:
-    """Fill what the entry lacks; replace only a filename-derived name."""
+def apply_metadata(game, fields: dict, derived: str, ours: dict | None = None) -> tuple[bool, dict]:
+    """Fill what the entry lacks, and update what an earlier import wrote.
+
+    `ours` is what this tool wrote into the entry last time. A value still equal
+    to it is ours to refresh when the catalog improves; any other value was
+    scraped or edited in the frontend and is never touched. A filename-derived
+    name is always replaceable. Returns (changed, what is ours now).
+    """
+    ours = ours or {}
+    now = {}
     changed = False
     title = (fields.get("name") or "").strip()
     current = (game.findtext("name") or "").strip()
-    if title and title != current and current in ("", derived):
-        _set_name(game, title)
-        changed = True
+    if title and current in ("", derived, ours.get("name")):
+        if title != current:
+            _set_name(game, title)
+            changed = True
+        now["name"] = title
     for field in META_FIELDS[1:]:
         val = fields.get(field)
-        if val in (None, "") or (game.findtext(field) or "").strip():
+        if val in (None, ""):
             continue
-        ET.SubElement(game, field).text = str(val)
-        changed = True
-    return changed
+        val = str(val)
+        node = game.find(field)
+        have = (node.text or "").strip() if node is not None else ""
+        if have and have != ours.get(field):
+            continue                       # scraped or edited: not ours
+        if have != val:
+            if node is None:
+                node = ET.SubElement(game, field)
+            node.text = val
+            changed = True
+        now[field] = val
+    return changed, now
 
 
 def load_metadata(path: str | None) -> dict:
@@ -251,13 +270,20 @@ def load_metadata(path: str | None) -> dict:
     return data if isinstance(data, dict) else {}
 
 
+def applied_path(metadata_path: str) -> str:
+    """Where the record of what was written from <dir>/<system>.json lives."""
+    d, f = os.path.split(metadata_path)
+    return os.path.join(d, "applied", f)
+
+
 def generate(system_id: str, rom_dir: str, out_xml: str,
              extensions: list[str], dry_run: bool = False,
-             metadata: dict | None = None) -> dict:
+             metadata: dict | None = None, applied: dict | None = None) -> dict:
     if not os.path.isdir(rom_dir):
         return {"system": system_id, "added": 0, "kept": 0, "missing": 0, "total": 0}
 
     metadata = metadata or {}
+    applied = {} if applied is None else applied
     roms = find_roms(rom_dir, extensions)
     root, existing = load_existing(out_xml, rom_dir)
 
@@ -267,14 +293,16 @@ def generate(system_id: str, rom_dir: str, out_xml: str,
         fields = metadata.get(rom) or metadata.get(os.path.basename(rom)) or {}
         if rom in existing:
             kept += 1
-            if fields and apply_metadata(existing[rom], fields, derived):
-                updated += 1
+            if fields:
+                changed, applied[rom] = apply_metadata(existing[rom], fields, derived,
+                                                       applied.get(rom))
+                updated += changed
             continue
         game = ET.SubElement(root, "game")
         ET.SubElement(game, "path").text = f"./{rom}"
         _set_name(game, derived)
         if fields:
-            apply_metadata(game, fields, derived)
+            _, applied[rom] = apply_metadata(game, fields, derived)
         added += 1
 
     present = set(roms)
@@ -316,8 +344,16 @@ def main() -> int:
     if not args.extensions:
         ap.error("at least one --ext is required")
 
+    applied = load_metadata(applied_path(args.metadata)) if args.metadata else {}
     r = generate(args.system, args.rom_dir, args.out_xml,
-                 args.extensions, args.dry_run, load_metadata(args.metadata))
+                 args.extensions, args.dry_run, load_metadata(args.metadata), applied)
+    if args.metadata and not args.dry_run and applied:
+        import json
+        path = applied_path(args.metadata)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path + ".tmp", "w", encoding="utf-8") as fh:
+            json.dump(applied, fh, indent=1, sort_keys=True, ensure_ascii=False)
+        os.replace(path + ".tmp", path)
     line = f"{r['system']}\t{r['total']}\t{r['added']}\t{r['kept']}\t{r['missing']}"
     # A sixth column, entries metadata changed, only when metadata was given.
     if args.metadata:

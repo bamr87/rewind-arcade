@@ -157,10 +157,25 @@ frontend gamelist          write gamelist.xml so games show real titles
     --dry-run              report what would change
 frontend themes list|install <git-url>|dir
 frontend settings [--apply]  merge managed keys into es_settings.xml
+frontend collections       custom collections across consoles, one per definition file
+    --list                 show the definitions and where each comes from
+    --dry-run              list the collections, write nothing
 frontend dirs              print every managed path
 ```
 
 See [emulationstation.md](emulationstation.md).
+
+`frontend collections` reads the per-system metadata `roms import --metadata` keeps and writes one ES-DE custom collection per definition, listing ROM paths across every console. Each collection is a YAML file, read from `config/collections/` (shipped), then `packages/*/collections/` (extension packs), then `config/collections.local/` (yours, gitignored); a later file with the same name replaces an earlier one, and `enabled: false` turns a shipped one off. Shipped: Top Rated, Classics, `Genre - <genre>`, `Decade - <1980s>`, `Series - <franchise>`, Multiplayer, Co-op, Family, Betas & Hacks, and Unidentified Dumps. The definition format (match conditions, `group_by`, `min`) is documented at the top of `lib/collections_gen.py`; a minimal one:
+
+```yaml
+# config/collections.local/mario.yaml
+name: "Mario Everything"
+match: {field: name, regex: "mario"}
+```
+
+The collections are enabled in `es_settings.xml` after any collections you made yourself; those, and any file of yours with the same name, are never touched. Quit ES-DE first: it rewrites its settings on exit.
+
+`settings --apply` and `collections` merge into ES-DE's settings file in its own format (a bare list of elements, not one XML document), keeping every key they do not manage.
 
 ### `audio`
 

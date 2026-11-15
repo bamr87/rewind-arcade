@@ -24,6 +24,8 @@ build/
 dist/
 *.log
 config/local.yaml
+# your own collection definitions (frontend collections)
+config/collections.local/
 config/*.local.yaml
 .env
 

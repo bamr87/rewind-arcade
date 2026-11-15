@@ -98,6 +98,7 @@ lib/es_settings.py  es_settings.xml merge
 lib/romimport.py bulk import from folder-per-console archives and directories (linked in place)
 lib/racmd.py     client for a running RetroArch's command port and Network RetroPad (`retropi dev`)
 lib/retrohost.py headless libretro host (ctypes): the programmatic seam for scripts and ML
+lib/collections_gen.py  frontend custom collections across consoles from the import metadata
 cmd/<name>.sh    one subcommand per file, defining cmd_<name>()
 config/systems/  one YAML manifest per console
 config/controllers/<driver>/  RetroArch autoconfig profiles `build` installs

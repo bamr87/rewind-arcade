@@ -1,0 +1,6 @@
+# ESRB Everyone, Early Childhood or Kids to Adults: the games ES-DE's kid mode shows.
+name: "Family"
+match:
+  any:
+    - {field: esrb, regex: "^(E|EC|K-A) - "}
+    - {field: kidgame, equals: "true"}

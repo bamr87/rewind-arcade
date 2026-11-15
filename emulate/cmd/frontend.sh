@@ -13,6 +13,7 @@ cmd_frontend() {
     gamelist|gamelists) _fe_gamelist "$@" ;;
     themes)   _fe_themes "$@" ;;
     settings) _fe_settings "$@" ;;
+    collections) _fe_collections "$@" ;;
     dirs)     _fe_dirs ;;
     -h|--help|help)
       cat >&2 <<'__H__'
@@ -34,6 +35,12 @@ retropi frontend - manage ES-DE (the default ROM frontend)
   frontend themes dir        print the theme directory
   frontend settings          show the settings retro-pi manages
       --apply                merge them into the frontend's es_settings.xml
+  frontend collections       write custom collections across consoles from the
+                             import metadata, one per definition file in
+                             config/collections/, packages/*/collections/ and
+                             config/collections.local/ (yours; same name overrides)
+      --list                 show the definitions and where each comes from
+      --dry-run              list the collections, write nothing
   frontend dirs              print every managed path
 
 ES-DE and RetroPie's EmulationStation both read the es_systems.xml that
@@ -132,6 +139,58 @@ _fe_session() {
       else step "no session running"; fi ;;
     *) die "frontend session: unknown subcommand '$sub' (start, stop, status)" ;;
   esac
+}
+
+# --- collections --------------------------------------------------------------
+# Groupings that cut across consoles, from the metadata `roms import --metadata`
+# keeps. Collections you made in the frontend are never touched.
+
+_fe_collections() {
+  local args=() dry=0 list=0
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --list) list=1 ;;
+      --dry-run) dry=1 ;;
+      *) die "frontend collections: unknown option $1" ;;
+    esac
+    shift
+  done
+  [[ "$RETROPI_DRY_RUN" == "1" ]] && dry=1
+  # Definitions, later overriding earlier by file name: shipped, packs, yours.
+  local d
+  args[${#args[@]}]="--defs"; args[${#args[@]}]="$RETROPI_ROOT/config/collections"
+  for d in "$RETROPI_ROOT"/packages/*/collections; do
+    [[ -d "$d" ]] && { args[${#args[@]}]="--defs"; args[${#args[@]}]="$d"; }
+  done
+  args[${#args[@]}]="--defs"; args[${#args[@]}]="$RETROPI_ROOT/config/collections.local"
+
+  local meta out settings
+  meta="$(import_metadata_dir)"
+  out="$(frontend_collections_dir)"
+  if [[ "$list" == "1" ]]; then
+    python3 "$RETROPI_ROOT/lib/collections_gen.py" "$meta" "$(roms_dir)" "$out" "${args[@]}" --list \
+      | while IFS=$'\t' read -r id state name src; do
+          printf '  %-18s %-4s %-24s %s\n' "$id" "$state" "$name" "${src#$RETROPI_ROOT/}"
+        done
+    return 0
+  fi
+  [[ -d "$meta" ]] || die "no import metadata yet; run: ./bin/retropi roms import <dir> --metadata <catalog.csv>"
+  settings="$(frontend_settings_file)"
+  if [[ "$dry" == "1" ]]; then
+    args[${#args[@]}]="--dry-run"
+  else
+    pgrep -f "ES-DE|es-de|emulationstation" >/dev/null 2>&1 \
+      && warn "the frontend is running: it rewrites its settings on exit, so restart it after this"
+    ensure_dir "$out"
+    [[ -f "$settings" ]] && backup_file "$settings"
+    args[${#args[@]}]="--settings"; args[${#args[@]}]="$settings"
+  fi
+  info "collections from $meta"
+  python3 "$RETROPI_ROOT/lib/collections_gen.py" "$meta" "$(roms_dir)" "$out" "${args[@]}" \
+    | while IFS=$'\t' read -r name n; do printf '  %-34s %6s\n' "$name" "$n" >&2; done
+  [[ "${PIPESTATUS[0]}" == "0" ]] || die "collections: a definition is invalid (see above)"
+  [[ "$dry" == "1" ]] || ok "written to $out and enabled in $(basename "$settings")"
+  return 0
 }
 
 _fe_dirs() {
