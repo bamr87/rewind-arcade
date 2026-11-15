@@ -2,7 +2,7 @@
 
 > Run, debug and script games: RetroArch under a dev profile, ES-DE with debug logging, a live seam into a running game, and a headless seam that drives a core from Python faster than real time, as the ground floor for building, customizing and training on games.
 
-`retropi dev` is the harness; `retropi ml` (an optional pack) trains agents on top of it. Inside an editor installed as a Flatpak (VS Code on SteamOS), both re-run themselves on the host, so they work from the integrated terminal, tasks and F5 alike.
+`retropi dev` is the harness; `retropi ml` (an optional pack) trains agents on top of it. Inside an editor installed as a Flatpak (VS Code on SteamOS), every `retropi` command except `retropi test` re-runs itself on the host, so they work from the integrated terminal, tasks and F5 alike. In the sandbox the OS, XDG paths and libraries are the Flatpak's, and a `build` run there would write core paths that only exist inside the sandbox into ES-DE's configuration. The test suite stays where it is started.
 
 ## Two seams into a game
 
