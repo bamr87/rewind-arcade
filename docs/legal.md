@@ -16,6 +16,7 @@ MIT for that tooling. See [LICENSE](../LICENSE).
 
 - **Emulate** may download RetroArch and libretro cores from upstream buildbots. Cores are separate projects with their own licenses.
 - **Catalog** `fetch` downloads third-party *metadata* (No-Intro DATs, libretro metadata, LaunchBox, VGChartz-via-Kaggle). Each dataset has its own terms. It is stored locally under `catalog/data/reference/` and is gitignored. It is never redistributed from this repo.
+- **Catalog** `media` downloads box art, logos, title screens, cartridge photos and screenshots (LaunchBox, libretro-thumbnails) for dumps you have, into `catalog/workspace/media/`, gitignored. They are third-party images under their sources' terms: fine for your own frontend, but publishing them on a public site is a redistribution decision to make per source.
 
 ## What it will not do
 
