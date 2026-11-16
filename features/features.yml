@@ -62,3 +62,23 @@ features:
     surface: infra
     link: "catalog/tests"
     docs: "README.md"
+  - id: ARCADE-006
+    title: "Arcade front-end baseline: skip link, not-found pages, meta, tokens, feedback"
+    description: "Every arcade page opens with a Skip to content link; an unknown #/ route or Pages path shows a not-found page with links and Report this URL; index.html carries canonical, Open Graph and icon meta; design values live in --fleet-* tokens; and Improve this page files a prefilled GitHub issue."
+    implemented: true
+    status: shipped
+    prd: [TBD]
+    surface: ui
+    link: "arcade/src/App.tsx"
+    docs: "arcade/README.md"
+    date: 2026-11-15
+    provenance: { issue: "bamr87/rewind-arcade#53" }
+    scenarios:
+      - verify/scenarios/frontend-baseline.yml
+    screenshots:
+      - arcade/docs/screenshots/frontend-baseline/skip-link-1280x800.png
+      - arcade/docs/screenshots/frontend-baseline/not-found-1280x800.png
+      - arcade/docs/screenshots/frontend-baseline/not-found-mobile-390x844.png
+      - arcade/docs/screenshots/frontend-baseline/feedback-dialog-mobile-390x844.png
+      - arcade/docs/screenshots/frontend-baseline/game-hud-mobile-390x844.png
+    verified: { date: 2026-11-15, by: agent }
