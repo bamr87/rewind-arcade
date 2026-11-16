@@ -6,11 +6,17 @@
 > Agents read this before [AGENTS.md](../AGENTS.md) conventions, the [PRD](../PRD.md), or the
 > [feature catalog](../features/features.yml). Ratified by merged PR; amended only per § 8.
 
-## 1. Mission
+## 1. Missions
 
-A retro gaming workspace with three pillars sharing one set of system ids: Play (client-side browser arcade of original recreations), Emulate (ES-DE + RetroArch on macOS, Raspberry Pi and Debian via `./bin/retropi`) and Catalog (physical inventory, dump identification, prices and SQLite analytics via `./bin/cartidx`).
+Rewind Arcade's direction is to become the ultimate open home for all things retro gaming — data, tools, resources and transparency, gathered in one place that anyone can inspect and reuse.
 
-_Source: [PRD.md](../PRD.md)._
+1. **Provide data, tools, resources and transparency for all stakeholders, players, preservationists, retro-gaming practitioners and the general public.** Players, collectors, emulator operators, and the general public are first-class audiences. The aim is a shared, open commons: the same system ids, the same tools, and the same trail of evidence for everyone.
+2. **Make play and emulation share one set of system ids: original client-side browser arcade recreations, and console emulation with ES-DE and RetroArch.** The emulate path runs on macOS, Raspberry Pi and Debian via `./bin/retropi`. Recreations stay client-side and inspectable.
+3. **Put the physical collection in catalog form that anyone can inspect.** Inventory, dump identification, prices and analytics (`./bin/cartidx`) stay in the same workspace as play and emulation — an open toolkit for working with all things retro gaming.
+
+These missions set the course; they do not claim the work is finished. They serve the existing constitution and PRD: three pillars (Play, Emulate, Catalog) on one set of system ids. The earlier mission paragraph is absorbed into these three. Every feature must trace to them.
+
+_Source: [../PRD.md](../PRD.md) §1.1._
 
 ## 2. Invariants (non-negotiable)
 
