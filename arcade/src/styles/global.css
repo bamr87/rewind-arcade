@@ -1,16 +1,22 @@
+/* The short names these sheets read, as aliases of the design tokens (tokens.css).
+   A game page or card may still set --accent inline to its own colour. */
 :root {
-  --bg: #060912;
-  --panel: rgba(13, 21, 38, 0.94);
-  --text: #e6edf7;
-  --dim: #8fa3bf;
-  --faint: #5b6b85;
-  --line: rgba(148, 163, 184, 0.16);
-  --accent: #38bdf8;
-  --good: #34d399;
-  --gold: #fbbf24;
-  --radius: 16px;
-  --font: ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --bg: var(--fleet-color-bg);
+  --panel: var(--fleet-color-bg-elevated);
+  --text: var(--fleet-color-ink);
+  --dim: var(--fleet-color-ink-muted);
+  --faint: var(--fleet-color-ink-subtle);
+  --line: var(--fleet-color-border);
+  --accent: var(--fleet-color-primary);
+  --accent-2: var(--fleet-color-secondary);
+  --good: var(--fleet-color-success);
+  --gold: var(--fleet-color-accent);
+  --bad: var(--fleet-color-danger);
+  --radius: var(--fleet-radius-xl);
+  --font: var(--fleet-font-sans);
+  --mono: var(--fleet-font-mono);
+  --display: var(--fleet-font-display);
+  --pixel: var(--fleet-font-pixel);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }

@@ -172,6 +172,10 @@ export function GamePage({ manifest }: Props) {
     if (!helpOpen && engine.status === 'running' && !engine.overlay) engine.togglePause();
     setHelpOpen((v) => !v);
   };
+  // The feedback dialog opens over the game, so the game stops first.
+  const pauseForFeedback = () => {
+    if (engine.status === 'running' && !engine.overlay) engine.togglePause();
+  };
 
   const pauseOverlay =
     engine.status === 'paused'
@@ -214,9 +218,10 @@ export function GamePage({ manifest }: Props) {
         onToggleFullscreen={toggleFullscreen}
         onScreenshot={screenshot}
         onToggleHelp={toggleHelp}
+        onFeedback={pauseForFeedback}
       />
 
-      <div className="stage">
+      <main id="main-content" tabIndex={-1} className="stage">
         <canvas
           ref={canvasRef}
           className={`game-canvas${settings.crt ? ' is-crt' : ''}`}
@@ -227,7 +232,7 @@ export function GamePage({ manifest }: Props) {
         {!pauseOverlay && engine.overlay && (
           <Overlay model={engine.overlay} onAction={handleOverlayAction} />
         )}
-      </div>
+      </main>
 
       <footer className="game-foot">
         <div className="flex items-center justify-center gap-3">

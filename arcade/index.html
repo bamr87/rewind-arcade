@@ -2,11 +2,29 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <!-- The feedback widget's console/error buffer runs before anything else, so a report
+       carries the errors thrown while the page loaded (UPS-FB-04). -->
+  <script src="/fleet-feedback-capture.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="color-scheme" content="dark" />
-  <meta name="description" content="Rewind Arcade — ES-DE-style frontend for recreations, dumps you own, and a cartridge catalog. No game files shipped." />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%95%B9%EF%B8%8F</text></svg>" />
+  <meta name="theme-color" content="#060912" />
   <title>Rewind Arcade</title>
+  <meta name="description" content="Rewind Arcade — ES-DE-style frontend for recreations, dumps you own, and a cartridge catalog. No game files shipped." />
+  <link rel="canonical" href="https://bamr87.github.io/rewind-arcade/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Rewind Arcade" />
+  <meta property="og:title" content="Rewind Arcade" />
+  <meta property="og:description" content="Play original retro recreations in the browser, emulate the dumps you own, and catalog the cartridges on your shelf. No backend, no game files shipped." />
+  <meta property="og:url" content="https://bamr87.github.io/rewind-arcade/" />
+  <meta property="og:image" content="https://bamr87.github.io/rewind-arcade/og-card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Rewind Arcade: play, emulate, catalog" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/manifest.webmanifest" />
 </head>
 <body>
   <div id="root"></div>
