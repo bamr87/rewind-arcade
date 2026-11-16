@@ -13,7 +13,7 @@ npm run build      # tsc -b (type-check, noEmit) + vite build -> dist/
 npm run preview    # serve the production build
 ```
 
-There is no test suite and no linter. `npm run build` is the only automated check — treat a clean `tsc -b` as the gate; CI (`.github/workflows/arcade.yml`) runs exactly `npm ci` and `npm run build`. `tsconfig.json` has `strict`, `noUnusedLocals`, and `noUnusedParameters` on, so unused imports/params fail the build even though `npm run dev` will happily serve them. `tsc -b` is incremental via `tsconfig.tsbuildinfo`; delete that file if type-check results look stale.
+There is no test suite and no linter. `npm run build` is the only automated check — treat a clean `tsc -b` as the gate; CI (`.github/workflows/arcade.yml`) runs exactly `npm install --no-audit --no-fund` and `npm run build`. There is no lockfile (the fleet's always-latest dependency policy; the root `.gitignore` ignores every lockfile), so every install resolves the newest versions the ranges in `package.json` allow, and a build can break without a commit here when an upstream release does. `tsconfig.json` has `strict`, `noUnusedLocals`, and `noUnusedParameters` on, so unused imports/params fail the build even though `npm run dev` will happily serve them. `tsc -b` is incremental via `tsconfig.tsbuildinfo`; delete that file if type-check results look stale.
 
 Verifying gameplay changes means running the app. Append `?debug=1` to the URL to expose `{ manifest, instance }` on `window.__arcade` for console inspection.
 
