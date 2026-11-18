@@ -1,0 +1,9 @@
+# retro-pi extension pack
+name: ml
+description: "Reinforcement learning on real games: Gymnasium envs over retro-pi's own libretro cores"
+version: 0.1.0
+author: "retro-pi"
+
+# This pack contributes no systems; it adds `retropi ml` (cmd/ml.sh dispatches
+# into this pack's virtualenv) and per-game environment definitions in games/.
+provides: []

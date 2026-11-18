@@ -110,6 +110,46 @@ function romsPlugin(): Plugin {
   };
 }
 
+/**
+ * Serves the catalog's artwork (`cartidx media`: covers, logos, title screens, cartridges,
+ * screenshots in ES-DE's layout, plus index.json) at /media/, the same files ES-DE reads.
+ * Dev and preview only: a production build copies none of it (gigabytes); a deploy hosts
+ * the folder beside the site. `ARCADE_MEDIA` points this at another copy.
+ */
+function mediaPlugin(): Plugin {
+  const root = path.resolve(process.env.ARCADE_MEDIA || path.join(repoRoot, 'catalog/workspace/media'));
+  const types: Record<string, string> = {
+    '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp',
+    '.json': 'application/json; charset=utf-8',
+  };
+  const send = (req: IncomingMessage, res: ServerResponse, next: () => void) => {
+    const url = (req.url ?? '').split('?')[0];
+    if (!url.startsWith('/media/')) {
+      next();
+      return;
+    }
+    const file = path.resolve(root, decodeURIComponent(url.slice('/media/'.length)));
+    const type = types[path.extname(file).toLowerCase()];
+    if (!type || !file.startsWith(root + path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) {
+      res.statusCode = 404;
+      res.end();
+      return;
+    }
+    res.setHeader('Content-Type', type);
+    res.setHeader('Cache-Control', file.endsWith('index.json') ? 'no-store' : 'public, max-age=86400');
+    fs.createReadStream(file).pipe(res);
+  };
+  return {
+    name: 'media',
+    configureServer(server) {
+      server.middlewares.use(send);
+    },
+    configurePreviewServer(server) {
+      server.middlewares.use(send);
+    },
+  };
+}
+
 const MIME: Record<string, string> = {
   '.js': 'text/javascript',
   '.css': 'text/css',
@@ -167,7 +207,7 @@ function emulatorJsPlugin(): Plugin {
 
 export default defineConfig({
   base: './',
-  plugins: [react(), tailwindcss(), catalogDataPlugin(), romsPlugin(), emulatorJsPlugin()],
+  plugins: [react(), tailwindcss(), catalogDataPlugin(), romsPlugin(), mediaPlugin(), emulatorJsPlugin()],
   build: {
     rolldownOptions: {
       output: {

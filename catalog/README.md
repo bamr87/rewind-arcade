@@ -54,6 +54,7 @@ They join on system and title. A game row learns how many copies are on the shel
 | `cartidx build` | scan refs, enrich and export the catalog |
 | `cartidx catalog [--owned \| --wishlist]` | list the games library |
 | `cartidx export` | rewrite the outputs from the last catalog without rescanning |
+| `cartidx media [--report]` | download covers, logos, title screens, cartridge photos and screenshots for every file reference, in ES-DE's media layout; incremental |
 | `cartidx serve` | the web browser for the collection |
 | `cartidx query "SQL"` | ask the SQLite catalog a question |
 
@@ -112,7 +113,7 @@ media   = ["cartridge"]
 
 Each is third-party data under its own terms. It is downloaded to your machine and never redistributed; `data/reference/SOURCES.json` records the URL, time and SHA-1 of every file.
 
-**Art is referenced, not downloaded.** The art columns hold LaunchBox image file names; the images stay on `images.launchbox-app.com`, and the web page loads a cover only when you open a title.
+**Art is referenced until you ask for it.** The art columns hold LaunchBox image file names, and the web page loads a cover from `images.launchbox-app.com` when you open a title. `cartidx media` downloads the images for every dump you have into `workspace/media/<system>/<kind>/<dump name>.<ext>`: covers, marquees (clear logos), title screens and cartridge photos from LaunchBox, and gameplay screenshots plus fallback boxes and titles from [libretro-thumbnails](https://github.com/libretro-thumbnails/libretro-thumbnails) by No-Intro name. The folder names are ES-DE's, so pointing ES-DE's `MediaDirectory` at `workspace/media` shows them on the desktop, and the same tree can be served next to the web page. It skips what is on disk and remembers what answered 404 (`--retry-missing` asks again); `manifest.csv` records each image's source URL and SHA-1. Dumps in holding folders are left out unless you pass `--all`.
 
 **VGChartz sales are a floor, not a ranking.** The dataset lost the figures for most of the biggest sellers: most of the cartridges it scores 9 or better have no sales number at all. `build` warns about this every run. See [docs/matching.md](docs/matching.md).
 
@@ -128,7 +129,7 @@ src/cartridge_index/
   dat.py                     No-Intro and libretro DAT parsing
   platforms.py               platform ids for anything on a shelf
   systems/                   one module per console family
-  sources/                   fetch reference data; read price guides
+  sources/                   fetch reference data and artwork; read price guides
   stages/                    scan, tiers, enrich, physical, catalog, export
   web/index.html             the browser
   data/rejects.csv           reviewed title pairs that must never match

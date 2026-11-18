@@ -1,0 +1,4 @@
+# One collection per genre; a game with several genres is in each.
+name: "Genre - {value}"
+group_by: {field: genre, split: ";"}
+min: 8

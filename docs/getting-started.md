@@ -45,7 +45,7 @@ Two dozen systems are enabled in a fresh frontend. More manifests live in `emula
 ./bin/retropi build
 ```
 
-Full walkthrough: [emulate/docs/getting-started.md](../emulate/docs/getting-started.md). Platform notes: [macOS](../emulate/docs/macos.md), [Raspberry Pi](../emulate/docs/raspberry-pi.md), [Debian](../emulate/docs/debian.md).
+Full walkthrough: [emulate/docs/getting-started.md](../emulate/docs/getting-started.md). Platform notes: [macOS](../emulate/docs/macos.md), [Raspberry Pi](../emulate/docs/raspberry-pi.md), [Debian](../emulate/docs/debian.md), [SteamOS](../emulate/docs/steamos.md).
 
 ## Catalog (inventory + identification)
 

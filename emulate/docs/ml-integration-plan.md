@@ -2,7 +2,21 @@
 
 > A reviewed, not-yet-implemented plan for driving retro-pi's emulators from a reinforcement learning loop as an optional extension pack, without breaking the bash + python3 core.
 
-**Status:** plan, reviewed 2026-09-11. No code written yet. **Scope:** what an ML layer for *this repository* looks like — not a general RL tutorial.
+**Status:** plan reviewed 2026-09-11; Phases 1-2 built 2026-11-13, differently from Path A (below). **Scope:** what an ML layer for *this repository* looks like — not a general RL tutorial.
+
+---
+
+## Status 2026-11-13: what was built, and what changed
+
+Built: the pack (`packages/ml/`, its own venv, `retropi ml` as a dispatch-only shim) exactly as Decision 1 requires, and the invariants are tested in `tests/test_dev.sh` (no non-stdlib imports under `lib/`, the venv and runs gitignored, `retropi ml` explaining itself without the venv). Two decisions changed:
+
+| Decision | Then | Now | Why |
+|---|---|---|---|
+| Emulator under the env | stable-retro (Path A) | `lib/retrohost.py`, a standard-library ctypes libretro host on the cores retro-pi already installs | Phase 0's risk was ROM hashes: stable-retro rejects dumps not on its list, and this collection is mostly such dumps (its SMB is `super-mario-bros-unverified-dump.nes`, which also turned out to be corrupt). The host loads any ROM, plays exactly the core RetroArch runs (Decision 3's "what trains and what plays agree"), and needs no pip package. ~3,000 frames/s per process; save states deterministic |
+| Which machine trains | the Mac trains, the Pi plays back | an x86-64 SteamOS box (16 cores / 32 threads, RX 9070 XT) trains: ~47,000 frames/s with 32 processes | the fleet gained the machine; the Mac/Pi split still holds for those two |
+| Game definitions | an `ml:` block in `config/systems/<id>.yaml` | `packages/ml/games/<game>.yaml` | rewards, boot scripts and RAM maps belong to a game, not a console; the system manifests stay untouched |
+
+Path B (gym-super-mario-bros) is no longer needed as a smoke test: `retropi ml check` and a scripted run on the real cartridge prove the pipeline end to end. Phase 3's exit (a second console by editing YAML only) holds by construction, since `retroenv.py` reads everything from the game file; it has not been exercised with a second game yet. Defaults and their research basis are in [packages/ml/README.md](../packages/ml/README.md); the harness underneath is [development.md](development.md).
 
 ---
 

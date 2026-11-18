@@ -1,0 +1,4 @@
+# One collection per franchise, across every console.
+name: "Series - {value}"
+group_by: {field: franchise}
+min: 4

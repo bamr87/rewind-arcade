@@ -1,0 +1,11 @@
+# Xbox controllers over Bluetooth (hid-microsoft) report keyboard keys - the
+# Share button and friends - next to their gamepad buttons, and systemd's
+# input_id then decides "this is a keyboard, not a joystick". Without
+# ID_INPUT_JOYSTICK the pad gets no uaccess ACL and RetroArch's udev driver
+# never sees it; SDL programs (ES-DE) still work through hidraw, which is why
+# the frontend responds and the game does not.
+#
+# Installed to /etc/udev/hwdb.d/ by: platforms/steamos/bootstrap.sh --controllers
+id-input:bluetooth:v045ep*:name:Xbox Wireless Controller:*
+ ID_INPUT_JOYSTICK=1
+ ID_INPUT_KEYBOARD=0

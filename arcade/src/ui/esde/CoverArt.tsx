@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { coverCandidates, systemIcon } from '../../esde/covers';
+import { localMedia, useMediaIndex } from '../../esde/media';
 import type { EsGame } from '../../esde/library';
 import { boxHue } from '../../esde/theme';
 import { PlayCover } from './PlayCover';
@@ -45,9 +46,11 @@ export function CoverArt({
 }
 
 function RemoteCover({ game, size, hue }: { game: EsGame; size: 'row' | 'hero'; hue: string }) {
-  const urls = coverCandidates(game.systemId, game.title, game.nointro, game.region, game.boxArt);
+  const media = useMediaIndex();
+  const local = localMedia('covers', game.systemId, game.title, game.rom?.file);
+  const urls = [...(local ? [local] : []), ...coverCandidates(game.systemId, game.title, game.nointro, game.region, game.boxArt)];
   const [i, setI] = useState(0);
-  useEffect(() => { setI(0); }, [game.key]);
+  useEffect(() => { setI(0); }, [game.key, media]);
   const src = urls[i];
   return (
     <div

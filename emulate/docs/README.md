@@ -17,17 +17,19 @@
 | [macos.md](macos.md) | Apple Silicon and Intel, the Rosetta trap, where files live |
 | [raspberry-pi.md](raspberry-pi.md) | board-by-board tuning, RetroPie coexistence, the Mac-to-Pi workflow |
 | [debian.md](debian.md) | Debian and Ubuntu desktops and servers, apt cores, running with no display |
+| [steamos.md](steamos.md) | SteamOS PCs and handhelds: AppImages in your home, Game Mode shortcuts beside Steam |
 | [emulationstation.md](emulationstation.md) | installing and managing the frontend, gamelists, themes |
 
 ## Going further
 
 | Document | What it covers |
 |---|---|
+| [development.md](development.md) | the run/debug harness: live and headless seams into a game, fast-forward, scripting, ML |
 | [adding-systems.md](adding-systems.md) | adding a console — one YAML file, no code |
 | [architecture.md](architecture.md) | how the pieces fit and why they are shaped that way |
 | [troubleshooting.md](troubleshooting.md) | symptoms, causes, fixes |
 | [legal.md](legal.md) | what this project ships, downloads, and refuses to |
-| [ml-integration-plan.md](ml-integration-plan.md) | the reviewed plan (not built) for driving the emulators from a reinforcement learning loop |
+| [ml-integration-plan.md](ml-integration-plan.md) | the plan for driving the emulators from a reinforcement learning loop, and what was built |
 | [../CONTRIBUTING.md](../CONTRIBUTING.md) | working on retro-pi itself |
 | [../../docs/systems/README.md](../../docs/systems/README.md) | every platform in the Rewind Arcade monorepo |
 

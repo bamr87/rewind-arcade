@@ -47,10 +47,16 @@ __H__
   mkdir -p "$root"
 
   local item
-  for item in bin lib cmd config docs tests platforms packages Makefile README.md LICENSE .editorconfig; do
+  for item in bin lib cmd config docs tests platforms Makefile README.md LICENSE .editorconfig; do
     [[ -e "$RETROPI_ROOT/$item" ]] || continue
     cp -R "$RETROPI_ROOT/$item" "$root/"
   done
+  # Packs, without what they build locally: the ml pack's virtualenv alone is
+  # gigabytes, and runs/ holds checkpoints and videos.
+  if [[ -d "$RETROPI_ROOT/packages" ]]; then
+    ( cd "$RETROPI_ROOT" && tar --exclude=.venv --exclude=runs --exclude=__pycache__ -cf - packages ) \
+      | ( cd "$root" && tar -xf - )
+  fi
   # local.yaml is machine-specific: ship it as an example, not as config.
   if [[ -f "$root/config/local.yaml" ]]; then
     mv "$root/config/local.yaml" "$root/config/local.yaml.example"

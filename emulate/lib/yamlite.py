@@ -39,11 +39,37 @@ _CONSTS = {
 }
 
 
+_ESCAPES = {"0": "\0", "a": "\a", "b": "\b", "t": "\t", "\t": "\t", "n": "\n", "v": "\v",
+            "f": "\f", "r": "\r", "e": "\x1b", " ": " ", '"': '"', "/": "/", "\\": "\\",
+            "N": "\x85", "_": "\xa0", "L": "\u2028", "P": "\u2029"}
+_HEX = {"x": 2, "u": 4, "U": 8}
+
+
+def _unescape(inner: str) -> str:
+    """A double-quoted scalar's escapes, as YAML (and PyYAML) read them."""
+    out, i = [], 0
+    while i < len(inner):
+        c = inner[i]
+        if c != "\\" or i + 1 >= len(inner):
+            out.append(c)
+            i += 1
+            continue
+        e = inner[i + 1]
+        if e in _HEX:
+            n = _HEX[e]
+            out.append(chr(int(inner[i + 2:i + 2 + n], 16)))
+            i += 2 + n
+        else:
+            out.append(_ESCAPES.get(e, "\\" + e))
+            i += 2
+    return "".join(out)
+
+
 def _scalar(tok: str):
     tok = tok.strip()
     if len(tok) >= 2 and tok[0] == tok[-1] and tok[0] in "\"'":
         inner = tok[1:-1]
-        return inner.replace('\\"', '"') if tok[0] == '"' else inner
+        return _unescape(inner) if tok[0] == '"' else inner.replace("''", "'")
     if tok in _CONSTS:
         return _CONSTS[tok]
     try:

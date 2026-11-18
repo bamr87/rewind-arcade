@@ -110,6 +110,86 @@
       "problemMatcher": [],
       "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
     },
+    // ------------------------------------------- dev harness + ML ----
+    // Every `retropi dev` / `ml` command re-runs itself on the host when VS
+    // Code is a Flatpak (SteamOS), so these work from the sandbox.
+    {
+      "label": "dev: run a game (live harness)",
+      "detail": "RetroArch windowed, command port + Network RetroPad open; drive it with dev peek/press/step",
+      "type": "shell",
+      "command": "./bin/retropi dev run ${input:systemId} ${input:romPath}",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "dev: run the open ROM",
+      "detail": "The ROM file open in the editor, system from its folder or extension",
+      "type": "shell",
+      "command": "./bin/retropi dev run \"${file}\"",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "dev: frontend (ES-DE, debug log)",
+      "type": "shell",
+      "command": "./bin/retropi dev frontend",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "dev: logs",
+      "detail": "Follow build/dev/retroarch.log and ES-DE's es_log.txt",
+      "type": "shell",
+      "command": "./bin/retropi dev logs",
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "dev: REPL against the running game",
+      "type": "shell",
+      "command": "./bin/retropi dev repl",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "focus": true }
+    },
+    {
+      "label": "dev: check",
+      "type": "shell",
+      "command": "./bin/retropi dev check",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "ml: check smb-1-1",
+      "detail": "Gymnasium API check, random rollout, emulator speed",
+      "type": "shell",
+      "command": "./bin/retropi ml check smb-1-1",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "ml: train smb-1-1",
+      "detail": "PPO, 16 parallel emulators; runs land in packages/ml/runs/",
+      "type": "shell",
+      "command": "./bin/retropi ml train --game smb-1-1 --envs 16",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "ml: random baseline smb-1-1",
+      "type": "shell",
+      "command": "./bin/retropi ml eval --random --episodes 100",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "ml: tensorboard",
+      "type": "shell",
+      "command": "./bin/retropi ml board",
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
     {
       "label": "clean",
       "type": "shell",
@@ -130,6 +210,12 @@
         "saturn", "dreamcast", "psx", "psp",
         "atari2600", "atari7800", "pcengine", "neogeo", "arcade", "dos", "c64"
       ]
+    },
+    {
+      "id": "romPath",
+      "type": "promptString",
+      "description": "ROM path (empty: the system's first ROM)",
+      "default": ""
     }
   ]
 }

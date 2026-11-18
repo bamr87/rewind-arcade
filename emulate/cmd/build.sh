@@ -218,17 +218,43 @@ _build_retroarch() {
     printf 'savestate_auto_save = "%s"\n' "$(cfg saves.auto_save_state false)"
     printf 'savestate_auto_load = "%s"\n' "$(cfg saves.auto_save_state false)"
     printf 'rewind_enable = "%s"\n' "$(cfg saves.rewind_enabled true)"
+    printf 'audio_mute_enable = "%s"\n' "$(cfg emulation.mute false)"
+    # RetroArch saves its whole running config on exit - this overlay
+    # included - into the user's retroarch.cfg. Keep the overlay an overlay.
+    printf 'config_save_on_exit = "false"\n'
     local jd
     jd="$(cfg controls.joypad_driver auto)"
-    [[ "$jd" == "auto" ]] || printf 'input_joypad_driver = "%s"\n' "$jd"
+    [[ "$jd" == "auto" ]] && jd="$(default_joypad_driver)"
+    [[ -n "$jd" ]] && printf 'input_joypad_driver = "%s"\n' "$jd"
+    _ra_keyboard_binds
+    local p1
+    p1="$(cfg controls.player1_device '')"
+    if [[ -n "$p1" ]]; then
+      printf '\n# player 1 prefers this controller (controls.player1_device)\n'
+      printf 'input_player1_device_reservation_type = "1"\n'
+      printf 'input_player1_reserved_device = "%s"\n' "$p1"
+    fi
     if [[ "$(cfg controls.manage_autoconfig true)" == "true" ]]; then
+      local k v per_profile=0
+      [[ -n "$(controller_profile_drivers)" ]] && per_profile=1
       printf '\n# hotkeys (hold %s)\n' "$(cfg controls.hotkey_enable select)"
-      printf 'input_enable_hotkey_btn = "%s"\n' "$(_ra_btn "$(cfg controls.hotkey_enable select)")"
-      local k v
-      for k in $(cfg_keys controls.hotkeys); do
-        v="$(cfg "controls.hotkeys.$k")"
-        printf 'input_%s_btn = "%s"\n' "$(_ra_hotkey_name "$k")" "$(_ra_btn "$v")"
-      done
+      if [[ "$per_profile" == "1" ]]; then
+        # Raw button numbers differ per controller (Select is 6 on an Xbox 360
+        # pad and LB on an Xbox pad over Bluetooth), so the hotkeys live in
+        # each installed profile, resolved against its own buttons. A global
+        # number would override them, so clear it.
+        printf '# resolved per controller in autoconfig/*/retropi-*.cfg\n'
+        printf 'input_enable_hotkey_btn = "nul"\n'
+        for k in $(cfg_keys controls.hotkeys); do
+          printf 'input_%s_btn = "nul"\n' "$(_ra_hotkey_name "$k")"
+        done
+      else
+        printf 'input_enable_hotkey_btn = "%s"\n' "$(_ra_btn "$(cfg controls.hotkey_enable select)")"
+        for k in $(cfg_keys controls.hotkeys); do
+          v="$(cfg "controls.hotkeys.$k")"
+          printf 'input_%s_btn = "%s"\n' "$(_ra_hotkey_name "$k")" "$(_ra_btn "$v")"
+        done
+      fi
     fi
   } > "$cfg"
   ok "wrote $cfg"
@@ -257,7 +283,11 @@ _install_controller_profiles() {
     ensure_dir "$dest"
     for f in "$src"/*.cfg; do
       [[ -f "$f" ]] || continue
-      run cp "$f" "$dest/retropi-$(basename "$f")"
+      if [[ "$RETROPI_DRY_RUN" == "1" ]]; then
+        run cp "$f" "$dest/retropi-$(basename "$f")"
+      else
+        { cat "$f"; _profile_hotkeys "$f"; } > "$dest/retropi-$(basename "$f")"
+      fi
       n=$((n+1))
     done
   done < <(controller_profile_drivers)
@@ -266,6 +296,53 @@ _install_controller_profiles() {
 }
 
 # RetroArch names hotkey actions differently from our friendly config keys.
+# _ra_keyboard_binds - clear the RetroArch keyboard binds a second input path
+# would press by accident (Steam's Desktop Layout on SteamOS). controls.keyboard:
+# auto (clear them where steam_desktop_keys names any) | true (keep) | false.
+_ra_keyboard_binds() {
+  local mode keys k
+  mode="$(cfg controls.keyboard auto)"
+  [[ "$mode" == "true" ]] && return 0
+  keys="$(steam_desktop_keys)"
+  [[ "$mode" == "false" && -z "$keys" ]] && keys="input_exit_emulator input_toggle_fast_forward input_player1_start input_player1_select input_player1_up input_player1_down input_player1_left input_player1_right"
+  [[ -n "$keys" ]] || return 0
+  printf '\n# keyboard binds Steam'"'"'s Desktop Layout would press (controls.keyboard)\n'
+  for k in $keys; do
+    printf '%s = "nul"\n' "$k"
+  done
+  return 0
+}
+
+# _profile_hotkeys <profile.cfg> - retro-pi's hotkeys for one controller,
+# resolved against that profile's own buttons ("select" -> its
+# input_select_btn). A name the profile does not bind is left out.
+_profile_hotkeys() {
+  local f="$1" k v n
+  printf '\n# retro-pi hotkeys (hold %s), resolved for this controller\n' "$(cfg controls.hotkey_enable select)"
+  n="$(_profile_btn "$f" "$(cfg controls.hotkey_enable select)")"
+  [[ -n "$n" ]] && printf 'input_enable_hotkey_btn = "%s"\n' "$n"
+  for k in $(cfg_keys controls.hotkeys); do
+    v="$(cfg "controls.hotkeys.$k")"
+    n="$(_profile_btn "$f" "$v")"
+    [[ -n "$n" ]] && printf 'input_%s_btn = "%s"\n' "$(_ra_hotkey_name "$k")" "$n"
+  done
+  return 0
+}
+
+# _profile_btn <profile.cfg> <name> - the button a profile binds to a RetroPad
+# name (a b x y l r select start l3 r3), "nul" for nul, a number as-is.
+_profile_btn() {
+  local f="$1" name="$2"
+  case "$name" in
+    nul) printf 'nul'; return 0 ;;
+    l1) name="l" ;; r1) name="r" ;;
+    *[!0-9]*) ;;
+    *) printf '%s' "$name"; return 0 ;;
+  esac
+  sed -n "s/^input_${name}_btn *= *\"\([0-9][0-9]*\)\".*/\1/p" "$f" | head -1
+  return 0
+}
+
 _ra_hotkey_name() {
   case "$1" in
     exit)        printf 'exit_emulator' ;;

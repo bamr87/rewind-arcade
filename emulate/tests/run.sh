@@ -16,6 +16,9 @@ set -o pipefail
 TESTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$TESTS_DIR/.." && pwd)"
 export REPO_ROOT
+# The suite is hermetic: it runs retropi where it stands, never hopping out of
+# a Flatpak sandbox to the host (bin/retropi would otherwise).
+export RETROPI_ON_HOST=1
 
 if [[ -t 1 && -z "${NO_COLOR:-}" ]]; then
   T_RED=$'\033[31m'; T_GREEN=$'\033[32m'

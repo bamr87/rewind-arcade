@@ -36,6 +36,12 @@ pages-build: ## GitHub Pages artifact (vendor EmulatorJS + production build)
 pages: pages-build ## Build the Pages artifact and serve arcade/dist/ (no Vite plugins)
 	python3 -m http.server 4173 --bind 127.0.0.1 --directory arcade/dist
 
+# --- library ------------------------------------------------------------------
+
+.PHONY: library
+library: ## Refresh the game library everywhere: catalog, artwork, ES-DE gamelists and collections
+	tools/library-sync.sh $(LIBRARY)
+
 # --- emulate ------------------------------------------------------------------
 
 .PHONY: doctor

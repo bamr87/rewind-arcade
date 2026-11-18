@@ -89,12 +89,40 @@ _install_retroarch() {
         ok "RetroPie's RetroArch detected"
         return 0
       fi
+      if [[ "$RETROPI_PKG" == "steamos" ]]; then
+        _install_retroarch_appimage || return 1
+        ok "RetroArch installed"
+        return 0
+      fi
       pkg_refresh
       pkg_install retroarch
       ;;
     *) die "unsupported platform for automatic install: $RETROPI_OS" ;;
   esac
   ok "RetroArch installed"
+}
+
+# _install_retroarch_appimage - libretro's stable AppImage into ~/Applications,
+# for hosts whose root filesystem cannot take packages (SteamOS).
+_install_retroarch_appimage() {
+  local url archive dest
+  url="$(retroarch_linux_url)" || {
+    warn "could not resolve a RetroArch build; download one from https://www.retroarch.com/"
+    return 1
+  }
+  archive="$(downloads_dir)/retroarch-$(basename "$(dirname "$(dirname "$(dirname "$url")")")")-RetroArch.7z"
+  if [[ -f "$archive" ]]; then
+    step "using cached download: $archive"
+  else
+    step "downloading $url"
+    fetch "$url" "$archive" || { warn "download failed: $url"; return 1; }
+  fi
+  if [[ "$RETROPI_DRY_RUN" == "1" ]]; then
+    step "dry run: would install $(retroarch_appimage_path)"
+    return 0
+  fi
+  dest="$(install_retroarch_appimage "$archive")" || return 1
+  ok "installed $dest"
 }
 
 _install_frontend() {

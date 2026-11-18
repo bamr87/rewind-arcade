@@ -31,6 +31,7 @@ New here? [getting-started.md](getting-started.md) takes you from a fresh clone 
 | [`docs/formats.md`](formats.md) | Cartridge, disc, floppy, tape, PCB and software: how each kind of media is treated as a first-class field next to the system id. |
 | [`docs/getting-started.md`](getting-started.md) | Play, emulate and catalog from a fresh clone: the three entry points, in order, and what each needs on your machine. |
 | [`docs/legal.md`](legal.md) | What this repository ships, what it downloads, and what it refuses to (games, BIOS images, dumps). |
+| [`docs/library.md`](library.md) | How one ROM collection becomes the same library on the desktop (ES-DE) and in the browser (the arcade): the catalog identifies and describes every dump and fetches its artwork, emulate links it into ES-DE with gamelists and collections… |
 | [`docs/adr/`](adr/README.md) | The index and format of rewind-arcade's architecture decisions — the choices that are hard to reverse, recorded in the PR that makes them. |
 | [`docs/amendments/`](amendments/README.md) | The append-only log of numbered amendments to rewind-arcade's constitution, with each record's status and what it affects. |
 | [`docs/systems/`](systems/README.md) | Every platform id this monorepo knows and which pillar supports it, generated from `systems/registry.yaml`, with links to the per-family encyclopedia pages. |
