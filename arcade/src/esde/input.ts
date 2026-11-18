@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { padEnabled, padRoles, subscribePad, type PadButton } from '../engine/gamepad';
+import { keyActivatesFocus, keyBelongsToField } from '../engine/keys';
 
 /**
  * Keyboard and gamepad for the cabinet views, as one stream of intents. A view says
@@ -23,6 +24,8 @@ export type EsdeAction =
   | 'pageDown'
   | 'letter';
 
+// Tab is not here: it moves keyboard focus, which is how the skip link and every
+// control on a page are reached. F1 (and Start on a pad) opens the menu.
 const KEYS: Record<string, EsdeAction> = {
   ArrowLeft: 'left',
   ArrowRight: 'right',
@@ -33,7 +36,6 @@ const KEYS: Record<string, EsdeAction> = {
   Backspace: 'back',
   Escape: 'back',
   F1: 'menu',
-  Tab: 'menu',
   PageUp: 'pageUp',
   PageDown: 'pageDown',
 };
@@ -80,8 +82,7 @@ export function useEsdeInput(
     };
 
     const onKey = (e: KeyboardEvent) => {
-      const el = e.target as HTMLElement | null;
-      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT')) return;
+      if (keyBelongsToField(e) || keyActivatesFocus(e)) return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.key === '/' && !e.repeat) {
         e.preventDefault();

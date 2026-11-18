@@ -1,31 +1,36 @@
 /*
- * Stylesheet entry. Tailwind v4 owns the base reset and utilities; the original
- * hand-written sheets live in the `legacy` layer, which sits *below* utilities so
- * a Tailwind class always wins over a legacy rule on the same element.
+ * Stylesheet entry. The design tokens (`--fleet-*`, tokens.css) load first, into the
+ * lowest layer, so any later rule can re-map one. Tailwind v4 owns the base reset and
+ * utilities; the original hand-written sheets live in the `legacy` layer, which sits
+ * *below* utilities so a Tailwind class always wins over a legacy rule on the same
+ * element.
  */
-@layer theme, base, legacy, components, utilities;
+@layer tokens, theme, base, legacy, components, utilities;
 
+@import "./tokens.css" layer(tokens);
 @import "tailwindcss";
 @import "./global.css" layer(legacy);
 @import "./esde.css" layer(legacy);
 @import "./catalog.css" layer(legacy);
 
+/* Utilities read the tokens. Accent is the exception: it goes through the runtime
+   --accent, which a game page (and a few cards) set inline to their own colour. */
 @theme inline {
-  --color-bg: var(--bg);
-  --color-panel: var(--panel);
-  --color-fg: var(--text);
-  --color-dim: var(--dim);
-  --color-faint: var(--faint);
-  --color-line: var(--line);
+  --color-bg: var(--fleet-color-bg);
+  --color-panel: var(--fleet-color-bg-elevated);
+  --color-fg: var(--fleet-color-ink);
+  --color-dim: var(--fleet-color-ink-muted);
+  --color-faint: var(--fleet-color-ink-subtle);
+  --color-line: var(--fleet-color-border);
   --color-accent: var(--accent);
-  --color-accent-2: var(--accent-2);
-  --color-good: var(--good);
-  --color-gold: var(--gold);
-  --color-bad: var(--bad);
-  --font-sans: var(--font);
-  --font-display: var(--display);
-  --font-mono: var(--mono);
-  --font-pixel: var(--pixel);
+  --color-accent-2: var(--fleet-color-secondary);
+  --color-good: var(--fleet-color-success);
+  --color-gold: var(--fleet-color-accent);
+  --color-bad: var(--fleet-color-danger);
+  --font-sans: var(--fleet-font-sans);
+  --font-display: var(--fleet-font-display);
+  --font-mono: var(--fleet-font-mono);
+  --font-pixel: var(--fleet-font-pixel);
 }
 
 @layer base {
@@ -63,21 +68,11 @@
 }
 
 @layer components {
+  /* The phosphor themes live in tokens.css: they re-map the primary token, which
+     --accent follows. */
   :root {
-    --display: "Space Grotesk Variable", var(--font);
-    --mono: "JetBrains Mono Variable", ui-monospace, SFMono-Regular, Menlo, monospace;
-    --pixel: "Press Start 2P", var(--mono);
-    --accent-2: #818cf8;
-    --bad: #fb7185;
     --anim-state: running;
   }
-
-  /* Phosphor themes recolor the chrome. A game page still sets its own --accent inline. */
-  :root[data-phosphor="cyan"] { --accent: #38bdf8; --accent-2: #818cf8; }
-  :root[data-phosphor="magenta"] { --accent: #f472b6; --accent-2: #a78bfa; }
-  :root[data-phosphor="amber"] { --accent: #fbbf24; --accent-2: #fb7185; }
-  :root[data-phosphor="green"] { --accent: #4ade80; --accent-2: #2dd4bf; }
-  :root[data-phosphor="violet"] { --accent: #a78bfa; --accent-2: #f472b6; }
 
   :root[data-motion="reduced"] { --anim-state: paused; }
   @media (prefers-reduced-motion: reduce) {
@@ -204,4 +199,23 @@
     transition: opacity 0.2s ease;
   }
   .card-sheen:hover::before { opacity: 1; }
+
+  /* ------------------------------- Skip link -------------------------------- */
+  /* The first focusable element on every page, off-screen until it has focus. */
+  .skip-link {
+    position: fixed;
+    left: var(--fleet-space-3);
+    top: var(--fleet-space-3);
+    z-index: var(--fleet-layer-skip-link);
+    padding: var(--fleet-space-2) var(--fleet-space-3);
+    border-radius: var(--fleet-radius-lg);
+    background: var(--fleet-color-primary);
+    color: var(--fleet-color-on-primary);
+    font-weight: var(--fleet-font-weight-bold);
+    box-shadow: var(--fleet-shadow-lg);
+    translate: 0 calc(-100% - 2 * var(--fleet-space-3));
+  }
+  .skip-link:focus { translate: none; }
+  /* Where it lands. The region takes focus only so the next Tab starts inside it. */
+  #main-content:focus { outline: none; }
 }

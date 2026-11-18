@@ -1,3 +1,4 @@
+import { Megaphone } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { mb } from '../catalog/format';
 import { suspendPad } from '../engine/gamepad';
@@ -18,6 +19,7 @@ import { openRom, sourceLabel, useRoms, type RomFile } from '../emulate/roms';
 import { acceptFor, EMU_SYSTEMS, getEmuSystem, type EmuSystem } from '../emulate/systems';
 import { useEsdeInput } from '../esde/input';
 import { useSpatialNav } from '../esde/spatial';
+import { FeedbackLink } from './feedback';
 
 /**
  * EmulatorJS is a page-level script: it declares globals and boots from `window.EJS_*` the
@@ -148,6 +150,7 @@ function SystemPicker({ unknownId }: { unknownId?: string }) {
               : 'Play dumps you own. Open your roms folder or add files — they stay on this device. Cores come from EmulatorJS; nothing in this repo is a game file.'}
           </p>
         </div>
+        <FeedbackLink className="btn btn--ghost">Improve this page</FeedbackLink>
       </header>
       {unknownId && <p className="emu-warn">Unknown system “{unknownId}”. Pick one below.</p>}
       <LibraryBar />
@@ -285,6 +288,9 @@ function RomLoader({ sys, romFile }: { sys: EmuSystem; romFile?: string }) {
             Eject
           </button>
         )}
+        <FeedbackLink className="icon-btn" aria-label="Improve this page" title="Improve this page">
+          <Megaphone className="size-4" />
+        </FeedbackLink>
       </header>
 
       {waiting && <p className="emu-legal">Looking for {romFile}…</p>}

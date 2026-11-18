@@ -1,0 +1,146 @@
+/*
+ * Design tokens: every design value of the arcade as a `--fleet-*` custom property
+ * (bamr87/bamr87 specs/FRONTEND.md, UPS-FE-01..05). app.css imports this file first,
+ * into the lowest cascade layer, so any rule elsewhere can re-map a token without
+ * fighting specificity. The short names the stylesheets read (`--bg`, `--text`,
+ * `--accent`, …) are aliases of these, declared in global.css; Tailwind's `@theme`
+ * block in app.css maps its utilities onto them too.
+ *
+ * Values here are the arcade's own palette. The published fleet token package
+ * replaces this file when the repo adopts it (#55); until then it is not a copy of
+ * that package, so it is deliberately not named fleet-tokens.* (UPS-FE-73).
+ */
+
+:root {
+  /* Colour roles (UPS-FE-02). Components consume roles, never palette names. */
+  --fleet-color-bg: #060912;
+  --fleet-color-bg-elevated: rgba(13, 21, 38, 0.94);
+  --fleet-color-bg-muted: rgba(148, 163, 184, 0.12);
+  --fleet-color-ink: #e6edf7;
+  --fleet-color-ink-muted: #8fa3bf;
+  --fleet-color-ink-subtle: #5b6b85;
+  --fleet-color-border: rgba(148, 163, 184, 0.16);
+  /* The phosphor colour (Settings → Phosphor re-maps it below). */
+  --fleet-color-primary: #38bdf8;
+  /* Text on a primary fill. */
+  --fleet-color-on-primary: #04121f;
+  /* A deeper shade of the phosphor that white text and a light surface can sit on. */
+  --fleet-color-primary-strong: #0369a1;
+  --fleet-color-secondary: #818cf8;
+  /* Records and best scores. */
+  --fleet-color-accent: #fbbf24;
+  --fleet-color-success: #34d399;
+  --fleet-color-info: #38bdf8;
+  --fleet-color-warning: #fbbf24;
+  --fleet-color-danger: #fb7185;
+  --fleet-color-link: var(--fleet-color-primary);
+  --fleet-color-link-hover: var(--fleet-color-ink);
+  --fleet-color-code-bg: rgba(148, 163, 184, 0.12);
+  --fleet-color-code-ink: var(--fleet-color-primary);
+
+  /* Spacing (UPS-FE-03). */
+  --fleet-space-0: 0;
+  --fleet-space-1: 0.25rem;
+  --fleet-space-2: 0.5rem;
+  --fleet-space-3: 1rem;
+  --fleet-space-4: 1.5rem;
+  --fleet-space-5: 3rem;
+  --fleet-space-section: clamp(2rem, 1.25rem + 3vw, 4rem);
+  --fleet-space-container-x: clamp(1.25rem, 0.75rem + 2.5vw, 2rem);
+  /* Where the floating "Improve this page" button sits (fleet-feedback.js). */
+  --fleet-space-fab-offset: 1rem;
+  --fleet-space-fab-size: 3.5rem;
+  --fleet-space-fab-gap: 0.75rem;
+
+  /* Type (UPS-FE-05). The webfonts are bundled so the site works offline from a folder. */
+  --fleet-font-sans: ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --fleet-font-mono: "JetBrains Mono Variable", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --fleet-font-display: "Space Grotesk Variable", var(--fleet-font-sans);
+  --fleet-font-pixel: "Press Start 2P", var(--fleet-font-mono);
+  --fleet-font-weight-regular: 400;
+  --fleet-font-weight-medium: 500;
+  --fleet-font-weight-semibold: 600;
+  --fleet-font-weight-bold: 700;
+  --fleet-line-height-tight: 1.2;
+  --fleet-line-height-base: 1.55;
+  --fleet-line-height-loose: 1.75;
+
+  /* Radius. */
+  --fleet-radius-sm: 6px;
+  --fleet-radius-base: 10px;
+  --fleet-radius-lg: 12px;
+  --fleet-radius-xl: 16px;
+  --fleet-radius-pill: 999px;
+  --fleet-radius-circle: 50%;
+
+  /* Shadow. */
+  --fleet-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --fleet-shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.35);
+  --fleet-shadow-md: 0 8px 26px rgba(0, 0, 0, 0.4);
+  --fleet-shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.4);
+  --fleet-shadow-focus: 0 0 0 3px color-mix(in srgb, var(--fleet-color-primary) 45%, transparent);
+
+  /* Motion. Collapses to 0.01ms under reduced motion (below). */
+  --fleet-motion-fast: 120ms;
+  --fleet-motion-base: 200ms;
+  --fleet-motion-slow: 320ms;
+  --fleet-ease: cubic-bezier(0.2, 0, 0, 1);
+
+  /* Named z-index layers (UPS-FE-04). */
+  --fleet-layer-sticky: 1020;
+  --fleet-layer-header: 1030;
+  --fleet-layer-backdrop: 1040;
+  --fleet-layer-offcanvas: 1045;
+  --fleet-layer-fab: 1050;
+  --fleet-layer-fab-feedback: 1051;
+  --fleet-layer-modal: 1055;
+  --fleet-layer-popover: 1070;
+  --fleet-layer-tooltip: 1080;
+  --fleet-layer-toast: 1090;
+  --fleet-layer-consent: 1095;
+  --fleet-layer-feedback-modal: 1096;
+  --fleet-layer-skip-link: 1100;
+
+  /* Breakpoints, for reference: a custom property cannot sit in a media query. These
+     are Tailwind's, which the `sm:` / `max-md:` variants use. */
+  --fleet-breakpoint-sm: 640px;
+  --fleet-breakpoint-md: 768px;
+  --fleet-breakpoint-lg: 1024px;
+  --fleet-breakpoint-xl: 1280px;
+  --fleet-breakpoint-2xl: 1536px;
+}
+
+/* Phosphor skins re-map the brand roles only (Settings → Phosphor sets data-phosphor).
+   A game page still sets its own --accent inline. */
+:root[data-phosphor="cyan"] { --fleet-color-primary: #38bdf8; --fleet-color-primary-strong: #0369a1; --fleet-color-secondary: #818cf8; }
+:root[data-phosphor="magenta"] { --fleet-color-primary: #f472b6; --fleet-color-primary-strong: #be185d; --fleet-color-secondary: #a78bfa; }
+:root[data-phosphor="amber"] { --fleet-color-primary: #fbbf24; --fleet-color-primary-strong: #b45309; --fleet-color-secondary: #fb7185; }
+:root[data-phosphor="green"] { --fleet-color-primary: #4ade80; --fleet-color-primary-strong: #15803d; --fleet-color-secondary: #2dd4bf; }
+:root[data-phosphor="violet"] { --fleet-color-primary: #a78bfa; --fleet-color-primary-strong: #7c3aed; --fleet-color-secondary: #f472b6; }
+
+:root[data-motion="reduced"] {
+  --fleet-motion-fast: 0.01ms;
+  --fleet-motion-base: 0.01ms;
+  --fleet-motion-slow: 0.01ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion="full"]) {
+    --fleet-motion-fast: 0.01ms;
+    --fleet-motion-base: 0.01ms;
+    --fleet-motion-slow: 0.01ms;
+  }
+}
+
+/* The feedback widget reads these roles through its shadow root. It writes white text
+   on --fleet-color-primary and was drawn for a light surface, so on the arcade's dark
+   roles its submit button would be white on light cyan (about 2:1). It gets a light
+   surface and the strong shade of the phosphor instead: every pair here is WCAG AA. */
+fleet-feedback {
+  color-scheme: light;
+  --fleet-color-bg-elevated: #f8fafc;
+  --fleet-color-ink: #0b1224;
+  --fleet-color-ink-muted: #475569;
+  --fleet-color-border: #64748b;
+  --fleet-color-primary: var(--fleet-color-primary-strong);
+  --fleet-shadow-focus: 0 0 0 2px #fff, 0 0 0 4px var(--fleet-color-primary-strong);
+}

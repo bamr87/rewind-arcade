@@ -93,9 +93,11 @@ cfg() {
 cfg_list() {
   local key="$1"
   [[ -f "$RETROPI_FLAT" ]] || config_load
+  # sort -t '=' takes the separator as its own argument: uutils sort rejects
+  # the attached -t= form, and the || true below would hide that as empty output.
   grep -- "^${key}\.[0-9]\{1,\}=" "$RETROPI_FLAT" 2>/dev/null \
     | sed "s/^${key//./\\.}\.//" \
-    | sort -t= -k1,1n \
+    | sort -t '=' -k1,1n \
     | cut -d= -f2- || true
 }
 
