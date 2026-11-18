@@ -31,6 +31,7 @@ src/
   catalog/                # cartidx data.js types, parser, IndexedDB store
   profile/                # play history: sessions, time, score trends, favorites
   settings/               # frontend preferences: phosphor theme, CRT, motion
+  styles/tokens.css       # design tokens: every colour, size and layer as a --fleet-* property
   styles/app.css          # Tailwind entry; older sheets load in a lower cascade layer
   ui/
     esde/                 # ES-DE system view, gamelist, main menu
@@ -44,6 +45,10 @@ src/
     SystemsPage.tsx       # encyclopedia of shared ids
     EmulatePage.tsx       # drop a dump you own
     GamePage.tsx          # mounts a game: HUD + overlays + settings
+    NotFoundPage.tsx      # what an unknown #/ route shows
+    feedback.tsx          # "Improve this page": the fleet feedback widget's wiring
+    FeedbackButton.tsx    # the feedback kit's React adapter, copied verbatim
+public/                   # copied into dist/ as-is: 404.html, the feedback widget, icons, social card
 legacy/
   jezzball-standalone.html  # the original single-file version, preserved
 ```
@@ -131,6 +136,9 @@ An original turn-based ASCII dungeon crawl in the spirit of Rogue, drawn on canv
 - **Hall of Fame** (`#/profile`) — sessions, time played, records, achievements, and a per-game scoreboard with recent-score trends. Export the history to JSON and import it on another browser; imported best scores only ever go up.
 - **Settings** (`#/settings`) — phosphor accent (cyan, magenta, amber, green, violet), ambient backdrop, motion (system, reduced, full), CRT filter, record celebrations, and sound.
 - **In game** — the HUD adds restart, how to play, CRT filter, screenshot (PNG of the canvas), and fullscreen. Beating a personal best raises a toast and confetti.
+- **Improve this page** — the fleet feedback widget opens a prefilled GitHub issue on this repo, with the page, your browser and any console errors attached. The dialog lists what will be attached before you open the issue, and nothing is sent before that. A floating button opens it on every frontend page. A game or the emulator owns the whole screen, so there the button is a megaphone in the HUD or the emulator bar, and opening it pauses the game.
+- **Not found** — an address the arcade does not know shows a not-found page with links to every section, the command palette, and **Report this URL**, which opens the feedback dialog with the missing address attached. On GitHub Pages a path that does not exist gets the same page as `404.html`.
+- **Keyboard** — Tab moves focus as on any site; the first stop is **Skip to content**, which jumps past the top bar to the page.
 
 ## Catalog
 
@@ -150,7 +158,7 @@ Without a local file, **Load dump** opens `#/emulate/<id>` and you drop a dump y
 
 ## GitHub Pages
 
-The whole thing is a static site with no backend: hash routing, a relative base, and every stateful part living in the browser. `.github/workflows/deploy.yml` vendors EmulatorJS, runs `npm run build`, and publishes `arcade/dist/`.
+The whole thing is a static site with no backend: hash routing, a relative base, and every stateful part living in the browser. `.github/workflows/deploy.yml` vendors EmulatorJS, runs `npm run build`, and publishes `arcade/dist/`. Everything in `public/` lands at the root of the site unchanged: `404.html`, which Pages serves for any path that does not exist, the feedback widget, the icons and web manifest, and `og-card.png`, the image a shared link shows (`index.html` carries the canonical URL and the Open Graph tags).
 
 What that leaves you with on <https://bamr87.github.io/rewind-arcade/>: the recreations and the whole ES-DE frontend work as-is; the emulator and its cores are served from the site itself; **dumps** come from the folder you grant or the files you add (above), held in IndexedDB; and a **collection** is a `data.js` from `cartidx build` dropped onto the Catalog page, also kept in IndexedDB. Play history, settings, and scores are `localStorage`. Nothing needs a server, and nothing leaves the machine.
 
@@ -161,6 +169,7 @@ What that leaves you with on <https://bamr87.github.io/rewind-arcade/>: the recr
 - **Enter** — select / launch
 - **Backspace / Esc** — back
 - **F1** — main menu
+- **Tab** — move keyboard focus; the first stop is Skip to content
 - **PgUp / PgDn** — jump ten
 - **/** — search the gamelist
 - A–Z — jump to title

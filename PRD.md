@@ -49,12 +49,13 @@ Every user-facing capability has a stable id in the feature catalog [`features/f
 | [ARCADE-003](features/features.yml) | catalog/: cartridge-index (stdlib Python): dumps,… | shipped | [`catalog`](catalog) · [`README.md`](README.md) | NFR2 |
 | [ARCADE-004](features/features.yml) | systems/registry.yaml + docs encyclopedia | shipped | [`systems/registry.yaml`](systems/registry.yaml) · [`README.md`](README.md) | TBD |
 | [ARCADE-005](features/features.yml) | Tests that enforce the system-id map across pillars | shipped | [`catalog/tests`](catalog/tests) · [`README.md`](README.md) | FR1 |
+| [ARCADE-006](features/features.yml) | Arcade front-end baseline: skip link, not-found pages, meta, tokens, feedback | shipped | [`arcade/src/App.tsx`](arcade/src/App.tsx) · [`arcade/README.md`](arcade/README.md) | TBD |
 
 **Requirement → feature trace**
 
 | Requirement | Features |
 | --- | --- |
-| TBD | ARCADE-001, ARCADE-002, ARCADE-004 |
+| TBD | ARCADE-001, ARCADE-002, ARCADE-004, ARCADE-006 |
 | NFR2 | ARCADE-003 |
 | FR1 | ARCADE-005 |
 <!-- features:end -->

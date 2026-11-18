@@ -1,0 +1,33 @@
+# =============================================================================
+# verify/scenarios/frontend-baseline.yml — a USER SCENARIO (scenario/v1)
+# =============================================================================
+# kit: verify v0.1.0 (step reference: verify/scenarios/smoke-home.yml)
+#
+# The arcade's front-end baseline the way a keyboard user meets it: the first Tab
+# lands on Skip to content, Enter moves focus to the page without changing the
+# route (routing is the hash), an unknown route shows the not-found page, and
+# Report this URL opens the feedback dialog.
+# =============================================================================
+id: frontend-baseline
+feature: ARCADE-006
+title: "Skip link, not-found page and feedback dialog"
+description: "Tab to Skip to content and press Enter; open an unknown route; report it through the feedback widget."
+viewports: [desktop, mobile]
+steps:
+  - goto: /
+  - press: Tab
+  - expect: { visible: "a.skip-link:focus" }
+  - screenshot: skip-link
+  - press: Enter
+  - expect: { visible: "main#main-content:focus" }
+  - eval: { name: hash_after_skip, script: "location.hash" }
+  - goto: /#/no-such-page
+  - expect: { text: "Nothing plays here" }
+  - expect: { visible: "text=Report this URL" }
+  - expect: { no_horizontal_scroll: true }
+  - screenshot: not-found
+  - eval: { name: widget_ready, script: "customElements.whenDefined('fleet-feedback').then(() => true)" }
+  - click: "text=Report this URL"
+  - wait: { ms: 500 }
+  - eval: { name: dialog_open, script: "document.querySelector('fleet-feedback').shadowRoot.querySelector('dialog').open" }
+  - screenshot: feedback-dialog
