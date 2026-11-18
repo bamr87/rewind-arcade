@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.3.0](https://github.com/bamr87/rewind-arcade/compare/v0.2.0...v0.3.0) (2026-11-18)
+
+
+### Added
+
+* **arcade:** front-end baseline — skip link, 404, meta, tokens, feedback widget ([b6e8629](https://github.com/bamr87/rewind-arcade/commit/b6e862996ec47219791839b0c1c6de5804ebe445))
+* **arcade:** front-end baseline — skip link, 404, meta, tokens, feedback widget ([fbf2679](https://github.com/bamr87/rewind-arcade/commit/fbf2679be632155c67c7450e750784512b63b9a1))
+* **arcade:** local catalog artwork first, public links on a deployed site ([3621e93](https://github.com/bamr87/rewind-arcade/commit/3621e93fba13389f121f10c28afbbbcca746eae5))
+* **arcade:** publish healthz, readyz and version.json at build time ([d477a2a](https://github.com/bamr87/rewind-arcade/commit/d477a2afc9620227df2ccd26e6d625d70cca587d))
+* **arcade:** publish healthz, readyz and version.json at build time ([65acbde](https://github.com/bamr87/rewind-arcade/commit/65acbde1363e2cef41c79139da42c2aea14ec3da))
+* **catalog:** download artwork in ES-DE's layout; one vocabulary for genres and ESRB ([6784216](https://github.com/bamr87/rewind-arcade/commit/67842161e8000b28fca0ea3a4e950322b433c6ec))
+* **emulate:** catalog descriptions in gamelists and collections from definition files ([2d0c934](https://github.com/bamr87/rewind-arcade/commit/2d0c93433ca0f32d06d4e0703d97e03b081f0c0a))
+* **emulate:** dev harness and a Mario RL training pack ([7057b65](https://github.com/bamr87/rewind-arcade/commit/7057b654ab6ba784a819ee175876d5b379ad5c21))
+* **emulate:** film only flag runs and record the first Mario 1-1 results ([55bacae](https://github.com/bamr87/rewind-arcade/commit/55bacae525967c45399de8599c1e7d88cb8e0fac))
+* **emulate:** import a ROM collection from a directory, linked in place ([8549e4d](https://github.com/bamr87/rewind-arcade/commit/8549e4dd4d20494afd1888f3ca08a4cbb402da6a))
+* **emulate:** run retro-pi on SteamOS beside Steam ([6728d4e](https://github.com/bamr87/rewind-arcade/commit/6728d4e1b7ca9157d1d39874742ae0bde0ed4210))
+* refresh the library everywhere with one command ([522a178](https://github.com/bamr87/rewind-arcade/commit/522a1789373134a4a8ad1843ee97a9fbe5471ab5))
+* SteamOS support, one game library for ES-DE and the browser, and an ML dev harness ([c5bbc08](https://github.com/bamr87/rewind-arcade/commit/c5bbc08d157d0fed01f5431087a07b5043feefa6))
+
+
+### Fixed
+
+* **emulate:** pass sort its separator as a separate argument ([6bf917a](https://github.com/bamr87/rewind-arcade/commit/6bf917a525457891d98ff2e44f87db293087c957))
+* **emulate:** pass sort its separator as a separate argument ([b6643d7](https://github.com/bamr87/rewind-arcade/commit/b6643d73a7f945772ee8663ec81c6296ae16b26d)), closes [#66](https://github.com/bamr87/rewind-arcade/issues/66)
+* **emulate:** read YAML escapes like PyYAML; keep ES-DE's settings format ([a8ed758](https://github.com/bamr87/rewind-arcade/commit/a8ed758d108d2b6690cc52f1636c393bf5a9eefa))
+* **emulate:** run every retropi command on the host from a Flatpak sandbox ([4ffe158](https://github.com/bamr87/rewind-arcade/commit/4ffe1588534f2cc4b4a6ceec50241d5d00574a81))
+* **test:** let the bash 3.2 emulate leg pass the vscode static check ([23b3e03](https://github.com/bamr87/rewind-arcade/commit/23b3e0353cb25275ceb1c2a36f5988e436e10e7e))
+* **test:** let the bash 3.2 emulate leg pass the vscode static check ([a18f669](https://github.com/bamr87/rewind-arcade/commit/a18f6698e4ac6766170133fc5c4e05c47e458ef8))
+
 ## [0.2.0](https://github.com/bamr87/rewind-arcade/compare/v0.1.0...v0.2.0) (2026-10-31)
 
 
