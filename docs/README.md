@@ -14,7 +14,7 @@ New here? [getting-started.md](getting-started.md) takes you from a fresh clone 
 
 | Document | What it covers |
 | --- | --- |
-| [`AGENTS.md`](../AGENTS.md) | A three-pillar retro gaming monorepo: play browser recreations (`arcade/`), emulate consoles with ES-DE and RetroArch (`emulate/`), and catalog the physical collection (`catalog/`), all on one set of system ids. |
+| [`AGENTS.md`](../AGENTS.md) | Rewind Arcade's direction is to become the ultimate open home for all things retro gaming: data, tools, resources and transparency, with browser arcade play, ES-DE emulation and a physical game catalog on one set of system ids, for… |
 | [`CHANGELOG.md`](../CHANGELOG.md) | Release history: the notable changes in each version, newest first. |
 | [`SECURITY.md`](../SECURITY.md) | Supported versions and how to report a vulnerability privately. |
 | [`PRD.md`](../PRD.md) | The product requirements for Rewind Arcade: problem, users, goals and non-goals, features, requirements and proposed success measures. |

@@ -82,3 +82,11 @@ features:
       - arcade/docs/screenshots/frontend-baseline/feedback-dialog-mobile-390x844.png
       - arcade/docs/screenshots/frontend-baseline/game-hud-mobile-390x844.png
     verified: { date: 2026-11-15, by: agent }
+  - id: ARCADE-007
+    title: "Missions in constitution §1"
+    description: "Three product missions under one direction statement, ratified through amendment 0002."
+    implemented: false
+    status: planned
+    prd: ["§1.1"]
+    surface: docs
+    docs: "docs/constitution.md"

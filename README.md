@@ -1,6 +1,6 @@
 # Rewind Arcade
 
-> Retro gaming workspace: browser arcade recreations, console emulation via ES-DE, and a physical game catalog.
+> Rewind Arcade's direction is to become the ultimate open home for all things retro gaming: data, tools, resources and transparency, with browser arcade play, ES-DE emulation and a physical game catalog on one set of system ids, for everyone ([constitution](docs/constitution.md) §1).
 
 [![CI](https://github.com/bamr87/rewind-arcade/actions/workflows/ci.yml/badge.svg)](https://github.com/bamr87/rewind-arcade/actions/workflows/ci.yml) [![License](https://img.shields.io/github/license/bamr87/rewind-arcade)](LICENSE) [![Live site](https://img.shields.io/badge/live-bamr87.github.io%2Frewind--arcade-2ea44f)](https://bamr87.github.io/rewind-arcade/)
 

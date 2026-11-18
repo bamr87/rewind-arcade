@@ -2,7 +2,7 @@
 
 # rewind-arcade
 
-> A three-pillar retro gaming monorepo: play browser recreations (`arcade/`), emulate consoles with ES-DE and RetroArch (`emulate/`), and catalog the physical collection (`catalog/`), all on one set of system ids.
+> Rewind Arcade's direction is to become the ultimate open home for all things retro gaming: data, tools, resources and transparency, with browser arcade play, ES-DE emulation and a physical game catalog on one set of system ids, for everyone ([constitution](docs/constitution.md) §1).
 
 ## What this repo is
 
