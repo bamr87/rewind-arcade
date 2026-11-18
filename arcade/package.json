@@ -6,7 +6,7 @@
   "description": "Rewind Arcade play pillar: recreations, in-browser emulation, and a catalog browser for cartidx exports.",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && node tools/emit-version.mjs",
     "preview": "vite preview",
     "emulatorjs": "node tools/fetch-emulatorjs.mjs",
     "play:skifree": "node tools/play-skifree.mjs",

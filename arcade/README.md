@@ -162,6 +162,10 @@ The whole thing is a static site with no backend: hash routing, a relative base,
 
 What that leaves you with on <https://bamr87.github.io/rewind-arcade/>: the recreations and the whole ES-DE frontend work as-is; the emulator and its cores are served from the site itself; **dumps** come from the folder you grant or the files you add (above), held in IndexedDB; and a **collection** is a `data.js` from `cartidx build` dropped onto the Catalog page, also kept in IndexedDB. Play history, settings, and scores are `localStorage`. Nothing needs a server, and nothing leaves the machine.
 
+### Health and version endpoints
+
+A static site has no server to ask, so the probes are files (UPS-BE-10, UPS-BE-11). `healthz` and `readyz` are fixed `{"status":"ok"}` files from `public/`, and `version.json` is written into `dist/` by `tools/emit-version.mjs` as the last step of `npm run build`: `{"name","version","commit","built_at"}`, where `version` is the root `package.json` version (release-please owns it) and `commit` is `GITHUB_SHA` or `git rev-parse --short HEAD`, or `dev` when neither is available. On Pages that is `<site>/healthz`, `<site>/readyz` and `<site>/version.json`.
+
 ## Controls (ES-DE)
 
 - **Left / Right** — system carousel
