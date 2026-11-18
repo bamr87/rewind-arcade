@@ -155,3 +155,13 @@ test_every_shipped_manifest_parses_identically() {
     assert_eq "$a" "$b" "parsers disagree on $(basename "$f")" || return 1
   done
 }
+
+test_quoted_escapes_match_pyyaml() {
+  # Regexes in collection definitions: "\\(" is one backslash, as in PyYAML.
+  _write t.yaml 'dq: "\\((Beta \"q\" tab\tx é"
+sq: '"'"'\((Beta it'"''"'s'"'"''
+  assert_eq '\((Beta "q" tab	x é' "$(RETROPI_YAML_PURE=1 python3 "$YAMLITE" get "$TMPY/t.yaml" dq)"
+  assert_eq "\\((Beta it's" "$(RETROPI_YAML_PURE=1 python3 "$YAMLITE" get "$TMPY/t.yaml" sq)"
+  _get_both "$TMPY/t.yaml" dq >/dev/null
+  _get_both "$TMPY/t.yaml" sq >/dev/null
+}

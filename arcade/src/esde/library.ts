@@ -6,6 +6,7 @@ import { EMU_SYSTEMS, getEmuSystem } from '../emulate/systems';
 import { GAMES } from '../games/registry';
 import { getPlatform } from '../systems/registry';
 import { boxCandidates, systemIcon } from './covers';
+import { localMedia, useMediaIndex } from './media';
 import { makerHue, sortName } from './theme';
 
 export const RECREATIONS_ID = 'recreations';
@@ -119,7 +120,10 @@ function loadEntry(systemId: string, short: string): EsGame {
 function standouts(entries: EsGame[]): string[][] {
   return entries
     .filter((e) => e.kind === 'catalog')
-    .map((e) => ({ e, urls: boxCandidates(e.systemId, e.nointro, e.boxArt) }))
+    .map((e) => {
+      const local = localMedia('covers', e.systemId, e.title);
+      return { e, urls: [...(local ? [local] : []), ...boxCandidates(e.systemId, e.nointro, e.boxArt)] };
+    })
     .filter((x) => x.urls.length > 0)
     .sort((a, b) => Number(Boolean(b.e.owned)) - Number(Boolean(a.e.owned)) || (b.e.rating ?? 0) - (a.e.rating ?? 0))
     .slice(0, STANDOUTS)
@@ -132,6 +136,7 @@ export function useEsLibrary(): { systems: EsSystem[]; gamesOf: (id: string) => 
   const roms = catalog.bundle?.roms;
   const systemRows = catalog.bundle?.systems;
   const local = useRoms();
+  const media = useMediaIndex();
 
   return useMemo(() => {
     const names = new Map<string, string>();
@@ -250,5 +255,5 @@ export function useEsLibrary(): { systems: EsSystem[]; gamesOf: (id: string) => 
 
     const gamesOf = (id: string) => bySys.get(id) ?? [];
     return { systems, gamesOf };
-  }, [games, roms, systemRows, local]);
+  }, [games, roms, systemRows, local, media]);
 }

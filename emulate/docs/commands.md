@@ -96,10 +96,14 @@ systems disable <id>...  remove from config/local.yaml
 ```
 roms scan                 count games per system, write build/inventory.tsv
 roms list [system]        list games
-roms import <archive>     import a collection laid out one folder per console
-    --dry-run             show the plan, extract nothing
+roms import <archive|dir> import a collection laid out one folder per console
+    --dry-run             show the plan, change nothing
     --overwrite           replace games already present
     --map "Folder=id"     force a folder to a system (repeatable)
+  directories only:
+    --copy                copy instead of linking in place
+    --metadata <csv>      titles, ratings, year, genre, credits for the gamelist
+    --all-folders         include "_" holding folders
 roms add <file>...        file individual games
     --system <id>         force the target system
     --move                move instead of copy
@@ -109,6 +113,8 @@ roms find <text>          search by name
 ```
 
 `add` resolves the system from the file extension and refuses to guess when the extension is ambiguous — `.zip` and `.bin` belong to a dozen systems each. `import` uses the archive's folder names instead, which is the only reliable signal for a bulk collection.
+
+Given a directory (an external drive, a share), `import` links each game into `roms/<system>/` and leaves the collection exactly as it is; re-running it is a sync that follows moved games and prunes links to removed ones. The details are in [getting-started.md](getting-started.md#5-add-games).
 
 `verify` exits non-zero when anything is corrupt or missing, so it works in a cron job.
 
@@ -151,10 +157,25 @@ frontend gamelist          write gamelist.xml so games show real titles
     --dry-run              report what would change
 frontend themes list|install <git-url>|dir
 frontend settings [--apply]  merge managed keys into es_settings.xml
+frontend collections       custom collections across consoles, one per definition file
+    --list                 show the definitions and where each comes from
+    --dry-run              list the collections, write nothing
 frontend dirs              print every managed path
 ```
 
 See [emulationstation.md](emulationstation.md).
+
+`frontend collections` reads the per-system metadata `roms import --metadata` keeps and writes one ES-DE custom collection per definition, listing ROM paths across every console. Each collection is a YAML file, read from `config/collections/` (shipped), then `packages/*/collections/` (extension packs), then `config/collections.local/` (yours, gitignored); a later file with the same name replaces an earlier one, and `enabled: false` turns a shipped one off. Shipped: Top Rated, Classics, `Genre - <genre>`, `Decade - <1980s>`, `Series - <franchise>`, Multiplayer, Co-op, Family, Betas & Hacks, and Unidentified Dumps. The definition format (match conditions, `group_by`, `min`) is documented at the top of `lib/collections_gen.py`; a minimal one:
+
+```yaml
+# config/collections.local/mario.yaml
+name: "Mario Everything"
+match: {field: name, regex: "mario"}
+```
+
+The collections are enabled in `es_settings.xml` after any collections you made yourself; those, and any file of yours with the same name, are never touched. Quit ES-DE first: it rewrites its settings on exit.
+
+`settings --apply` and `collections` merge into ES-DE's settings file in its own format (a bare list of elements, not one XML document), keeping every key they do not manage.
 
 ### `audio`
 
@@ -230,6 +251,42 @@ clean [--all]         remove generated files (--all: also cached downloads)
 ```
 
 `clean` never touches ROMs, BIOS files or saves.
+
+## Development
+
+### `dev`
+
+```
+dev run <system> [rom] | <rom>   a game under the dev profile (windowed, logged,
+    --emulator <id> --fullscreen --frames <n>    command port + Network RetroPad)
+    --speed <n> --mute
+dev frontend [args]              ES-DE windowed with --debug logging
+dev logs                         follow the RetroArch and ES-DE logs
+dev status | pause | resume | step [n] | ff | mute   drive the running game
+dev peek <addr> [len] | poke <addr> <byte>... | watch <addr> [len]
+dev press <btn+btn> [frames] | hold <btns> | release
+dev screenshot | reset | save-state | load-state | msg <text> | send <CMD> | repl
+dev headless <system> [rom] [--emulator <id>] [--frames n] [--press ...]
+    [--peek ADDR:LEN] [--png f] [--bench] [--procs n]
+dev check                        what the harness needs, and what is missing
+```
+
+The run/debug harness, with two seams into a game: the live one drives the RetroArch that `dev run` started (its network command port and Network RetroPad), and the headless one runs the same libretro core with no window, as fast as it can. Inside a Flatpak editor (VS Code on SteamOS) every `dev` command re-runs itself on the host. The full guide is [development.md](development.md).
+
+### `ml`
+
+```
+ml setup [--rocm|--cuda]   create packages/ml/.venv (CPU PyTorch by default)
+ml check [game]            validate a game definition: API, random rollout, speed
+ml games                   list game definitions (packages/ml/games/*.yaml)
+ml train [options]         PPO on a game (default smb-1-1)
+ml eval <model.zip>|--random [--episodes n] [--gif f]
+ml board                   TensorBoard over packages/ml/runs
+ml report [run]            the run's evidence as one HTML page (curves, videos)
+ml python <args>           the pack's Python, for your own scripts
+```
+
+Dispatches into the optional pack in [`packages/ml/`](../packages/ml/README.md), whose stack lives in its own virtualenv; without it every subcommand but `setup` says how to install it. The core never imports it.
 
 ## Helper scripts
 

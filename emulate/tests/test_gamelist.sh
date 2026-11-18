@@ -301,3 +301,49 @@ test_gamelist_uses_the_inner_title_for_archives() {
   assert_contains "$content" "<name>The Inner Title</name>"
   assert_contains "$content" "./outer-name.zip"
 }
+
+test_slug_filenames_get_readable_titles() {
+  assert_eq "The Adventures of Batman and Robin" "$(GL --clean-name "adventures-of-batman-and-robin-the.smc")"
+  assert_eq "Final Fantasy III" "$(GL --clean-name "final-fantasy-iii.smc")"
+  # Ordinary names are untouched by the slug rule.
+  assert_eq "Dr. Mario" "$(GL --clean-name "Dr. Mario (USA).nes")"
+}
+
+test_metadata_fills_new_entries_and_replaces_only_derived_names() {
+  : > "$GLSB/roms/alpha-probe.nes"
+  : > "$GLSB/roms/beta-probe.nes"
+  GL nes "$GLSB/roms" "$GLSB/out/gamelist.xml" --ext .nes >/dev/null
+  # A name the user typed in must survive.
+  sed -i.bak 's|<name>Beta Probe</name>|<name>My Title</name>|' "$GLSB/out/gamelist.xml"
+  printf '{"alpha-probe.nes": {"name": "Alpha Probe: Return", "rating": "0.90"},
+           "beta-probe.nes": {"name": "Catalog Beta", "genre": "Puzzle"}}' > "$GLSB/meta.json"
+  local line content
+  line="$(GL nes "$GLSB/roms" "$GLSB/out/gamelist.xml" --ext .nes --metadata "$GLSB/meta.json")"
+  assert_eq "2" "$(printf '%s' "$line" | cut -f6)" "both entries updated"
+  content="$(cat "$GLSB/out/gamelist.xml")"
+  assert_contains "$content" "<name>Alpha Probe: Return</name>"
+  assert_contains "$content" "<rating>0.90</rating>"
+  assert_contains "$content" "<name>My Title</name>"
+  assert_not_contains "$content" "Catalog Beta"
+  assert_contains "$content" "<genre>Puzzle</genre>"
+}
+
+test_metadata_refreshes_what_it_wrote_and_never_an_edit() {
+  : > "$GLSB/roms/alpha-probe.nes"
+  : > "$GLSB/roms/beta-probe.nes"
+  printf '{"alpha-probe.nes": {"genre": "Role-playing (RPG)"},
+           "beta-probe.nes": {"genre": "Shoot'"'"'em Up"}}' > "$GLSB/meta.json"
+  GL nes "$GLSB/roms" "$GLSB/out/gamelist.xml" --ext .nes --metadata "$GLSB/meta.json" >/dev/null
+  assert_contains "$(cat "$GLSB/applied/meta.json")" "Role-playing (RPG)" "what was written is recorded"
+  # Someone corrects beta in the frontend; then the catalog cleans its vocabulary.
+  sed -i.bak "s|<genre>Shoot'em Up</genre>|<genre>Mine</genre>|" "$GLSB/out/gamelist.xml"
+  printf '{"alpha-probe.nes": {"genre": "Role-Playing", "kidgame": "true"},
+           "beta-probe.nes": {"genre": "Shoot '"'"'em Up"}}' > "$GLSB/meta.json"
+  GL nes "$GLSB/roms" "$GLSB/out/gamelist.xml" --ext .nes --metadata "$GLSB/meta.json" >/dev/null
+  local content
+  content="$(cat "$GLSB/out/gamelist.xml")"
+  assert_contains "$content" "<genre>Role-Playing</genre>"
+  assert_not_contains "$content" "Role-playing (RPG)"
+  assert_contains "$content" "<kidgame>true</kidgame>"
+  assert_contains "$content" "<genre>Mine</genre>"
+}

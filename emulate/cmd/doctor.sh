@@ -318,7 +318,7 @@ __H__
 _count_roms() {
   local id="$1" dir="$2" ext n=0
   for ext in $(sys_list "$id" extensions); do
-    n=$((n + $(find "$dir" -type f -iname "*$ext" 2>/dev/null | wc -l | tr -d ' ')))
+    n=$((n + $(find -L "$dir" -type f -iname "*$ext" 2>/dev/null | wc -l | tr -d ' ')))
   done
   printf '%s' "$n"
 }

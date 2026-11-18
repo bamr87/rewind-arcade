@@ -1,0 +1,3 @@
+# By release year.
+name: "Decade - {value}"
+group_by: {as: decade}

@@ -21,10 +21,14 @@ retropi roms - inventory and organize your game library
 
   roms scan                 count games per system and write an inventory
   roms list [system]        list games, optionally for one system
-  roms import <archive>     import a collection laid out one folder per console
-      --dry-run             show the plan, extract nothing
+  roms import <archive|dir> import a collection laid out one folder per console
+      --dry-run             show the plan, change nothing
       --overwrite           replace games that are already present
       --map "Folder=id"     force a folder to a system (repeatable)
+    directories only (an external drive, a share):
+      --copy                copy games instead of linking them in place
+      --metadata <csv>      titles, ratings, year, genre, credits for the gamelist
+      --all-folders         include "_" folders (_duplicates, _regional, ...)
   roms add <file>...        file games into the right system folder
       --system <id>         force the target system (needed for .zip/.bin)
       --move                move instead of copy
@@ -45,7 +49,7 @@ _system_files() {
   dir="$(system_rom_dir "$id")"
   [[ -d "$dir" ]] || return 0
   for ext in $(sys_list "$id" extensions); do
-    find "$dir" -type f -iname "*$ext" 2>/dev/null
+    find -L "$dir" -type f -iname "*$ext" 2>/dev/null
   done | sort -u
 }
 
@@ -85,11 +89,12 @@ _roms_scan() {
   return 0
 }
 
+# _file_size <file> - bytes, following a symlink to the game it links.
 _file_size() {
   if [[ "$RETROPI_OS" == "macos" ]]; then
-    stat -f %z "$1" 2>/dev/null || printf '0'
+    stat -L -f %z "$1" 2>/dev/null || printf '0'
   else
-    stat -c %s "$1" 2>/dev/null || printf '0'
+    stat -L -c %s "$1" 2>/dev/null || printf '0'
   fi
 }
 
@@ -196,20 +201,27 @@ _roms_add() {
 # not: .bin and .zip belong to many consoles, and .sg to none of the ones a
 # plain extension table would know.
 _roms_import() {
-  local archive="" dry=0 overwrite=0 forced=""
+  local archive="" dry=0 overwrite=0 forced="" copy=0 metadata="" all_folders=0
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --dry-run|-n) dry=1 ;;
       --overwrite)  overwrite=1 ;;
-      --map)        forced="$forced ${2:-}"; shift ;;
+      --map)        forced="$forced|${2:-}"; shift ;;
+      --copy)       copy=1 ;;
+      --metadata)   metadata="${2:-}"; shift ;;
+      --all-folders) all_folders=1 ;;
       -*) die "roms import: unknown option $1" ;;
       *) archive="$1" ;;
     esac
     shift
   done
-  [[ -n "$archive" ]] || die "roms import: name an archive"
-  [[ -f "$archive" ]] || die "no such file: $archive"
+  [[ -n "$archive" ]] || die "roms import: name an archive or a directory"
   [[ "$RETROPI_DRY_RUN" == "1" ]] && dry=1
+  if [[ -d "$archive" ]]; then
+    _roms_import_dir "$archive" "$dry" "$overwrite" "$forced" "$copy" "$metadata" "$all_folders"
+    return
+  fi
+  [[ -f "$archive" ]] || die "no such file or directory: $archive"
 
   local helper mapfile plan folder count exts bytes id
   helper="$RETROPI_ROOT/lib/romimport.py"
@@ -228,12 +240,7 @@ _roms_import() {
 
     id=""
     # An explicit --map wins over name matching.
-    local pair
-    for pair in $forced; do
-      case "$pair" in
-        "$folder="*) id="${pair#*=}" ;;
-      esac
-    done
+    id="$(_forced_map "$forced" "$folder")"
     if [[ "$folder" != "(root)" && -z "$id" ]]; then
       id="$(system_match "$folder" 2>/dev/null || printf '')"
     fi
@@ -298,6 +305,170 @@ _roms_import() {
     return 0
   fi
   ok "imported $n_added games ($n_exists already present)"
+  step "refresh the frontend: ./bin/retropi build"
+  return 0
+}
+
+# _forced_map <|-separated "Folder=id" pairs> <folder> - the id a --map names.
+# Pairs are split on "|", never on spaces: folder names have them.
+_forced_map() {
+  local rest="$1" folder="$2" pair
+  while [[ -n "$rest" ]]; do
+    pair="${rest##*|}"
+    rest="${rest%|*}"
+    [[ "$pair" == "$rest" ]] && rest=""
+    case "$pair" in
+      "$folder="*) printf '%s' "${pair#*=}"; return 0 ;;
+    esac
+  done
+  return 0
+}
+
+# _dir_system <reldir> <forced> - the system a collection folder holds: a
+# --map for the folder or any parent, else the deepest path component that
+# names a system ("nintendo/nes/great" -> nes). Empty when none does.
+_dir_system() {
+  local rel="$1" forced="$2" path id comp
+  path="$rel"
+  while [[ -n "$path" && "$path" != "." ]]; do
+    id="$(_forced_map "$forced" "$path")"
+    [[ -n "$id" ]] && { printf '%s' "$id"; return 0; }
+    [[ "$path" == */* ]] && path="${path%/*}" || path=""
+  done
+  path="$rel"
+  while [[ -n "$path" ]]; do
+    comp="${path##*/}"
+    id="$(system_match "$comp" 2>/dev/null || printf '')"
+    [[ -n "$id" ]] && { printf '%s' "$id"; return 0; }
+    [[ "$path" == */* ]] && path="${path%/*}" || path=""
+  done
+  return 0
+}
+
+# _roms_import_dir - import a collection directory in place.
+#
+# Games are symlinked into roms/<system>/ (or copied with --copy); the
+# collection is never moved, renamed or touched. Re-running is a sync: links
+# follow games that moved between folders and links to games that are gone
+# are pruned. Only links pointing into this collection are ever removed.
+_roms_import_dir() {
+  local src="$1" dry="$2" overwrite="$3" forced="$4" copy="$5" metadata="$6" all_folders="$7"
+  local helper mapfile plan rel count exts bytes id n_known=0 n_held=0 n_unknown=0
+  helper="$RETROPI_ROOT/lib/romimport.py"
+  mapfile="$RETROPI_STATE/import-map.tsv"
+  ensure_dir "$RETROPI_STATE"
+  src="$(cd "$src" && pwd -P)"
+  [[ -z "$metadata" || -f "$metadata" ]] || die "no such metadata file: $metadata"
+
+  local walkflags=""
+  [[ "$all_folders" == "1" ]] && walkflags="--all-folders"
+  # shellcheck disable=SC2086
+  plan="$(python3 "$helper" plan-dir "$src" $walkflags)" || die "could not read $src"
+  [[ -n "$plan" ]] || die "no files in $src"
+
+  info "planning import from $src"
+  : > "$mapfile"
+  local enabled not_enabled=""
+  enabled=" $(systems_enabled | tr '\n' ' ') "
+  while IFS="$(printf '\t')" read -r rel count exts bytes; do
+    [[ -n "$count" ]] || continue
+    if [[ "$rel" == "!"* ]]; then
+      printf '  %s-%s %-34s %4s files  %sheld back%s\n' \
+        "$C_DIM" "$C_RESET" "${rel#!}" "$count" "$C_DIM" "$C_RESET" >&2
+      n_held=$((n_held + count))
+      continue
+    fi
+    id=""
+    [[ "$rel" != "(root)" ]] && id="$(_dir_system "$rel" "$forced")"
+    if [[ -n "$id" ]] && ! system_exists "$id"; then
+      warn "$rel -> '$id' has no manifest; skipping"
+      id=""
+    fi
+    if [[ -z "$id" ]]; then
+      printf '  %s?%s %-34s %4s files  %s\n' "$C_YELLOW" "$C_RESET" "$rel" "$count" "$exts" >&2
+      n_unknown=$((n_unknown + count))
+      continue
+    fi
+    printf '  %s+%s %-34s %4s files  %-14s -> %s\n' \
+      "$C_GREEN" "$C_RESET" "$rel" "$count" "$exts" "$id" >&2
+    printf 'dir\t%s\t%s\n' "$rel" "$id" >> "$mapfile"
+    n_known=$((n_known + count))
+  done <<< "$plan"
+
+  # Every manifest's extensions, so a file can be routed to the system that
+  # takes it when its folder's system does not.
+  local sid
+  while IFS= read -r sid; do
+    [[ -n "$sid" ]] || continue
+    printf 'ext\t%s\t%s\n' "$sid" "$(sys_list "$sid" extensions | tr '\n' ' ')" >> "$mapfile"
+  done < <(system_ids)
+
+  hr
+  info "$n_known files in system folders, $n_held held back, $n_unknown in other folders"
+  [[ "$n_unknown" -gt 0 ]] && step "assign a folder with: --map \"path/to/folder=system_id\""
+  [[ "$n_known" -eq 0 ]] && { warn "nothing to import"; return 1; }
+
+  local how="link" where
+  [[ "$copy" == "1" ]] && how="copy"
+  where="$(roms_dir)"
+  if [[ "$dry" == "0" ]]; then
+    confirm "$how these games into $where?" || { info "cancelled"; return 0; }
+  fi
+
+  local flags=""
+  [[ "$dry" == "1" ]] && flags="$flags --dry-run"
+  [[ "$copy" == "1" ]] && flags="$flags --copy"
+  [[ "$overwrite" == "1" ]] && flags="$flags --overwrite"
+  [[ "$all_folders" == "1" ]] && flags="$flags --all-folders"
+
+  info "${how}ing"
+  local result
+  if [[ -n "$metadata" ]]; then
+    # shellcheck disable=SC2086
+    result="$(python3 "$helper" link "$src" "$where" "$mapfile" --saves "$(saves_dir)" $flags \
+      --metadata "$metadata" --metadata-out "$(import_metadata_dir)")" || die "import failed"
+  else
+    # shellcheck disable=SC2086
+    result="$(python3 "$helper" link "$src" "$where" "$mapfile" --saves "$(saves_dir)" $flags)" || die "import failed"
+  fi
+
+  # Per-system summary.
+  printf '%s\n' "$result" | awk -F'\t' '
+    $3=="metadata" { meta[$1]=$2; next }
+    $1=="-" { next }
+    { sys[$1]=1 }
+    $3=="added"||$3=="would-add"          { add[$1]++ }
+    $3=="kept"                            { kept[$1]++ }
+    $3=="relinked"||$3=="would-relink"    { moved[$1]++ }
+    $3=="pruned"||$3=="would-prune"       { pruned[$1]++ }
+    $3=="exists"||$3=="collision"         { clash[$1]++ }
+    $3=="unsupported"||$3=="ambiguous"    { skip[$1]++ }
+    $3 ~ /^save-(added|would-add)$/       { saves[$1]++ }
+    END {
+      printf "  %-13s %6s %6s %6s %6s %6s %6s %6s %6s\n", "SYSTEM", "NEW", "KEPT", "MOVED", "PRUNED", "CLASH", "SKIP", "SAVES", "META"
+      for (s in sys) printf "  %-13s %6d %6d %6d %6d %6d %6d %6d %6d\n", s, add[s], kept[s], moved[s], pruned[s], clash[s], skip[s], saves[s], meta[s]
+    }' >&2
+
+  local skipped
+  skipped="$(printf '%s\n' "$result" | awk -F'\t' '$3=="unsupported"||$3=="ambiguous"||$3=="collision"||$3=="exists"||$3=="unmapped" {print "    " $3 ": " $2}')"
+  if [[ -n "$skipped" ]]; then
+    log ""
+    warn "not imported ($(printf '%s\n' "$skipped" | wc -l | tr -d ' ')):"
+    printf '%s\n' "$skipped" | head -20 >&2
+    [[ "$(printf '%s\n' "$skipped" | wc -l)" -gt 20 ]] && step "... full list: re-run with --dry-run"
+  fi
+
+  # Systems that received games but are not enabled stay invisible in ES-DE.
+  for sid in $(printf '%s\n' "$result" | awk -F'\t' '$3=="added"||$3=="would-add"||$3=="kept"||$3=="relinked" {print $1}' | sort -u); do
+    case "$enabled" in *" $sid "*) ;; *) not_enabled="$not_enabled $sid" ;; esac
+  done
+  hr
+  [[ -n "$not_enabled" ]] && warn "not enabled, so hidden in the frontend:$not_enabled -> ./bin/retropi systems enable$not_enabled"
+  if [[ "$dry" == "1" ]]; then
+    info "dry run: nothing changed"
+    return 0
+  fi
+  ok "import done"
   step "refresh the frontend: ./bin/retropi build"
   return 0
 }

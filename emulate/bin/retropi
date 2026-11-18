@@ -148,6 +148,14 @@ if [[ ! -f "$handler" ]]; then
   exit 1
 fi
 
+# Inside a Flatpak sandbox (VS Code on SteamOS) the OS, XDG paths and libraries
+# are the sandbox's: a build there writes sandbox core paths into ES-DE's
+# config and drops the SteamOS input settings. Every command but the hermetic
+# test suite runs on the host instead.
+if [[ "$cmd" != "test" ]]; then
+  if [[ ${#rest[@]} -gt 0 ]]; then host_reexec "$cmd" "${rest[@]}"; else host_reexec "$cmd"; fi
+fi
+
 # Commands that must work before any config exists.
 case "$cmd" in
   doctor|config|test|clean) : ;;

@@ -18,6 +18,7 @@ Five minutes from a fresh clone to a working frontend.
 ./platforms/macos/bootstrap.sh          # macOS
 ./platforms/raspberrypi/bootstrap.sh    # Raspberry Pi OS
 ./platforms/debian/bootstrap.sh         # Debian, Ubuntu (add --headless on a server)
+./platforms/steamos/bootstrap.sh        # SteamOS (add --steam for Game Mode shortcuts)
 ```
 
 This installs the OS-level dependencies (python3, curl, unzip, rsync) and RetroArch. It is safe to re-run.
@@ -69,6 +70,26 @@ For a collection organised one folder per console, import the archive whole:
 ```
 
 Folder names are matched against every name a system answers to — its id, aliases, short name and full name, with a leading manufacturer dropped if that helps — so "Sega Genesis" lands in `megadrive/` and "Nintendo 64" in `n64/`. This matters because the extension frequently cannot decide: `.bin` and `.zip` belong to a dozen systems. Anything unmatched is reported rather than guessed, and `--map "Folder Name=system_id"` forces it. Games already present are never overwritten.
+
+### A collection on another drive
+
+A collection you keep elsewhere — an external drive, a NAS share — is imported as a directory, and linked rather than copied:
+
+```sh
+./bin/retropi roms import /media/games --dry-run
+./bin/retropi roms import /media/games --metadata /media/games/catalog.csv
+./bin/retropi build
+```
+
+- **System folders can sit at any depth.** Each folder's system is the deepest path component that names one, so `nintendo/nes/great/` and `nintendo/nes/rest/` both land in `nes/`. `--map "path/to/folder=system_id"` assigns a folder (and everything under it) explicitly.
+- **Holding folders stay out.** Folders whose names start with `_` (`_duplicates`, `_regional`, `_quarantine`, ...) or `.` are held back and listed; `--all-folders` includes the `_` ones. Dotfiles, including macOS `._*` AppleDouble files, are never games.
+- **Links, not copies.** Each game becomes a symlink in `roms/<system>/`; the collection is never moved, renamed or touched. `--copy` copies instead, for a library that has to work with the drive unplugged. With links, an unplugged drive simply means those games are absent until it is back.
+- **Re-running is a sync.** A game that moved between folders is relinked, a link to a game that is gone is pruned, and nothing else is changed: only links pointing into this collection are ever removed.
+- **The extension routes what the folder cannot.** A file whose extension the folder's system does not take goes to the one system that does — SG-1000 `.sg` cartridges kept in a Master System folder land in `sg1000/`. Anything else is listed as not imported.
+- **Battery saves come along.** `.srm` files beside the games are copied into `saves/` unless a save of that name is already there.
+- **`--metadata <csv>`** reads a catalog with a `path` column (relative to the collection) or a `file` column, and recognises `display_name`/`name`/`title`, `rating_bayesian`/`rating` (0-1, 0-5 or 0-10), `year`, `genre`, `developer`, `publisher`, `max_players`/`players` and `description`. The result is kept per system under `.retropi/metadata/`, so every later `retropi build` fills the gamelist from it — only fields an entry does not have yet, and a title only where the current one was derived from the filename. Anything scraped or typed in stays.
+
+Without metadata, slug-style filenames still get readable titles: `adventures-of-batman-and-robin-the.smc` shows as "The Adventures of Batman and Robin".
 
 ## 6. Regenerate and play
 

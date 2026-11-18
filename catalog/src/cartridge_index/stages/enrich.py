@@ -52,6 +52,39 @@ def _fill(r, col, val) -> bool:
     return True
 
 
+# The sources name the same things differently: libretro's metadat says "E" and
+# "KA", LaunchBox "E - Everyone"; genres drift in spelling. One vocabulary, so a
+# filter or a collection never splits one genre in two.
+ESRB = {"E": "E - Everyone", "KA": "K-A - Kids to Adults", "K-A": "K-A - Kids to Adults",
+        "T": "T - Teen", "M": "M - Mature", "E10+": "E10+ - Everyone 10+",
+        "EC": "EC - Early Childhood", "AO": "AO - Adults Only", "RP": "RP - Rating Pending"}
+GENRES = {"role-playing (rpg)": "Role-Playing", "role-playing": "Role-Playing",
+          "rpg": "Role-Playing", "education": "Educational", "educational": "Educational",
+          "beat'em up": "Beat 'em Up", "beat 'em up": "Beat 'em Up",
+          "shoot'em up": "Shoot 'em Up", "shoot 'em up": "Shoot 'em Up",
+          "board": "Board Game", "board game": "Board Game", "gambling": "Casino",
+          "casino": "Casino", "casual game": "Casual", "music / dancing": "Music",
+          "lightgun shooter": "Light Gun Shooter"}
+
+
+def normalise_esrb(val: str | None) -> str | None:
+    v = (val or "").strip()
+    return ESRB.get(v, v) if v else val
+
+
+def normalise_genre(val: str | None) -> str | None:
+    """'Action; Role-playing (RPG); Action' -> 'Action; Role-Playing'."""
+    if not val:
+        return val
+    out = []
+    for g in str(val).split(";"):
+        g = g.strip()
+        g = GENRES.get(g.lower(), g)
+        if g and g not in out:
+            out.append(g)
+    return "; ".join(out)
+
+
 def bayesian_prior(games):
     rated = [(float(g["CommunityRating"]), int(float(g.get("CommunityRatingCount") or 0)))
              for g in games if _num(g.get("CommunityRating")) is not None]
@@ -171,6 +204,11 @@ def enrich(cfg, rows, prices=(), log=print):
                          new_price=_num(p.get("new_price")),
                          price_title=p["title"], price_match=hit.how)
                 st["priced"] += 1
+        for r in group:
+            if r.get("genre"):
+                r["genre"] = normalise_genre(r["genre"])
+            if r.get("esrb"):
+                r["esrb"] = normalise_esrb(r["esrb"])
         stats[sid] = st
 
     return stats, sales_warnings(vg, {REGISTRY[s].vgchartz for s in by_system})

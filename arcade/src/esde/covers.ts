@@ -67,6 +67,14 @@ function boxUrl(pack: string, name: string): string {
   return `${CDN}/${encodeURIComponent(pack)}/Named_Boxarts/${encodeURIComponent(clean(name))}.png`;
 }
 
+/** libretro's gameplay screenshot for the exact No-Intro name, when the system has a pack. */
+export function snapUrl(systemId: string, nointro?: string): string | undefined {
+  const pack = LIBRETRO[systemId];
+  return pack && nointro
+    ? `${CDN}/${encodeURIComponent(pack)}/Named_Snaps/${encodeURIComponent(clean(nointro))}.png`
+    : undefined;
+}
+
 /** Front boxes only, most trustworthy first: the exact No-Intro name, then LaunchBox's match. */
 export function boxCandidates(systemId: string, nointro?: string, launchbox?: string): string[] {
   const out: string[] = [];

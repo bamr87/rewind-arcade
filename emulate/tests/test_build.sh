@@ -178,6 +178,8 @@ test_build_generates_retroarch_paths() {
 test_build_installs_controller_profiles() {
   "$RP" build --systems nes >/dev/null 2>&1
   assert_file "$SB/ra/autoconfig/udev/retropi-xbox360.cfg"
+  assert_file "$SB/ra/autoconfig/udev/retropi-steam-virtual-gamepad.cfg"
+  assert_file "$SB/ra/autoconfig/udev/retropi-xbox-wireless-bluetooth.cfg"
   assert_file "$SB/ra/autoconfig/linuxraw/retropi-xbox360.cfg"
   assert_contains "$(cat "$SB/ra/autoconfig/linuxraw/retropi-xbox360.cfg")" 'input_up_axis = "-7"'
 }
@@ -207,4 +209,42 @@ test_apply_retroarch_preserves_unrelated_keys() {
 test_dry_run_writes_nothing() {
   "$RP" --dry-run build --systems nes >/dev/null 2>&1
   assert_fails test -d "$SB/roms/nes"
+}
+
+test_overlay_never_saves_itself_into_retroarch_cfg() {
+  "$RP" build --systems nes >/dev/null 2>&1
+  assert_contains "$(cat "$SB/build/retroarch-retropi.cfg")" 'config_save_on_exit = "false"'
+}
+
+test_hotkeys_are_resolved_per_controller_profile() {
+  "$RP" build --systems nes >/dev/null 2>&1
+  local bt x360 overlay
+  bt="$(cat "$SB/ra/autoconfig/udev/retropi-xbox-wireless-bluetooth.cfg")"
+  x360="$(cat "$SB/ra/autoconfig/udev/retropi-xbox360.cfg")"
+  overlay="$(cat "$SB/build/retroarch-retropi.cfg")"
+  # Select+Start are 10/11 on the Bluetooth layout and 6/7 on the 360 pad.
+  assert_contains "$bt" 'input_enable_hotkey_btn = "10"'
+  assert_contains "$bt" 'input_exit_emulator_btn = "11"'
+  assert_contains "$x360" 'input_enable_hotkey_btn = "6"'
+  assert_contains "$x360" 'input_exit_emulator_btn = "7"'
+  # The global raw numbers would override the profiles.
+  assert_contains "$overlay" 'input_enable_hotkey_btn = "nul"'
+}
+
+test_keyboard_binds_can_be_cleared_or_kept() {
+  printf 'controls:\n  keyboard: "false"\n' > "$SB/config/local.yaml"
+  "$RP" build --systems nes >/dev/null 2>&1
+  assert_contains "$(cat "$SB/build/retroarch-retropi.cfg")" 'input_exit_emulator = "nul"'
+  printf 'controls:\n  keyboard: "true"\n' > "$SB/config/local.yaml"
+  "$RP" build --systems nes >/dev/null 2>&1
+  assert_not_contains "$(cat "$SB/build/retroarch-retropi.cfg")" 'input_exit_emulator = "nul"'
+}
+
+test_player1_device_reserves_port_one() {
+  printf 'controls:\n  player1_device: "Xbox Wireless Controller"\n' > "$SB/config/local.yaml"
+  "$RP" build --systems nes >/dev/null 2>&1
+  local overlay
+  overlay="$(cat "$SB/build/retroarch-retropi.cfg")"
+  assert_contains "$overlay" 'input_player1_device_reservation_type = "1"'
+  assert_contains "$overlay" 'input_player1_reserved_device = "Xbox Wireless Controller"'
 }

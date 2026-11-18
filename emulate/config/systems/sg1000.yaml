@@ -11,8 +11,9 @@ frontend:
   platform: sg-1000   # scraper/theme id understood by ES-DE and RetroPie
   theme: sg-1000
 
-# File types the frontend will show for this system.
-extensions: [".sg", ".bin", ".zip", ".7z"]
+# File types the frontend will show for this system. .sc is the SC-3000
+# (the computer sibling's cartridges), which Genesis Plus GX runs as SG-1000.
+extensions: [".sg", ".sc", ".bin", ".zip", ".7z"]
 
 emulators:
   default: genesis-plus-gx

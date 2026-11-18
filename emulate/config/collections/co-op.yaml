@@ -1,0 +1,2 @@
+name: "Co-op"
+match: {field: cooperative, equals: "true"}

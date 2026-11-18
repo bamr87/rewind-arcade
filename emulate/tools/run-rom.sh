@@ -94,7 +94,7 @@ if [[ -z "$rom" ]]; then
   romdir="$(system_rom_dir "$system")"
   [[ -d "$romdir" ]] || die "no ROM folder yet: $romdir (run: ./bin/retropi build)"
   for ext in $(sys_list "$system" extensions); do
-    rom="$(find "$romdir" -type f -iname "*$ext" 2>/dev/null | sort | head -1)"
+    rom="$(find -L "$romdir" -type f -iname "*$ext" 2>/dev/null | sort | head -1)"
     [[ -n "$rom" ]] && break
   done
   [[ -n "$rom" ]] || die "no ROM found in $romdir

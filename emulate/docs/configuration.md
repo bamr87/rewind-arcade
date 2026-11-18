@@ -48,11 +48,15 @@ gives you exactly two systems, not the defaults plus two.
 | `display.rotate` | `normal` | `normal`, `left`, `right`, `inverted` — applied by `frontend session` |
 | `display.region` | `full` | `full`, `top-half`, `bottom-half`, `left-half`, `right-half`; anything but `full` runs games in a borderless window of that size |
 | `audio.output` | `""` | Output to play through, matched against `retropi audio list` (e.g. `hdmi`); applied by `audio apply` and `frontend session start` |
-| `controls.joypad_driver` | `auto` | RetroArch joypad driver; `linuxraw` for sessions started over SSH |
+| `emulation.mute` | `false` | Start every game with RetroArch muted (F9 toggles in game) |
+| `dev.mute` | `false` | Start `retropi dev run` games muted (`--mute` for one run, `retropi dev mute` toggles) |
+| `controls.joypad_driver` | `auto` | RetroArch joypad driver; `linuxraw` for sessions started over SSH. `auto` is `udev` on SteamOS and RetroArch's own default elsewhere |
+| `controls.keyboard` | `auto` | RetroArch keyboard binds: `auto` clears the keys Steam's Desktop Layout types for a controller (SteamOS), `true` keeps them, `false` clears them everywhere |
 | `systems.enabled` | every system | What the frontend shows |
 | `emulators.<system>` | — | Override the default emulator for one system |
 | `saves.centralize` | `true` | Keep saves out of the ROM tree |
-| `controls.hotkeys.*` | see file | Hotkey combos written to RetroArch |
+| `controls.player1_device` | `""` | Give player 1 to this controller when it is connected: its name (`Xbox Wireless Controller`) or `vid:pid` in hex |
+| `controls.hotkeys.*` | see file | Hotkey combos written to RetroArch. On Linux they are resolved per controller and written into each installed profile, because raw button numbers differ between pads |
 | `controls.manage_autoconfig` | `true` | Install the controller profiles in `config/controllers/` into RetroArch |
 | `sync.targets.*` | `pi` | rsync destinations |
 

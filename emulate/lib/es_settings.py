@@ -10,6 +10,7 @@ type inferred from their value.
 """
 from __future__ import annotations
 
+import os
 import sys
 import xml.etree.ElementTree as ET
 
@@ -22,11 +23,25 @@ def infer_type(value: str) -> str:
     return "string"
 
 
-def merge(target: str, wanted: dict) -> tuple[int, int]:
+def _read(target: str) -> tuple[ET.Element, bool]:
+    """(root, rootless). ES-DE writes its settings as a bare list of elements
+    after the XML declaration, which is not one document: wrap it to parse it,
+    and remember to write it back the same way."""
     try:
-        root = ET.parse(target).getroot()
-    except (FileNotFoundError, ET.ParseError):
-        root = ET.Element("config")
+        with open(target, encoding="utf-8") as fh:
+            text = fh.read()
+    except FileNotFoundError:
+        return ET.Element("config"), True
+    try:
+        return ET.fromstring(text), False
+    except ET.ParseError:
+        pass
+    body = text.split("?>", 1)[1] if text.lstrip().startswith("<?xml") else text
+    return ET.fromstring(f"<config>{body}</config>"), True
+
+
+def merge(target: str, wanted: dict) -> tuple[int, int]:
+    root, rootless = _read(target)
 
     index = {el.get("name"): el for el in list(root) if el.get("name")}
     updated = added = 0
@@ -40,6 +55,16 @@ def merge(target: str, wanted: dict) -> tuple[int, int]:
             updated += 1
         node.set("value", value)
 
+    if rootless:
+        lines = ['<?xml version="1.0"?>']
+        for el in root:
+            el.tail = None
+            lines.append(ET.tostring(el, encoding="unicode"))
+        with open(target + ".tmp", "w", encoding="utf-8") as fh:
+            fh.write("\n".join(lines) + "\n")
+        os.replace(target + ".tmp", target)
+        return updated, added
+
     # Readable, stable formatting.
     root.text = "\n    "
     for el in list(root):
@@ -48,6 +73,14 @@ def merge(target: str, wanted: dict) -> tuple[int, int]:
         root[-1].tail = "\n"
     ET.ElementTree(root).write(target, encoding="UTF-8", xml_declaration=True)
     return updated, added
+
+
+def get(target: str, key: str) -> str | None:
+    root, _ = _read(target)
+    for el in root:
+        if el.get("name") == key:
+            return el.get("value")
+    return None
 
 
 def main(argv: list[str]) -> int:

@@ -163,6 +163,29 @@ def cmd_fetch(cfg, a):
     return 0
 
 
+def cmd_media(cfg, a):
+    from .sources import media
+    if not cfg.catalog.exists():
+        print("cartidx: no catalog yet; run cartidx build first", file=sys.stderr)
+        return 2
+    rows = read_csv(cfg.catalog)
+    want = set(a.system) if a.system else None
+    st = media.run(cfg, rows, systems=want, kinds=a.kind, workers=a.workers,
+                   include_held=a.all, retry_missing=a.retry_missing, report_only=a.report)
+    if not a.report:
+        print(f"\n{st['got']} downloaded ({st['bytes'] / 1e6:.0f} MB), {st['none']} with no source,"
+              f" {st['errors']} errors")
+    kinds = [k for k in media.KINDS if not a.kind or k in a.kind]
+    body = []
+    for sid, c in sorted(st["coverage"].items()):
+        body.append([platforms.label(sid), c["games"]] + [pct(c[k], c["games"]) for k in kinds])
+    if body:
+        print()
+        table(["system", "games"] + kinds, body, right=set(range(1, 2 + len(kinds))))
+    print(f"\nmedia in {media.media_root(cfg)}")
+    return 0
+
+
 def _progress(n, stats):
     print(f"  ... {n} files ({stats['cached']} cached)", flush=True)
 
@@ -442,6 +465,15 @@ def parser():
 
     sub.add_parser("export", help="rewrite CSV, SQLite and web data from the catalog")
 
+    p = sub.add_parser("media", help="download artwork for file refs (ES-DE media layout)")
+    p.add_argument("--system", **systems)
+    p.add_argument("--kind", action="append",
+                   choices=["covers", "marquees", "titlescreens", "physicalmedia", "screenshots"])
+    p.add_argument("--workers", type=int, default=6)
+    p.add_argument("--all", action="store_true", help="include dumps in holding folders")
+    p.add_argument("--retry-missing", action="store_true", help="ask again for URLs that 404ed")
+    p.add_argument("--report", action="store_true", help="coverage only, no downloads")
+
     p = sub.add_parser("catalog", help="list the games library")
     p.add_argument("--system", **systems)
     p.add_argument("--owned", action="store_true", help="only titles you own")
@@ -475,7 +507,7 @@ def parser():
 
 
 HANDLERS = {"status": cmd_status, "systems": cmd_systems, "fetch": cmd_fetch,
-            "scan": cmd_scan, "build": cmd_build, "export": cmd_export,
+            "scan": cmd_scan, "build": cmd_build, "export": cmd_export, "media": cmd_media,
             "catalog": cmd_catalog, "prices": cmd_prices, "inventory": cmd_inventory,
             "serve": cmd_serve, "query": cmd_query}
 

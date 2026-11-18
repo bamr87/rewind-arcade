@@ -180,6 +180,8 @@ frontend_version() {
 frontend_custom_systems_dir() { printf '%s/custom_systems' "$(frontend_home)"; }
 frontend_gamelists_dir()      { printf '%s/gamelists' "$(frontend_home)"; }
 frontend_themes_dir()         { printf '%s/themes' "$(frontend_home)"; }
+# Custom collections: one custom-<name>.cfg of ROM paths each (ES-DE and EmulationStation alike).
+frontend_collections_dir()    { printf '%s/collections' "$(frontend_home)"; }
 # ES-DE 3.x keeps es_settings.xml in <home>/settings/; RetroPie's
 # EmulationStation keeps it at the root of its home.
 frontend_settings_file() {

@@ -1,0 +1,3 @@
+# Rating tier S or A: the community rating shrunk toward each console's mean by vote count.
+name: "Top Rated"
+match: {field: tier, regex: "^[SA]"}

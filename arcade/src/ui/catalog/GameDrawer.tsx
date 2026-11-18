@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { gameKey, mb, titleKey, usd } from '../../catalog/format';
 import type { CatalogBundle, GameRow, RomRow } from '../../catalog/types';
-import { coverCandidates } from '../../esde/covers';
+import { coverCandidates, snapUrl } from '../../esde/covers';
+import { localMedia, useMediaIndex } from '../../esde/media';
 import { navigate } from '../../engine/router';
 import { storage } from '../../engine/storage';
 import { getEmuSystem } from '../../emulate/systems';
@@ -40,17 +41,32 @@ function Kv({ rows }: { rows: [string, string | number | undefined][] }) {
 }
 
 function DrawerCover({ row }: { row: GameRow }) {
-  const urls = coverCandidates(row.c, row.t, row.n, row.rg, row.bx);
+  useMediaIndex();
+  const local = localMedia('covers', row.c, row.t);
+  // On this machine the file ES-DE shows; on a public site, libretro's own copy.
+  const shot = localMedia('screenshots', row.c, row.t) ?? snapUrl(row.c, row.n);
+  const [shotOk, setShotOk] = useState(true);
+  const urls = [...(local ? [local] : []), ...coverCandidates(row.c, row.t, row.n, row.rg, row.bx)];
   const [i, setI] = useState(0);
   const src = urls[i];
   if (!src) return null;
   return (
-    <img
-      src={src}
-      alt=""
-      onError={() => setI((n) => n + 1)}
-      className="mt-4 block max-h-64 max-w-45 rounded-lg shadow-[0_18px_40px_-12px_rgba(0,0,0,0.8)] ring-1 ring-white/10"
-    />
+    <div className="mt-4 flex flex-wrap items-end gap-3">
+      <img
+        src={src}
+        alt=""
+        onError={() => setI((n) => n + 1)}
+        className="block max-h-64 max-w-45 rounded-lg shadow-[0_18px_40px_-12px_rgba(0,0,0,0.8)] ring-1 ring-white/10"
+      />
+      {shot && shotOk && (
+        <img
+          src={shot}
+          alt="Gameplay screenshot"
+          onError={() => setShotOk(false)}
+          className="block max-h-48 rounded-md ring-1 ring-white/10 [image-rendering:pixelated]"
+        />
+      )}
+    </div>
   );
 }
 

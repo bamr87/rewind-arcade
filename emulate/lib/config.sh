@@ -132,3 +132,6 @@ screenshots_dir() { path_of screenshots screenshots; }
 themes_dir()      { path_of themes themes; }
 build_dir()       { path_of build build; }
 downloads_dir()   { path_of downloads .retropi/downloads; }
+# import_metadata_dir - per-system JSON a `roms import --metadata` keeps, so
+# every later gamelist build re-applies it.
+import_metadata_dir() { printf '%s/metadata' "$RETROPI_STATE"; }

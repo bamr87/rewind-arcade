@@ -1,0 +1,3 @@
+# Rating tier S only.
+name: "Classics"
+match: {field: tier, regex: "^S"}
