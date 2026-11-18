@@ -5,6 +5,7 @@ import { navigate, type Route } from '../../engine/router';
 import { useEsdeInput } from '../../esde/input';
 import { useEsLibrary } from '../../esde/library';
 import { useSpatialNav } from '../../esde/spatial';
+import { NotFoundPage } from '../NotFoundPage';
 import { PlayLobby } from '../PlayLobby';
 import { Shell } from '../Shell';
 import { GamelistView } from './GamelistView';
@@ -19,7 +20,7 @@ const ProfilePage = lazy(() => import('../ProfilePage').then((m) => ({ default: 
 const SettingsPage = lazy(() => import('../SettingsPage').then((m) => ({ default: m.SettingsPage })));
 const SystemsPage = lazy(() => import('../SystemsPage').then((m) => ({ default: m.SystemsPage })));
 
-const SCROLL_PAGES: Route['name'][] = ['catalog', 'systems', 'play', 'profile', 'settings'];
+const SCROLL_PAGES: Route['name'][] = ['catalog', 'systems', 'play', 'profile', 'settings', 'notfound'];
 
 export function EsdeRoot({ route }: { route: Route }) {
   const { systems, gamesOf } = useEsLibrary();
@@ -82,7 +83,12 @@ export function EsdeRoot({ route }: { route: Route }) {
   return (
     <div className="esde" ref={rootRef}>
       <Shell route={route} onMenu={onMenu} onSearch={openPalette} collectionLabel={readyHint} />
-      <main ref={mainRef} className={`esde-main${scroll ? ' esde-main--scroll' : ''}`}>
+      <main
+        ref={mainRef}
+        id="main-content"
+        tabIndex={-1}
+        className={`esde-main${scroll ? ' esde-main--scroll' : ''}`}
+      >
         {/* Opacity only: a transform here would re-anchor the catalog's fixed drawers. */}
         <motion.div
           key={pageKey}
@@ -104,6 +110,7 @@ export function EsdeRoot({ route }: { route: Route }) {
             <GamelistView system={system} games={gamesOf(system.id)} menuOpen={blocked} onMenu={onMenu} />
           )}
           {route.name === 'play' && <PlayLobby />}
+          {route.name === 'notfound' && <NotFoundPage onSearch={openPalette} />}
           <Suspense fallback={null}>
             {route.name === 'catalog' && <CatalogPage route={route} />}
             {route.name === 'systems' && <SystemsPage route={route} />}

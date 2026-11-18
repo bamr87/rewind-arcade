@@ -111,8 +111,12 @@ sys_list() {
   local id="$1" key="$2" flat
   system_exists "$id" || return 0
   flat="$(_sys_flat "$id")"
+  # sort -t '=' takes the separator as its own argument: uutils sort rejects
+  # the attached -t= form, and the || true below would hide that as empty output.
   grep -- "^${key}\.[0-9]\{1,\}=" "$flat" 2>/dev/null \
-    | sed "s/^${key//./\\.}\.//" | sort -t= -k1,1n | cut -d= -f2- || true
+    | sed "s/^${key//./\\.}\.//" \
+    | sort -t '=' -k1,1n \
+    | cut -d= -f2- || true
 }
 
 # sys_count <id> <list.key> - number of ENTRIES in a list.
