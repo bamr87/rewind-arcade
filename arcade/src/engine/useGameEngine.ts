@@ -10,6 +10,7 @@ import type {
 } from './types';
 import { audio } from './audio';
 import { padEnabled, padRoles, subscribePad, type PadEvent } from './gamepad';
+import { keyActivatesFocus, keyBelongsToField } from './keys';
 import { storage } from './storage';
 
 /** Every game understands the arrow keys, so a pad steers one without saying anything. */
@@ -186,7 +187,11 @@ export function useGameEngine(manifest: GameManifest, config: GameConfig, option
     // Two classes of keys. SYSTEM keys (Space/Enter/Escape/P) are handled by the
     // host so every game inherits pause + overlay-confirm; they are not forwarded
     // to the game. Everything else is gameplay and goes straight to the instance.
+    // A key typed into a form field or an open dialog is neither, and neither is
+    // Enter/Space on a control the user reached with Tab (releases still go through
+    // below, so nothing the game saw pressed is left held down).
     const onKeyDown = (e: KeyboardEvent) => {
+      if (keyBelongsToField(e) || keyActivatesFocus(e)) return;
       audio.ensure();
       const code = e.code;
 

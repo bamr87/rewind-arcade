@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>Rewind Arcade</title>
+  <rect width="64" height="64" rx="14" fill="#060912"/>
+  <rect x="2" y="2" width="60" height="60" rx="12" fill="none" stroke="#38bdf8" stroke-opacity=".45" stroke-width="2"/>
+  <rect x="6" y="21" width="52" height="26" rx="13" fill="#38bdf8"/>
+  <path d="M15 28h4v4h4v4h-4v4h-4v-4h-4v-4h4z" fill="#060912"/>
+  <circle cx="43.5" cy="31" r="3.25" fill="#060912"/>
+  <circle cx="50.5" cy="37" r="3.25" fill="#060912"/>
+</svg>

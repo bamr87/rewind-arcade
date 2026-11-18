@@ -3,6 +3,7 @@ import {
   Camera,
   Keyboard,
   Maximize2,
+  Megaphone,
   Minimize2,
   Pause,
   Play,
@@ -15,7 +16,8 @@ import {
 import type { GameManifest, HudModel } from '../engine/types';
 import { fmt } from '../engine/util';
 import type { EngineStatus } from '../engine/useGameEngine';
-import { IconButton } from './kit';
+import { FeedbackLink } from './feedback';
+import { IconButton, iconButtonClass } from './kit';
 
 interface Props {
   manifest: GameManifest;
@@ -36,12 +38,14 @@ interface Props {
   onToggleFullscreen: () => void;
   onScreenshot: () => void;
   onToggleHelp: () => void;
+  /** Runs before the feedback dialog opens over the game. */
+  onFeedback: () => void;
 }
 
 export function Hud({
   manifest, hud, best, status, muted, crt, fullscreen, helpOpen,
   onBack, onTogglePause, onToggleSound, onOpenConfig, onGameAction,
-  onRestart, onToggleCrt, onToggleFullscreen, onScreenshot, onToggleHelp,
+  onRestart, onToggleCrt, onToggleFullscreen, onScreenshot, onToggleHelp, onFeedback,
 }: Props) {
   const lives = hud.lives;
   const paused = status === 'paused';
@@ -119,6 +123,16 @@ export function Hud({
           <IconButton label="Screenshot" onClick={onScreenshot} noFocus className="max-sm:hidden">
             <Camera />
           </IconButton>
+          {/* The page's inline feedback trigger: this page has no floating one. */}
+          <FeedbackLink
+            aria-label="Improve this page"
+            title="Improve this page"
+            className={iconButtonClass(false)}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={onFeedback}
+          >
+            <Megaphone />
+          </FeedbackLink>
           <IconButton label={fullscreen ? 'Exit fullscreen' : 'Fullscreen'} onClick={onToggleFullscreen} noFocus>
             {fullscreen ? <Minimize2 /> : <Maximize2 />}
           </IconButton>

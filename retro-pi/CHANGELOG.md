@@ -8,6 +8,10 @@ All notable changes to this project are documented in this file. The format is b
 
 - `CHANGELOG.md`, in Keep a Changelog format.
 
+### Fixed
+
+- List reads (`cfg_list`, `sys_list`) pass `sort` its separator as its own argument (`sort -t '='`). uutils coreutils `sort` rejects the attached `-t=` form, and the pipeline's `|| true` turned that into empty aliases, extensions and emulator lists (bamr87/rewind-arcade#66).
+
 ## History
 
 No versions have been tagged yet. The project started on 2026-09-11 and has 17 commits on `main`. The most recent changes:

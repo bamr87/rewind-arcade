@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import type { CatalogTab } from '../catalog/types';
 
 export interface Route {
-  name: 'arcade' | 'play' | 'emulate' | 'catalog' | 'systems' | 'gamelist' | 'profile' | 'settings';
+  name: 'arcade' | 'play' | 'emulate' | 'catalog' | 'systems' | 'gamelist' | 'profile' | 'settings' | 'notfound';
   gameId?: string;
   systemId?: string;
   tab?: CatalogTab;
@@ -42,7 +42,9 @@ function parse(hash: string): Route {
       : { name: 'systems' };
   }
   if (head === 'profile' || head === 'settings') return { name: head };
-  return { name: 'arcade' };
+  // An empty hash is the home wheel; anything else unknown is a real not-found page,
+  // never a silent bounce home (UPS-FE-15).
+  return head === undefined ? { name: 'arcade' } : { name: 'notfound' };
 }
 
 export function useHashRoute(): Route {

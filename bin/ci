@@ -35,7 +35,7 @@ run_arcade() {
   step "arcade.yml / build"
   need npm
   need node
-  (cd "$ROOT/arcade" && npm ci && npm run build)
+  (cd "$ROOT/arcade" && npm install --no-audit --no-fund && npm run build)
 }
 
 run_catalog() {
@@ -98,7 +98,7 @@ PY
 run_deploy() {
   step "deploy.yml / build (no Pages upload)"
   need npm
-  (cd "$ROOT/arcade" && npm ci && npm run emulatorjs && npm run build)
+  (cd "$ROOT/arcade" && npm install --no-audit --no-fund && npm run emulatorjs && npm run build)
 }
 
 run_native() {
@@ -148,7 +148,7 @@ run_act() {
 list_jobs() {
   cat <<'EOF'
 workflow          native                         act
-arcade.yml        npm ci && npm run build        full
+arcade.yml        npm install && npm run build   full
 catalog.yml       make -C catalog check          full
 emulate.yml       host test + lint               ubuntu test + lint
                   --docker: debian + arm64
